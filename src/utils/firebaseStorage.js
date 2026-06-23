@@ -169,16 +169,39 @@ export const addTournamentRegistration = async (tournamentId, playerData) => {
   try {
     // Check if player already registered for this tournament
     const existingRegistrations = await getTournamentRegistrations(tournamentId);
-    const existingPlayer = existingRegistrations.find(reg => reg.mobile === playerData.mobile);
+    const existingTournamentReg = existingRegistrations.find(reg => reg.mobile === playerData.mobile);
 
-    if (existingPlayer) {
+    if (existingTournamentReg) {
       return {
         success: false,
         message: `${playerData.name} (${playerData.mobile}) is already registered for this tournament!`
       };
     }
 
-    // Add new registration
+    // Check if player exists in Players module
+    const existingPlayer = await getPlayerByMobile(playerData.mobile);
+
+    let playerMessage = '';
+
+    if (!existingPlayer) {
+      // Player doesn't exist in Players module - add them
+      const newPlayer = {
+        name: playerData.name,
+        mobile: playerData.mobile,
+        dateOfBirth: playerData.dateOfBirth,
+        bloodGroup: playerData.bloodGroup,
+        place: playerData.place,
+        position: playerData.position,
+        photo: playerData.photo
+      };
+
+      await addPlayer(newPlayer);
+      playerMessage = ' Player has been added to the system.';
+    } else {
+      playerMessage = ' Player already exists in the system.';
+    }
+
+    // Add tournament registration
     const registrationsRef = ref(database, `tournament_registrations/${tournamentId}`);
     const newRegistrationRef = push(registrationsRef);
     const newRegistration = {
@@ -192,7 +215,7 @@ export const addTournamentRegistration = async (tournamentId, playerData) => {
 
     return {
       success: true,
-      message: `${playerData.name} has been successfully registered for the tournament!`,
+      message: `${playerData.name} has been successfully registered for the tournament!${playerMessage}`,
       data: newRegistration
     };
   } catch (error) {
