@@ -767,3 +767,115 @@
     justify-content: center;
   }
 }
+
+/* Select All Bar */
+.select-all-bar {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  padding: 1rem 1.5rem;
+  border-radius: 12px 12px 0 0;
+  margin-bottom: 0;
+  border: 2px solid #d1d5db;
+  border-bottom: none;
+}
+
+.select-all-bar label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-weight: 600;
+  color: #374151;
+  user-select: none;
+}
+
+.select-all-bar input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+.select-all-bar span {
+  font-size: 0.95rem;
+}
+
+/* Bulk Delete Button */
+.btn-bulk-delete {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  padding: 0.625rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-bulk-delete:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
+}
+
+.btn-bulk-delete:active {
+  transform: translateY(0);
+}
+
+/* Warning Box in Modal */
+.warning-box {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #fbbf24;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.warning-box .warning-text {
+  margin: 0 0 0.5rem 0 !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  color: #92400e !important;
+}
+
+.warning-box .warning-subtext {
+  margin: 0 !important;
+  font-size: 0.85rem;
+  color: #78350f;
+  font-weight: 500;
+}
+
+/* Adjust registrations list when select-all is present */
+.registrations-list .registration-card:first-of-type {
+  border-radius: 0;
+  border-top: none;
+}
+
+.registrations-list:has(.select-all-bar) .registration-card:first-of-type {
+  border-top: 2px solid #e5e7eb;
+}
+
+/* Mobile adjustments for bulk delete */
+@media (max-width: 768px) {
+  .filter-info {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .btn-bulk-delete {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .select-all-bar {
+    padding: 0.75rem 1rem;
+  }
+
+  .warning-box {
+    padding: 0.75rem;
+  }
+}

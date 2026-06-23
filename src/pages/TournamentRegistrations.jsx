@@ -16,7 +16,9 @@ const TournamentRegistrations = () => {
   const [registrations, setRegistrations] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteModal, setDeleteModal] = useState({ show: false, registration: null });
+  const [bulkDeleteModal, setBulkDeleteModal] = useState({ show: false, count: 0 });
   const [loading, setLoading] = useState(true);
+  const [selectedRegistrations, setSelectedRegistrations] = useState([]);
 
   useEffect(() => {
     loadData();
@@ -65,6 +67,59 @@ const TournamentRegistrations = () => {
 
   const handleCancelDelete = () => {
     setDeleteModal({ show: false, registration: null });
+  };
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedRegistrations(filteredRegistrations.map(reg => reg.id));
+    } else {
+      setSelectedRegistrations([]);
+    }
+  };
+
+  const handleSelectOne = (registrationId) => {
+    setSelectedRegistrations(prev => {
+      if (prev.includes(registrationId)) {
+        return prev.filter(id => id !== registrationId);
+      } else {
+        return [...prev, registrationId];
+      }
+    });
+  };
+
+  const handleBulkDeleteClick = () => {
+    if (selectedRegistrations.length === 0) {
+      alert('Please select at least one registration to delete');
+      return;
+    }
+    setBulkDeleteModal({ show: true, count: selectedRegistrations.length });
+  };
+
+  const handleConfirmBulkDelete = async () => {
+    try {
+      // Delete all selected registrations
+      for (const registrationId of selectedRegistrations) {
+        await deleteRegistration(id, registrationId);
+      }
+
+      // Reload data
+      await loadData();
+
+      // Clear selection
+      setSelectedRegistrations([]);
+
+      // Close modal
+      setBulkDeleteModal({ show: false, count: 0 });
+
+      alert(`Successfully deleted ${selectedRegistrations.length} registration(s)`);
+    } catch (error) {
+      console.error('Error deleting registrations:', error);
+      alert('Failed to delete some registrations. Please try again.');
+    }
+  };
+
+  const handleCancelBulkDelete = () => {
+    setBulkDeleteModal({ show: false, count: 0 });
   };
 
   const handleDownloadExcel = () => {
@@ -216,6 +271,15 @@ const TournamentRegistrations = () => {
             <span className="count-badge">
               {filteredRegistrations.length} {filteredRegistrations.length === 1 ? 'Registration' : 'Registrations'}
             </span>
+            {selectedRegistrations.length > 0 && (
+              <button
+                onClick={handleBulkDeleteClick}
+                className="btn-bulk-delete"
+                title={`Delete ${selectedRegistrations.length} selected registration(s)`}
+              >
+                🗑️ Delete Selected ({selectedRegistrations.length})
+              </button>
+            )}
           </div>
         </div>
 
@@ -227,10 +291,25 @@ const TournamentRegistrations = () => {
           </div>
         ) : (
           <div className="registrations-list">
+            <div className="select-all-bar">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={selectedRegistrations.length === filteredRegistrations.length && filteredRegistrations.length > 0}
+                  onChange={handleSelectAll}
+                />
+                <span>Select All ({filteredRegistrations.length})</span>
+              </label>
+            </div>
             {filteredRegistrations.map((reg, index) => (
               <div key={reg.id} className="registration-card">
                 <div className="registration-checkbox">
-                  <input type="checkbox" id={`player-${reg.id}`} />
+                  <input
+                    type="checkbox"
+                    id={`player-${reg.id}`}
+                    checked={selectedRegistrations.includes(reg.id)}
+                    onChange={() => handleSelectOne(reg.id)}
+                  />
                 </div>
 
                 <div className="registration-avatar">
@@ -326,6 +405,32 @@ const TournamentRegistrations = () => {
               </button>
               <button className="btn-confirm-delete" onClick={handleConfirmDelete}>
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Delete Confirmation Modal */}
+      {bulkDeleteModal.show && (
+        <div className="modal-overlay" onClick={handleCancelBulkDelete}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>🗑️ Bulk Delete Registrations</h3>
+            </div>
+            <div className="modal-body">
+              <p>Are you sure you want to delete <strong>{bulkDeleteModal.count}</strong> selected registration(s)?</p>
+              <div className="warning-box">
+                <p className="warning-text">⚠️ This action cannot be undone!</p>
+                <p className="warning-subtext">All selected registrations will be permanently deleted.</p>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={handleCancelBulkDelete}>
+                Cancel
+              </button>
+              <button className="btn-confirm-delete" onClick={handleConfirmBulkDelete}>
+                Delete {bulkDeleteModal.count} Registration(s)
               </button>
             </div>
           </div>
