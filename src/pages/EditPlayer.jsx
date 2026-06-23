@@ -39,24 +39,27 @@ const EditPlayer = () => {
 
   useEffect(() => {
     // Load player data
-    const players = getPlayers();
-    const player = players.find(p => p.id === id);
-    
-    if (player) {
-      setFormData({
-        name: player.name,
-        mobile: player.mobile,
-        dateOfBirth: player.dateOfBirth,
-        bloodGroup: player.bloodGroup,
-        place: player.place,
-        position: player.position,
-        photo: player.photo,
-      });
-      setPhotoPreview(player.photo);
-    } else {
-      navigate('/players');
-    }
-    setLoading(false);
+    const loadPlayer = async () => {
+      const players = await getPlayers();
+      const player = players.find(p => p.id === id);
+
+      if (player) {
+        setFormData({
+          name: player.name,
+          mobile: player.mobile,
+          dateOfBirth: player.dateOfBirth,
+          bloodGroup: player.bloodGroup,
+          place: player.place,
+          position: player.position,
+          photo: player.photo,
+        });
+        setPhotoPreview(player.photo);
+      } else {
+        navigate('/players');
+      }
+      setLoading(false);
+    };
+    loadPlayer();
   }, [id, navigate]);
 
   const handleChange = (e) => {
@@ -132,13 +135,13 @@ const EditPlayer = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSuccess(false);
 
     if (validateForm()) {
       try {
-        updatePlayer(id, formData);
+        await updatePlayer(id, formData);
         setSuccess(true);
         setTimeout(() => {
           navigate('/players');

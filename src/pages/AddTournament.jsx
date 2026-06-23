@@ -41,11 +41,11 @@ const AddTournament = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
       try {
-        addTournament(formData);
+        await addTournament(formData);
         alert('Tournament created successfully!');
         navigate('/tournaments');
       } catch (error) {

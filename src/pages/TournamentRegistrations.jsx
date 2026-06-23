@@ -21,8 +21,8 @@ const TournamentRegistrations = () => {
     loadData();
   }, [id]);
 
-  const loadData = () => {
-    const tournamentData = getTournamentById(id);
+  const loadData = async () => {
+    const tournamentData = await getTournamentById(id);
     if (!tournamentData) {
       alert('Tournament not found!');
       navigate('/tournaments');
@@ -30,7 +30,7 @@ const TournamentRegistrations = () => {
     }
     setTournament(tournamentData);
 
-    const regs = getTournamentRegistrations(id);
+    const regs = await getTournamentRegistrations(id);
     setRegistrations(regs);
   };
 

@@ -14,9 +14,9 @@ const Dashboard = () => {
     loadStats();
   }, []);
 
-  const loadStats = () => {
-    const players = getPlayers();
-    const tournaments = getTournaments();
+  const loadStats = async () => {
+    const players = await getPlayers();
+    const tournaments = await getTournaments();
     setPlayerCount(players.length);
     setTournamentCount(tournaments.length);
   };

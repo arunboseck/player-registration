@@ -22,14 +22,17 @@ const EditTournament = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const tournament = getTournamentById(id);
-    if (tournament) {
-      setFormData(tournament);
-      setLoading(false);
-    } else {
-      alert('Tournament not found!');
-      navigate('/tournaments');
-    }
+    const loadTournament = async () => {
+      const tournament = await getTournamentById(id);
+      if (tournament) {
+        setFormData(tournament);
+        setLoading(false);
+      } else {
+        alert('Tournament not found!');
+        navigate('/tournaments');
+      }
+    };
+    loadTournament();
   }, [id, navigate]);
 
   const handleChange = (e) => {
@@ -54,11 +57,11 @@ const EditTournament = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
       try {
-        updateTournament(id, formData);
+        await updateTournament(id, formData);
         alert('Tournament updated successfully!');
         navigate('/tournaments');
       } catch (error) {

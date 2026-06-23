@@ -16,14 +16,14 @@ const Players = () => {
     loadPlayers();
   }, []);
 
-  const loadPlayers = () => {
-    const allPlayers = getPlayers();
+  const loadPlayers = async () => {
+    const allPlayers = await getPlayers();
     setPlayers(allPlayers);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this player?')) {
-      deletePlayer(id);
+      await deletePlayer(id);
       loadPlayers();
     }
   };

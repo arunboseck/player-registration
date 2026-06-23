@@ -33,13 +33,13 @@ const RegisterPlayer = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     // Check if mobile number already exists
-    const existingPlayer = getPlayerByMobile(formData.mobile);
+    const existingPlayer = await getPlayerByMobile(formData.mobile);
     if (existingPlayer) {
       setError(`A player with mobile number ${formData.mobile} already exists: ${existingPlayer.name}`);
       setLoading(false);
@@ -47,7 +47,7 @@ const RegisterPlayer = () => {
     }
 
     try {
-      addPlayer(formData);
+      await addPlayer(formData);
       navigate('/players');
     } catch (err) {
       setError('Failed to register player. Please try again.');

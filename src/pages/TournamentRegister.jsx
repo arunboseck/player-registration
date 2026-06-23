@@ -24,11 +24,14 @@ const TournamentRegister = () => {
   });
 
   useEffect(() => {
-    const tournamentData = getTournamentById(id);
-    if (tournamentData) {
-      setTournament(tournamentData);
-    }
-    // If tournament is not found, we'll show an error message instead of redirecting
+    const loadTournament = async () => {
+      const tournamentData = await getTournamentById(id);
+      if (tournamentData) {
+        setTournament(tournamentData);
+      }
+      // If tournament is not found, we'll show an error message instead of redirecting
+    };
+    loadTournament();
   }, [id]);
 
   const handleChange = (e) => {
@@ -47,10 +50,10 @@ const TournamentRegister = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const result = addTournamentRegistration(id, formData);
+      const result = await addTournamentRegistration(id, formData);
 
       if (!result.success) {
         // Player is already registered for this tournament

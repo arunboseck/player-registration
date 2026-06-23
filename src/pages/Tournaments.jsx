@@ -13,14 +13,14 @@ const Tournaments = () => {
     loadTournaments();
   }, []);
 
-  const loadTournaments = () => {
-    const allTournaments = getTournaments();
+  const loadTournaments = async () => {
+    const allTournaments = await getTournaments();
     setTournaments(allTournaments);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this tournament?')) {
-      deleteTournament(id);
+      await deleteTournament(id);
       loadTournaments();
     }
   };
