@@ -167,9 +167,27 @@ export const getTournamentRegistrations = async (tournamentId) => {
 
 export const addTournamentRegistration = async (tournamentId, playerData) => {
   try {
-    // Check if player already registered for this tournament
+    // Use mobile number as unique key to prevent duplicates at database level
+    const sanitizedMobile = playerData.mobile.replace(/[^0-9]/g, ''); // Remove non-numeric chars
+    const uniqueRegistrationKey = `${tournamentId}_${sanitizedMobile}`;
+
+    // Create a unique path using mobile number
+    const uniqueCheckRef = ref(database, `tournament_registrations_unique/${uniqueRegistrationKey}`);
+
+    // Check if this unique key already exists
+    const uniqueSnapshot = await get(uniqueCheckRef);
+    if (uniqueSnapshot.exists()) {
+      return {
+        success: false,
+        message: `${playerData.name} (${playerData.mobile}) is already registered for this tournament!`
+      };
+    }
+
+    // Double-check in the actual registrations list (fallback)
     const existingRegistrations = await getTournamentRegistrations(tournamentId);
-    const existingTournamentReg = existingRegistrations.find(reg => reg.mobile === playerData.mobile);
+    const existingTournamentReg = existingRegistrations.find(reg =>
+      reg.mobile.replace(/[^0-9]/g, '') === sanitizedMobile
+    );
 
     if (existingTournamentReg) {
       return {
@@ -204,14 +222,25 @@ export const addTournamentRegistration = async (tournamentId, playerData) => {
     // Add tournament registration
     const registrationsRef = ref(database, `tournament_registrations/${tournamentId}`);
     const newRegistrationRef = push(registrationsRef);
+    const registrationId = newRegistrationRef.key;
+
     const newRegistration = {
       ...playerData,
-      id: newRegistrationRef.key,
+      id: registrationId,
       tournamentId,
       registeredAt: new Date().toISOString()
     };
 
+    // Write both the registration and unique key atomically
     await set(newRegistrationRef, newRegistration);
+
+    // Store unique key mapping to prevent future duplicates
+    await set(uniqueCheckRef, {
+      registrationId: registrationId,
+      mobile: playerData.mobile,
+      name: playerData.name,
+      createdAt: new Date().toISOString()
+    });
 
     return {
       success: true,
@@ -226,8 +255,24 @@ export const addTournamentRegistration = async (tournamentId, playerData) => {
 
 export const deleteRegistration = async (tournamentId, registrationId) => {
   try {
+    // First, get the registration to find the mobile number
     const registrationRef = ref(database, `tournament_registrations/${tournamentId}/${registrationId}`);
-    await remove(registrationRef);
+    const snapshot = await get(registrationRef);
+
+    if (snapshot.exists()) {
+      const registration = snapshot.val();
+      const sanitizedMobile = registration.mobile.replace(/[^0-9]/g, '');
+      const uniqueKey = `${tournamentId}_${sanitizedMobile}`;
+
+      // Delete both the registration and unique key
+      await remove(registrationRef);
+
+      const uniqueCheckRef = ref(database, `tournament_registrations_unique/${uniqueKey}`);
+      await remove(uniqueCheckRef);
+    } else {
+      await remove(registrationRef);
+    }
+
     return true;
   } catch (error) {
     console.error('Error deleting registration:', error);

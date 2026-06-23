@@ -12,6 +12,7 @@ import EditTournament from './pages/EditTournament';
 import Tournaments from './pages/Tournaments';
 import TournamentRegister from './pages/TournamentRegister';
 import TournamentRegistrations from './pages/TournamentRegistrations';
+import CleanupDuplicates from './pages/CleanupDuplicates';
 import './App.css';
 
 function App() {
@@ -83,6 +84,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <TournamentRegistrations />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cleanup-duplicates"
+            element={
+              <ProtectedRoute>
+                <CleanupDuplicates />
               </ProtectedRoute>
             }
           />
