@@ -893,11 +893,11 @@ const TournamentRegistrations = () => {
       {imageModal.show && (
         <div className="modal-overlay" onClick={handleCloseImageModal}>
           <div className="modal-content image-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="btn-close-modal-topright" onClick={handleCloseImageModal}>
+              ✕
+            </button>
             <div className="modal-header">
               <h3>📷 {imageModal.name}</h3>
-              <button className="btn-close-modal" onClick={handleCloseImageModal}>
-                ✕
-              </button>
             </div>
             <div className="modal-body image-modal-body">
               <img src={imageModal.image} alt={imageModal.name} className="full-size-image" />
