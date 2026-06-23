@@ -1,0 +1,166 @@
+/* Modern Professional Public Registration Page */
+.public-register-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animated background elements */
+.public-register-container::before {
+  content: '';
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  top: -300px;
+  right: -300px;
+  animation: float 20s ease-in-out infinite;
+}
+
+.public-register-container::after {
+  content: '';
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  bottom: -250px;
+  left: -250px;
+  animation: float 15s ease-in-out infinite reverse;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(30px, -30px) scale(1.1); }
+}
+
+.public-register-box {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  padding: 3rem;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 550px;
+  position: relative;
+  z-index: 10;
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.public-register-box h1 {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.75rem;
+  text-align: center;
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.public-register-box p {
+  text-align: center;
+  color: #6b7280;
+  margin-bottom: 2.5rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.success-message {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  padding: 1.125rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-weight: 700;
+  border-left: 4px solid #10b981;
+  animation: successPulse 0.6s ease-in-out;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+@keyframes successPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+.public-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.public-form input,
+.public-form select {
+  width: 100%;
+  padding: 1.125rem 1.5rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #f9fafb;
+}
+
+.public-form input::placeholder {
+  color: #9ca3af;
+}
+
+.public-form input:hover,
+.public-form select:hover {
+  border-color: #d1d5db;
+  background: #ffffff;
+}
+
+.public-form input:focus,
+.public-form select:focus {
+  outline: none;
+  border-color: #667eea;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  transform: translateY(-2px);
+}
+
+.public-form button {
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.125rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  margin-top: 1rem;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.public-form button:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #6a3fa2 100%);
+  box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
+  transform: translateY(-3px);
+}
+
+.public-form button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+}
