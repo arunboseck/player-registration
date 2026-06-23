@@ -153,17 +153,43 @@ const TournamentRegistrations = () => {
     XLSX.writeFile(workbook, filename);
   };
 
-  // Helper function to resize image to 40x40px
-  const resizeImage = (base64Str, maxWidth = 40, maxHeight = 40) => {
+  // Helper function to resize and crop image to 40x40px square (maintains aspect ratio)
+  const resizeImage = (base64Str, size = 80) => {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        canvas.width = maxWidth;
-        canvas.height = maxHeight;
+        canvas.width = size;
+        canvas.height = size;
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
-        resolve(canvas.toDataURL('image/jpeg', 0.7)); // 0.7 quality for smaller size
+
+        // Calculate dimensions to crop to square (center crop)
+        const imgAspect = img.width / img.height;
+        let sx, sy, sWidth, sHeight;
+
+        if (imgAspect > 1) {
+          // Landscape: crop width
+          sHeight = img.height;
+          sWidth = img.height; // Make it square
+          sx = (img.width - sWidth) / 2; // Center horizontally
+          sy = 0;
+        } else {
+          // Portrait or square: crop height
+          sWidth = img.width;
+          sHeight = img.width; // Make it square
+          sx = 0;
+          sy = (img.height - sHeight) / 2; // Center vertically
+        }
+
+        // Fill with white background first (in case of transparency)
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, size, size);
+
+        // Draw cropped and resized image
+        ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, size, size);
+
+        // Use 92% quality for better clarity
+        resolve(canvas.toDataURL('image/jpeg', 0.92));
       };
       img.onerror = () => resolve(null);
       img.src = base64Str;
@@ -228,7 +254,7 @@ const TournamentRegistrations = () => {
         styles: {
           fontSize: 8,
           cellPadding: 2,
-          minCellHeight: 12,
+          minCellHeight: 18, // Increased for better photo display
         },
         headStyles: {
           fillColor: [102, 126, 234],
@@ -237,8 +263,8 @@ const TournamentRegistrations = () => {
         },
         columnStyles: {
           0: { cellWidth: 10, halign: 'center' }, // S.No
-          1: { cellWidth: 15, halign: 'center' }, // Photo (smaller width)
-          2: { cellWidth: 32 }, // Name
+          1: { cellWidth: 18, halign: 'center', valign: 'middle' }, // Photo (increased width)
+          2: { cellWidth: 30 }, // Name
           3: { cellWidth: 25 }, // Mobile
           4: { cellWidth: 22 }, // DOB
           5: { cellWidth: 18, halign: 'center' }, // Blood Group
@@ -251,9 +277,9 @@ const TournamentRegistrations = () => {
             const reg = resizedRegistrations[data.row.index];
             if (reg.resizedPhoto) {
               try {
-                const cellX = data.cell.x + 2;
-                const cellY = data.cell.y + 1;
-                const imgSize = 10; // 10mm = approximately 40px at 96 DPI
+                const cellX = data.cell.x + 2.5;
+                const cellY = data.cell.y + 2;
+                const imgSize = 13; // 13mm for better visibility
 
                 doc.addImage(reg.resizedPhoto, 'JPEG', cellX, cellY, imgSize, imgSize);
               } catch (error) {
