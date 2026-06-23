@@ -1,12 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTournamentById, getTournamentRegistrations, deleteRegistration } from '../utils/storage';
+import { getTournamentById, getTournamentRegistrations, deleteRegistration, updateRegistration } from '../utils/storage';
 import { useAuth } from '../contexts/AuthContext';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import Modal from '../components/Modal';
+import { useModal } from '../hooks/useModal';
 import './Players.css';
 import './TournamentRegistrations.css';
+
+const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+const POSITIONS = ['BATSMAN', 'BOWLER', 'ALL ROUNDER', 'WICKET KEEPER'];
 
 const TournamentRegistrations = () => {
   const { id } = useParams();
@@ -17,8 +22,14 @@ const TournamentRegistrations = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteModal, setDeleteModal] = useState({ show: false, registration: null });
   const [bulkDeleteModal, setBulkDeleteModal] = useState({ show: false, count: 0 });
+  const [editModal, setEditModal] = useState({ show: false, registration: null });
   const [loading, setLoading] = useState(true);
   const [selectedRegistrations, setSelectedRegistrations] = useState([]);
+  const [saving, setSaving] = useState(false);
+  const { modalState, hideModal, showSuccess, showError } = useModal();
+  const dayRef = useRef(null);
+  const monthRef = useRef(null);
+  const yearRef = useRef(null);
 
   useEffect(() => {
     loadData();
@@ -120,6 +131,157 @@ const TournamentRegistrations = () => {
 
   const handleCancelBulkDelete = () => {
     setBulkDeleteModal({ show: false, count: 0 });
+  };
+
+  const handleEditClick = (registration) => {
+    // Parse DOB
+    let dobParts = { day: '', month: '', year: '' };
+    if (registration.dateOfBirth) {
+      const date = new Date(registration.dateOfBirth);
+      dobParts = {
+        day: String(date.getDate()).padStart(2, '0'),
+        month: String(date.getMonth() + 1).padStart(2, '0'),
+        year: String(date.getFullYear())
+      };
+    }
+
+    setEditModal({
+      show: true,
+      registration: {
+        ...registration,
+        dob: dobParts
+      }
+    });
+  };
+
+  const handleEditChange = (field, value) => {
+    setEditModal(prev => ({
+      ...prev,
+      registration: {
+        ...prev.registration,
+        [field]: value
+      }
+    }));
+  };
+
+  const handleDobChange = (field, value) => {
+    // Only allow numbers
+    if (value && !/^\d*$/.test(value)) return;
+
+    let newValue = value;
+    let maxLength = 2;
+    let maxValue = 31;
+
+    if (field === 'day') {
+      maxLength = 2;
+      maxValue = 31;
+      if (value.length === 2 && parseInt(value) > maxValue) {
+        newValue = String(maxValue);
+      }
+    } else if (field === 'month') {
+      maxLength = 2;
+      maxValue = 12;
+      if (value.length === 2 && parseInt(value) > maxValue) {
+        newValue = String(maxValue);
+      }
+    } else if (field === 'year') {
+      maxLength = 4;
+    }
+
+    if (newValue.length > maxLength) return;
+
+    setEditModal(prev => ({
+      ...prev,
+      registration: {
+        ...prev.registration,
+        dob: {
+          ...prev.registration.dob,
+          [field]: newValue
+        }
+      }
+    }));
+
+    // Auto-focus next field
+    if (field === 'day' && newValue.length === 2) {
+      monthRef.current?.focus();
+    } else if (field === 'month' && newValue.length === 2) {
+      yearRef.current?.focus();
+    }
+  };
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditModal(prev => ({
+          ...prev,
+          registration: {
+            ...prev.registration,
+            photo: reader.result
+          }
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    const reg = editModal.registration;
+
+    // Validate required fields
+    if (!reg.name || !reg.mobile || !reg.place || !reg.position) {
+      await showError('Please fill in all required fields');
+      return;
+    }
+
+    // Validate DOB
+    if (!reg.dob.day || !reg.dob.month || !reg.dob.year) {
+      await showError('Please enter a valid date of birth');
+      return;
+    }
+
+    // Validate photo
+    if (!reg.photo) {
+      await showError('Player photo is required');
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      // Format DOB
+      const dateOfBirth = `${reg.dob.year}-${reg.dob.month.padStart(2, '0')}-${reg.dob.day.padStart(2, '0')}`;
+
+      const updatedData = {
+        name: reg.name,
+        mobile: reg.mobile,
+        dateOfBirth,
+        bloodGroup: reg.bloodGroup,
+        place: reg.place,
+        position: reg.position,
+        photo: reg.photo
+      };
+
+      const result = await updateRegistration(id, reg.id, updatedData);
+
+      if (result.success) {
+        await loadData();
+        setEditModal({ show: false, registration: null });
+        await showSuccess(result.message);
+      } else {
+        await showError(result.message);
+      }
+    } catch (error) {
+      console.error('Error saving registration:', error);
+      await showError('Failed to save changes. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditModal({ show: false, registration: null });
   };
 
   const handleDownloadCSV = () => {
@@ -513,13 +675,13 @@ const TournamentRegistrations = () => {
 
                 <div className="registration-actions">
                   <button
-                    className="btn-icon btn-view"
-                    title="View Details"
-                    onClick={() => alert(`Name: ${reg.name}\nMobile: ${reg.mobile}\nPlace: ${reg.place}\nPosition: ${reg.position}\nBlood Group: ${reg.bloodGroup}\nDOB: ${reg.dateOfBirth}`)}
+                    className="btn-icon btn-edit"
+                    title="Edit Registration"
+                    onClick={() => handleEditClick(reg)}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
                   </button>
                   <button
@@ -593,6 +755,149 @@ const TournamentRegistrations = () => {
           </div>
         </div>
       )}
+
+      {/* Edit Modal */}
+      {editModal.show && editModal.registration && (
+        <div className="modal-overlay" onClick={handleCancelEdit}>
+          <div className="modal-content edit-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>✏️ Edit Registration</h3>
+            </div>
+            <div className="modal-body">
+              <div className="edit-form">
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Name *</label>
+                    <input
+                      type="text"
+                      value={editModal.registration.name}
+                      onChange={(e) => handleEditChange('name', e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Mobile *</label>
+                    <input
+                      type="tel"
+                      value={editModal.registration.mobile}
+                      onChange={(e) => handleEditChange('mobile', e.target.value)}
+                      maxLength="10"
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Place *</label>
+                    <input
+                      type="text"
+                      value={editModal.registration.place}
+                      onChange={(e) => handleEditChange('place', e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Date of Birth (DD/MM/YYYY) *</label>
+                    <div className="date-input-group">
+                      <input
+                        ref={dayRef}
+                        type="text"
+                        placeholder="DD"
+                        value={editModal.registration.dob.day}
+                        onChange={(e) => handleDobChange('day', e.target.value)}
+                        maxLength="2"
+                        required
+                      />
+                      <span>/</span>
+                      <input
+                        ref={monthRef}
+                        type="text"
+                        placeholder="MM"
+                        value={editModal.registration.dob.month}
+                        onChange={(e) => handleDobChange('month', e.target.value)}
+                        maxLength="2"
+                        required
+                      />
+                      <span>/</span>
+                      <input
+                        ref={yearRef}
+                        type="text"
+                        placeholder="YYYY"
+                        value={editModal.registration.dob.year}
+                        onChange={(e) => handleDobChange('year', e.target.value)}
+                        maxLength="4"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Blood Group *</label>
+                    <select
+                      value={editModal.registration.bloodGroup}
+                      onChange={(e) => handleEditChange('bloodGroup', e.target.value)}
+                      required
+                    >
+                      <option value="">Select Blood Group</option>
+                      {BLOOD_GROUPS.map(bg => <option key={bg} value={bg}>{bg}</option>)}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Position *</label>
+                    <select
+                      value={editModal.registration.position}
+                      onChange={(e) => handleEditChange('position', e.target.value)}
+                      required
+                    >
+                      <option value="">Select Position</option>
+                      {POSITIONS.map(pos => <option key={pos} value={pos}>{pos}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Player Photo *</label>
+                  <input type="file" accept="image/*" onChange={handlePhotoChange} />
+                  {editModal.registration.photo && (
+                    <div className="photo-preview">
+                      <img src={editModal.registration.photo} alt="Preview" />
+                      <span className="photo-uploaded">✓ Photo uploaded</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={handleCancelEdit} disabled={saving}>
+                Cancel
+              </button>
+              <button className="btn-confirm-save" onClick={handleSaveEdit} disabled={saving}>
+                {saving ? '⏳ Saving...' : '💾 Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Modal
+        show={modalState.show}
+        onClose={hideModal}
+        onConfirm={modalState.onConfirm}
+        onCancel={modalState.onCancel}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        showCancel={modalState.showCancel}
+        icon={modalState.icon}
+      />
     </div>
   );
 };

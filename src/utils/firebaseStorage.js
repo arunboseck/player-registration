@@ -253,6 +253,67 @@ export const addTournamentRegistration = async (tournamentId, playerData) => {
   }
 };
 
+export const updateRegistration = async (tournamentId, registrationId, updatedData) => {
+  try {
+    const registrationRef = ref(database, `tournament_registrations/${tournamentId}/${registrationId}`);
+    const snapshot = await get(registrationRef);
+
+    if (!snapshot.exists()) {
+      return { success: false, message: 'Registration not found' };
+    }
+
+    const currentRegistration = snapshot.val();
+    const oldMobile = currentRegistration.mobile.replace(/[^0-9]/g, '');
+    const newMobile = updatedData.mobile.replace(/[^0-9]/g, '');
+
+    // Check if mobile number changed
+    if (oldMobile !== newMobile) {
+      // Check if new mobile already exists for this tournament
+      const allRegistrations = await getTournamentRegistrations(tournamentId);
+      const duplicateExists = allRegistrations.find(
+        reg => reg.id !== registrationId && reg.mobile.replace(/[^0-9]/g, '') === newMobile
+      );
+
+      if (duplicateExists) {
+        return {
+          success: false,
+          message: `Mobile number ${updatedData.mobile} is already registered for this tournament!`
+        };
+      }
+
+      // Update unique key
+      const oldUniqueKey = `${tournamentId}_${oldMobile}`;
+      const newUniqueKey = `${tournamentId}_${newMobile}`;
+
+      // Remove old unique key
+      const oldUniqueRef = ref(database, `tournament_registrations_unique/${oldUniqueKey}`);
+      await remove(oldUniqueRef);
+
+      // Add new unique key
+      const newUniqueRef = ref(database, `tournament_registrations_unique/${newUniqueKey}`);
+      await set(newUniqueRef, {
+        registrationId: registrationId,
+        mobile: updatedData.mobile,
+        name: updatedData.name,
+        createdAt: new Date().toISOString()
+      });
+    }
+
+    // Update registration
+    const updated = {
+      ...currentRegistration,
+      ...updatedData,
+      updatedAt: new Date().toISOString()
+    };
+    await set(registrationRef, updated);
+
+    return { success: true, message: 'Registration updated successfully!' };
+  } catch (error) {
+    console.error('Error updating registration:', error);
+    return { success: false, message: 'Failed to update registration' };
+  }
+};
+
 export const deleteRegistration = async (tournamentId, registrationId) => {
   try {
     // First, get the registration to find the mobile number
