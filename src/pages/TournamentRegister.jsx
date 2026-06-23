@@ -101,6 +101,18 @@ const TournamentRegister = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate photo is uploaded
+    if (!formData.photo) {
+      setError(true);
+      setErrorMessage('Player photo is required. Please upload a photo before submitting.');
+      setTimeout(() => {
+        setError(false);
+        setErrorMessage('');
+      }, 5000);
+      return;
+    }
+
     try {
       const result = await addTournamentRegistration(id, formData);
 
@@ -121,6 +133,7 @@ const TournamentRegister = () => {
       setFormData({
         name: '', mobile: '', dateOfBirth: '', bloodGroup: '', place: '', position: '', photo: ''
       });
+      setDob({ day: '', month: '', year: '' }); // Reset date fields
       setTimeout(() => {
         setSuccess(false);
         setSuccessMessage('');
@@ -268,8 +281,14 @@ const TournamentRegister = () => {
             </div>
 
             <div className="form-group" style={{marginBottom: '1.25rem'}}>
-              <label>Player Photo (Optional)</label>
-              <input type="file" accept="image/*" onChange={handlePhotoChange} />
+              <label>Player Photo *</label>
+              <input type="file" accept="image/*" onChange={handlePhotoChange} required />
+              {formData.photo && (
+                <div className="photo-preview">
+                  <img src={formData.photo} alt="Preview" />
+                  <span className="photo-uploaded">✓ Photo uploaded</span>
+                </div>
+              )}
             </div>
 
             <button type="submit" className="submit-button">
