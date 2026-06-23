@@ -119,6 +119,32 @@ const TournamentRegister = () => {
       return;
     }
 
+    // Validate mobile number format
+    if (!formData.mobile || formData.mobile.length < 10) {
+      setError(true);
+      setErrorMessage('Please enter a valid 10-digit mobile number.');
+      setTimeout(() => {
+        setError(false);
+        setErrorMessage('');
+      }, 5000);
+      return;
+    }
+
+    // Check for recent submission lock (prevents double-click and race conditions)
+    const lockKey = `registration_lock_${id}_${formData.mobile}`;
+    const lockTime = localStorage.getItem(lockKey);
+    if (lockTime && Date.now() - parseInt(lockTime) < 5000) {
+      setError(true);
+      setErrorMessage('Please wait a moment before submitting again.');
+      setTimeout(() => {
+        setError(false);
+        setErrorMessage('');
+      }, 3000);
+      return;
+    }
+
+    // Set lock
+    localStorage.setItem(lockKey, Date.now().toString());
     setSubmitting(true);
 
     try {
@@ -129,6 +155,8 @@ const TournamentRegister = () => {
         setError(true);
         setErrorMessage(result.message);
         setSubmitting(false);
+        // Remove lock on error
+        localStorage.removeItem(lockKey);
         setTimeout(() => {
           setError(false);
           setErrorMessage('');
@@ -143,7 +171,14 @@ const TournamentRegister = () => {
         name: '', mobile: '', dateOfBirth: '', bloodGroup: '', place: '', position: '', photo: ''
       });
       setDob({ day: '', month: '', year: '' }); // Reset date fields
-      setSubmitting(false);
+
+      // Keep submitting true for a bit longer to prevent rapid re-submission
+      setTimeout(() => {
+        setSubmitting(false);
+        // Remove lock after successful submission
+        localStorage.removeItem(lockKey);
+      }, 3000);
+
       setTimeout(() => {
         setSuccess(false);
         setSuccessMessage('');
@@ -302,8 +337,12 @@ const TournamentRegister = () => {
               )}
             </div>
 
-            <button type="submit" className="submit-button" disabled={submitting}>
-              {submitting ? 'Submitting...' : 'Register for Tournament'}
+            <button type="submit" className="submit-button" disabled={submitting} style={{
+              opacity: submitting ? 0.6 : 1,
+              cursor: submitting ? 'not-allowed' : 'pointer',
+              pointerEvents: submitting ? 'none' : 'auto'
+            }}>
+              {submitting ? '⏳ Processing... Please wait' : '✓ Register for Tournament'}
             </button>
           </form>
         </div>
