@@ -1018,3 +1018,54 @@
     align-items: flex-start;
   }
 }
+
+/* Image Modal */
+.image-modal-content {
+  max-width: 90vw;
+  max-height: 90vh;
+  padding: 0;
+}
+
+.image-modal-body {
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.full-size-image {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 0 0 15px 15px;
+}
+
+.btn-close-modal {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-close-modal:hover {
+  color: #ef4444;
+  transform: scale(1.2);
+}
+
+/* Update registration-info grid to remove position column */
+.registration-info {
+  grid-template-columns: 1.5fr 1fr 1fr 1fr 0.8fr;
+}
+
+/* Make registration avatar clickable */
+.registration-avatar img {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.registration-avatar img:hover {
+  transform: scale(1.05);
+}

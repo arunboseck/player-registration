@@ -30,6 +30,7 @@ const TournamentRegistrations = () => {
   const dayRef = useRef(null);
   const monthRef = useRef(null);
   const yearRef = useRef(null);
+  const [imageModal, setImageModal] = useState({ show: false, image: null, name: '' });
 
   useEffect(() => {
     loadData();
@@ -54,6 +55,14 @@ const TournamentRegistrations = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleImageClick = (photo, name) => {
+    setImageModal({ show: true, image: photo, name });
+  };
+
+  const handleCloseImageModal = () => {
+    setImageModal({ show: false, image: null, name: \'\' });
   };
 
   const handleDeleteClick = (registration) => {
@@ -633,7 +642,7 @@ const TournamentRegistrations = () => {
 
                 <div className="registration-avatar">
                   {reg.photo ? (
-                    <img src={reg.photo} alt={reg.name} />
+                    <img src={reg.photo} alt={reg.name} onClick={() => handleImageClick(reg.photo, reg.name)} style={{ cursor: 'pointer' }} title="Click to view full image" />
                   ) : (
                     <div className="avatar-placeholder">
                       {reg.name.charAt(0).toUpperCase()}
@@ -665,11 +674,6 @@ const TournamentRegistrations = () => {
                   <div className="info-column info-blood">
                     <label>Blood Group</label>
                     <span className="badge-inline badge-blood">{reg.bloodGroup || 'N/A'}</span>
-                  </div>
-
-                  <div className="info-column info-position">
-                    <label>Position</label>
-                    <span className="badge-inline badge-position">{reg.position}</span>
                   </div>
                 </div>
 
@@ -880,6 +884,23 @@ const TournamentRegistrations = () => {
               <button className="btn-confirm-save" onClick={handleSaveEdit} disabled={saving}>
                 {saving ? '⏳ Saving...' : '💾 Save Changes'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+            {/* Image Modal */}
+      {imageModal.show && (
+        <div className="modal-overlay" onClick={handleCloseImageModal}>
+          <div className="modal-content image-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>📷 {imageModal.name}</h3>
+              <button className="btn-close-modal" onClick={handleCloseImageModal}>
+                ✕
+              </button>
+            </div>
+            <div className="modal-body image-modal-body">
+              <img src={imageModal.image} alt={imageModal.name} className="full-size-image" />
             </div>
           </div>
         </div>
