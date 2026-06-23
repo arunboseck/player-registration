@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTournamentById, getTournamentRegistrations, deleteRegistration, updateRegistration } from '../utils/storage';
+import { getTournamentById, getTournamentRegistrations, deleteRegistration, updateRegistration } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
