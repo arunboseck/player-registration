@@ -16,22 +16,31 @@ const TournamentRegistrations = () => {
   const [registrations, setRegistrations] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteModal, setDeleteModal] = useState({ show: false, registration: null });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadData();
   }, [id]);
 
   const loadData = async () => {
-    const tournamentData = await getTournamentById(id);
-    if (!tournamentData) {
-      alert('Tournament not found!');
-      navigate('/tournaments');
-      return;
-    }
-    setTournament(tournamentData);
+    setLoading(true);
+    try {
+      const tournamentData = await getTournamentById(id);
+      if (!tournamentData) {
+        alert('Tournament not found!');
+        navigate('/tournaments');
+        return;
+      }
+      setTournament(tournamentData);
 
-    const regs = await getTournamentRegistrations(id);
-    setRegistrations(regs);
+      const regs = await getTournamentRegistrations(id);
+      setRegistrations(regs);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      alert('Error loading tournament data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteClick = (registration) => {
@@ -141,7 +150,27 @@ const TournamentRegistrations = () => {
     reg.mobile.includes(searchTerm)
   );
 
-  if (!tournament) return <div>Loading...</div>;
+  if (loading || !tournament) {
+    return (
+      <div className="loading-container">
+        <div className="loading-content">
+          <div className="cricket-ball-loader">
+            <div className="ball">
+              <div className="seam"></div>
+              <div className="seam seam-2"></div>
+            </div>
+          </div>
+          <h2 className="loading-text">Loading Tournament Registrations</h2>
+          <p className="loading-subtext">Please wait while we fetch the player data...</p>
+          <div className="loading-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="players-container">
