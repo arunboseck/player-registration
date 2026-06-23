@@ -1,0 +1,213 @@
+import { ref, set, get, remove, push, query, orderByChild, equalTo } from 'firebase/database';
+import { database } from '../firebase/config';
+
+// ==================== PLAYERS ====================
+
+export const getPlayers = async () => {
+  try {
+    const playersRef = ref(database, 'players');
+    const snapshot = await get(playersRef);
+    if (snapshot.exists()) {
+      const playersObj = snapshot.val();
+      return Object.keys(playersObj).map(key => ({ id: key, ...playersObj[key] }));
+    }
+    return [];
+  } catch (error) {
+    console.error('Error fetching players:', error);
+    return [];
+  }
+};
+
+export const getPlayerByMobile = async (mobile) => {
+  try {
+    const players = await getPlayers();
+    return players.find((p) => p.mobile === mobile) || null;
+  } catch (error) {
+    console.error('Error fetching player by mobile:', error);
+    return null;
+  }
+};
+
+export const addPlayer = async (player) => {
+  try {
+    const playersRef = ref(database, 'players');
+    const newPlayerRef = push(playersRef);
+    const newPlayer = {
+      ...player,
+      id: newPlayerRef.key,
+      createdAt: new Date().toISOString()
+    };
+    await set(newPlayerRef, newPlayer);
+    return newPlayer;
+  } catch (error) {
+    console.error('Error adding player:', error);
+    throw error;
+  }
+};
+
+export const updatePlayer = async (id, updatedData) => {
+  try {
+    const playerRef = ref(database, `players/${id}`);
+    const snapshot = await get(playerRef);
+    if (snapshot.exists()) {
+      const updatedPlayer = { ...snapshot.val(), ...updatedData };
+      await set(playerRef, updatedPlayer);
+      return updatedPlayer;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error updating player:', error);
+    return null;
+  }
+};
+
+export const deletePlayer = async (id) => {
+  try {
+    const playerRef = ref(database, `players/${id}`);
+    await remove(playerRef);
+    return true;
+  } catch (error) {
+    console.error('Error deleting player:', error);
+    return false;
+  }
+};
+
+// ==================== TOURNAMENTS ====================
+
+export const getTournaments = async () => {
+  try {
+    const tournamentsRef = ref(database, 'tournaments');
+    const snapshot = await get(tournamentsRef);
+    if (snapshot.exists()) {
+      const tournamentsObj = snapshot.val();
+      return Object.keys(tournamentsObj).map(key => ({ id: key, ...tournamentsObj[key] }));
+    }
+    return [];
+  } catch (error) {
+    console.error('Error fetching tournaments:', error);
+    return [];
+  }
+};
+
+export const getTournamentById = async (id) => {
+  try {
+    const tournamentRef = ref(database, `tournaments/${id}`);
+    const snapshot = await get(tournamentRef);
+    if (snapshot.exists()) {
+      return { id, ...snapshot.val() };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching tournament:', error);
+    return null;
+  }
+};
+
+export const addTournament = async (tournament) => {
+  try {
+    const tournamentsRef = ref(database, 'tournaments');
+    const newTournamentRef = push(tournamentsRef);
+    const newTournament = {
+      ...tournament,
+      id: newTournamentRef.key,
+      createdAt: new Date().toISOString()
+    };
+    await set(newTournamentRef, newTournament);
+    return newTournament;
+  } catch (error) {
+    console.error('Error adding tournament:', error);
+    throw error;
+  }
+};
+
+export const updateTournament = async (id, updatedData) => {
+  try {
+    const tournamentRef = ref(database, `tournaments/${id}`);
+    const snapshot = await get(tournamentRef);
+    if (snapshot.exists()) {
+      const updatedTournament = { ...snapshot.val(), ...updatedData };
+      await set(tournamentRef, updatedTournament);
+      return updatedTournament;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error updating tournament:', error);
+    return null;
+  }
+};
+
+export const deleteTournament = async (id) => {
+  try {
+    const tournamentRef = ref(database, `tournaments/${id}`);
+    await remove(tournamentRef);
+    return true;
+  } catch (error) {
+    console.error('Error deleting tournament:', error);
+    return false;
+  }
+};
+
+
+// ==================== TOURNAMENT REGISTRATIONS ====================
+
+export const getTournamentRegistrations = async (tournamentId) => {
+  try {
+    const registrationsRef = ref(database, `tournament_registrations/${tournamentId}`);
+    const snapshot = await get(registrationsRef);
+    if (snapshot.exists()) {
+      const registrationsObj = snapshot.val();
+      return Object.keys(registrationsObj).map(key => ({ id: key, ...registrationsObj[key] }));
+    }
+    return [];
+  } catch (error) {
+    console.error('Error fetching registrations:', error);
+    return [];
+  }
+};
+
+export const addTournamentRegistration = async (tournamentId, playerData) => {
+  try {
+    // Check if player already registered for this tournament
+    const existingRegistrations = await getTournamentRegistrations(tournamentId);
+    const existingPlayer = existingRegistrations.find(reg => reg.mobile === playerData.mobile);
+
+    if (existingPlayer) {
+      return {
+        success: false,
+        message: `${playerData.name} (${playerData.mobile}) is already registered for this tournament!`
+      };
+    }
+
+    // Add new registration
+    const registrationsRef = ref(database, `tournament_registrations/${tournamentId}`);
+    const newRegistrationRef = push(registrationsRef);
+    const newRegistration = {
+      ...playerData,
+      id: newRegistrationRef.key,
+      tournamentId,
+      registeredAt: new Date().toISOString()
+    };
+
+    await set(newRegistrationRef, newRegistration);
+
+    return {
+      success: true,
+      message: `${playerData.name} has been successfully registered for the tournament!`,
+      data: newRegistration
+    };
+  } catch (error) {
+    console.error('Error adding tournament registration:', error);
+    throw error;
+  }
+};
+
+export const deleteRegistration = async (tournamentId, registrationId) => {
+  try {
+    const registrationRef = ref(database, `tournament_registrations/${tournamentId}/${registrationId}`);
+    await remove(registrationRef);
+    return true;
+  } catch (error) {
+    console.error('Error deleting registration:', error);
+    return false;
+  }
+};
