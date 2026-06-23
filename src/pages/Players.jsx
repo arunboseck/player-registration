@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPlayers, deletePlayer } from '../utils/storage';
 import { useAuth } from '../contexts/AuthContext';
+import * as XLSX from 'xlsx';
 import './Players.css';
 
 const Players = () => {
@@ -25,6 +26,53 @@ const Players = () => {
       deletePlayer(id);
       loadPlayers();
     }
+  };
+
+  const handleEdit = (id) => {
+    navigate(`/edit-player/${id}`);
+  };
+
+  const handleDownloadExcel = () => {
+    if (filteredPlayers.length === 0) {
+      alert('No players to download');
+      return;
+    }
+
+    // Prepare data for Excel
+    const excelData = filteredPlayers.map((player, index) => ({
+      'S.No': index + 1,
+      'Name': player.name,
+      'Mobile': player.mobile,
+      'Date of Birth': new Date(player.dateOfBirth).toLocaleDateString(),
+      'Blood Group': player.bloodGroup,
+      'Place': player.place,
+      'Position': player.position,
+      'Registered On': player.createdAt ? new Date(player.createdAt).toLocaleDateString() : 'N/A',
+    }));
+
+    // Create workbook and worksheet
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Players');
+
+    // Set column widths
+    const columnWidths = [
+      { wch: 6 },  // S.No
+      { wch: 25 }, // Name
+      { wch: 15 }, // Mobile
+      { wch: 15 }, // DOB
+      { wch: 12 }, // Blood Group
+      { wch: 20 }, // Place
+      { wch: 35 }, // Position
+      { wch: 15 }, // Registered On
+    ];
+    worksheet['!cols'] = columnWidths;
+
+    // Generate filename with current date
+    const filename = `Cricket_Players_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+    // Download file
+    XLSX.writeFile(workbook, filename);
   };
 
   const handleLogout = () => {
@@ -69,9 +117,14 @@ const Players = () => {
       <div className="players-content">
         <div className="players-header">
           <h2>All Players ({filteredPlayers.length})</h2>
-          <button onClick={() => navigate('/register-player')} className="btn-add">
-            + Add New Player
-          </button>
+          <div className="header-actions">
+            <button onClick={handleDownloadExcel} className="btn-download">
+              📥 Download Excel
+            </button>
+            <button onClick={() => navigate('/register-player')} className="btn-add">
+              + Add New Player
+            </button>
+          </div>
         </div>
 
         <div className="filters">
@@ -98,6 +151,7 @@ const Players = () => {
           </div>
         </div>
 
+
         {filteredPlayers.length === 0 ? (
           <div className="no-players">
             <p>No players found. {searchTerm || filterPosition ? 'Try adjusting your filters.' : 'Register your first player!'}</p>
@@ -117,25 +171,17 @@ const Players = () => {
                   <h3>{player.name}</h3>
                   <p className="player-position">{player.position}</p>
                   <div className="player-details">
-                    <p>
-                      <strong>Mobile:</strong> {player.mobile}
-                    </p>
-                    <p>
-                      <strong>DOB:</strong> {new Date(player.dateOfBirth).toLocaleDateString()}
-                    </p>
-                    <p>
-                      <strong>Blood Group:</strong> {player.bloodGroup}
-                    </p>
-                    <p>
-                      <strong>Place:</strong> {player.place}
-                    </p>
+                    <p><strong>Mobile:</strong> {player.mobile}</p>
+                    <p><strong>DOB:</strong> {new Date(player.dateOfBirth).toLocaleDateString()}</p>
+                    <p><strong>Blood Group:</strong> {player.bloodGroup}</p>
+                    <p><strong>Place:</strong> {player.place}</p>
                   </div>
                 </div>
                 <div className="player-actions">
-                  <button
-                    onClick={() => handleDelete(player.id)}
-                    className="btn-delete"
-                  >
+                  <button onClick={() => handleEdit(player.id)} className="btn-edit">
+                    Edit
+                  </button>
+                  <button onClick={() => handleDelete(player.id)} className="btn-delete">
                     Delete
                   </button>
                 </div>

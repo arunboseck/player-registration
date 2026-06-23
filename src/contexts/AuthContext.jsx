@@ -10,9 +10,27 @@ export const useAuth = () => {
   return context;
 };
 
+// Initialize state from localStorage before component renders
+const getInitialAuthState = () => {
+  if (typeof window !== 'undefined') {
+    const loggedIn = localStorage.getItem('isAuthenticated') === 'true';
+    return loggedIn;
+  }
+  return false;
+};
+
+const getInitialUser = () => {
+  if (typeof window !== 'undefined') {
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  }
+  return null;
+};
+
 export const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(getInitialAuthState);
+  const [user, setUser] = useState(getInitialUser);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check if user is logged in on mount
@@ -22,6 +40,7 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       setUser(JSON.parse(savedUser));
     }
+    setLoading(false);
   }, []);
 
   const login = (username, password) => {
@@ -43,6 +62,22 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('user');
   };
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
+        fontSize: '1.2rem',
+        color: '#667eea'
+      }}>
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>

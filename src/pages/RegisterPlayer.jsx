@@ -1,313 +1,194 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { addPlayer } from '../utils/storage';
+import { addPlayer, getPlayerByMobile } from '../utils/storage';
 import { useAuth } from '../contexts/AuthContext';
 import './RegisterPlayer.css';
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-
 const POSITIONS = [
-  'ALL ROUNDER',
-  'LEFT ARM MEDIUM (BOWLING)',
-  'LEFT ARM FAST MEDIUM (BOWLING)',
-  'LEFT ARM FAST (BOWLING)',
-  'LEFT HAND BATTING (BATTER)',
-  'RIGHT ARM MEDIUM (BOWLING)',
-  'RIGHT ARM FAST MEDIUM (BOWLING)',
-  'RIGHT ARM FAST (BOWLING)',
-  'RIGHT HAND BATTING (BATTER)',
-  'WICKET KEEPER BATTER',
+  'ALL ROUNDER', 'LEFT ARM ORTHODOX (BOWLING)', 'LEFT ARM CHINAMAN (BOWLING)',
+  'LEFT ARM MEDIUM FAST (BOWLING)', 'LEFT ARM FAST MEDIUM (BOWLING)', 'LEFT ARM FAST (BOWLING)',
+  'LEFT HAND BATTING (BATTER)', 'RIGHT ARM OFF BREAK (BOWLING)', 'RIGHT ARM LEG BREAK (BOWLING)',
+  'RIGHT ARM MEDIUM FAST (BOWLING)', 'RIGHT ARM FAST MEDIUM (BOWLING)', 'RIGHT ARM FAST (BOWLING)',
+  'RIGHT HAND BATTING (BATTER)', 'WICKET KEEPER BATTER'
 ];
 
 const RegisterPlayer = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [formData, setFormData] = useState({
-    name: '',
-    mobile: '',
-    dateOfBirth: '',
-    bloodGroup: '',
-    place: '',
-    position: '',
-    photo: null,
+    name: '', mobile: '', dateOfBirth: '', bloodGroup: '', place: '', position: '', photo: ''
   });
-  const [photoPreview, setPhotoPreview] = useState(null);
-  const [errors, setErrors] = useState({});
-  const [success, setSuccess] = useState(false);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    // Clear error for this field when user starts typing
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }));
-    }
-  };
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setErrors((prev) => ({ ...prev, photo: 'Please select an image file' }));
-        return;
-      }
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setErrors((prev) => ({ ...prev, photo: 'Image size should be less than 5MB' }));
-        return;
-      }
-
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPhotoPreview(reader.result);
-        setFormData((prev) => ({
-          ...prev,
-          photo: reader.result,
-        }));
+        setFormData({ ...formData, photo: reader.result });
       };
       reader.readAsDataURL(file);
-      setErrors((prev) => ({ ...prev, photo: '' }));
     }
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
-
-    if (!formData.mobile.trim()) {
-      newErrors.mobile = 'Mobile number is required';
-    } else if (!/^\d{10}$/.test(formData.mobile)) {
-      newErrors.mobile = 'Please enter a valid 10-digit mobile number';
-    }
-
-    if (!formData.dateOfBirth) {
-      newErrors.dateOfBirth = 'Date of birth is required';
-    }
-
-    if (!formData.bloodGroup) {
-      newErrors.bloodGroup = 'Blood group is required';
-    }
-
-    if (!formData.place.trim()) {
-      newErrors.place = 'Place is required';
-    }
-
-    if (!formData.position) {
-      newErrors.position = 'Position of play is required';
-    }
-
-    if (!formData.photo) {
-      newErrors.photo = 'Player photo is required';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setSuccess(false);
+    setError('');
+    setLoading(true);
 
-    if (validateForm()) {
-      try {
-        addPlayer(formData);
-        setSuccess(true);
-        // Reset form
-        setFormData({
-          name: '',
-          mobile: '',
-          dateOfBirth: '',
-          bloodGroup: '',
-          place: '',
-          position: '',
-          photo: null,
-        });
-        setPhotoPreview(null);
-        // Redirect to players list after 2 seconds
-        setTimeout(() => {
-          navigate('/players');
-        }, 2000);
-      } catch (error) {
-        setErrors({ submit: 'Failed to register player. Please try again.' });
-      }
+    // Check if mobile number already exists
+    const existingPlayer = getPlayerByMobile(formData.mobile);
+    if (existingPlayer) {
+      setError(`A player with mobile number ${formData.mobile} already exists: ${existingPlayer.name}`);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      addPlayer(formData);
+      navigate('/players');
+    } catch (err) {
+      setError('Failed to register player. Please try again.');
+      setLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (error) setError(''); // Clear error when user types
   };
 
   return (
     <div className="register-container">
       <nav className="navbar">
         <div className="navbar-brand">
-          <h1>Cricket Player Management</h1>
+          <h1>🏏 Cricket Player Management</h1>
         </div>
         <div className="navbar-actions">
-          <button onClick={() => navigate('/dashboard')} className="btn-nav">
-            Dashboard
-          </button>
-          <button onClick={() => navigate('/players')} className="btn-nav">
-            Players
-          </button>
-          <button onClick={handleLogout} className="btn-logout">
-            Logout
-          </button>
+          <button onClick={() => navigate('/dashboard')} className="btn-nav">Dashboard</button>
+          <button onClick={() => navigate('/players')} className="btn-nav">All Players</button>
+          <button onClick={() => { logout(); navigate('/'); }} className="btn-logout">Logout</button>
         </div>
       </nav>
 
       <div className="register-content">
-        <h2>Register New Player</h2>
-        {success && (
-          <div className="success-message">
-            Player registered successfully! Redirecting to players list...
+        <div className="register-header">
+          <h2>Register New Player</h2>
+          <p>Add a new player to the cricket management system</p>
+        </div>
+
+        {error && (
+          <div className="error-alert">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>{error}</span>
           </div>
         )}
-        {errors.submit && <div className="error-message">{errors.submit}</div>}
 
-        <form onSubmit={handleSubmit} className="player-form">
+        <form onSubmit={handleSubmit} className="register-form">
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="name">
-                Name <span className="required">*</span>
-              </label>
+              <label>Full Name *</label>
               <input
                 type="text"
-                id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="Enter player name"
+                placeholder="Enter player's full name"
+                required
               />
-              {errors.name && <span className="error-text">{errors.name}</span>}
             </div>
-
             <div className="form-group">
-              <label htmlFor="mobile">
-                Mobile Number <span className="required">*</span>
-              </label>
+              <label>Mobile Number *</label>
               <input
                 type="tel"
-                id="mobile"
                 name="mobile"
                 value={formData.mobile}
                 onChange={handleChange}
-                placeholder="Enter 10-digit mobile number"
+                placeholder="Enter mobile number"
+                pattern="[0-9]{10}"
+                title="Please enter a valid 10-digit mobile number"
+                required
               />
-              {errors.mobile && <span className="error-text">{errors.mobile}</span>}
             </div>
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="dateOfBirth">
-                Date of Birth <span className="required">*</span>
-              </label>
+              <label>Date of Birth *</label>
               <input
                 type="date"
-                id="dateOfBirth"
                 name="dateOfBirth"
                 value={formData.dateOfBirth}
                 onChange={handleChange}
+                required
               />
-              {errors.dateOfBirth && <span className="error-text">{errors.dateOfBirth}</span>}
             </div>
-
             <div className="form-group">
-              <label htmlFor="bloodGroup">
-                Blood Group <span className="required">*</span>
-              </label>
-              <select
-                id="bloodGroup"
-                name="bloodGroup"
-                value={formData.bloodGroup}
-                onChange={handleChange}
-              >
-                <option value="">Select blood group</option>
-                {BLOOD_GROUPS.map((group) => (
-                  <option key={group} value={group}>
-                    {group}
-                  </option>
-                ))}
+              <label>Blood Group</label>
+              <select name="bloodGroup" value={formData.bloodGroup} onChange={handleChange}>
+                <option value="">Select Blood Group</option>
+                {BLOOD_GROUPS.map(bg => <option key={bg} value={bg}>{bg}</option>)}
               </select>
-              {errors.bloodGroup && <span className="error-text">{errors.bloodGroup}</span>}
             </div>
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="place">
-                Place <span className="required">*</span>
-              </label>
+              <label>Place *</label>
               <input
                 type="text"
-                id="place"
                 name="place"
                 value={formData.place}
                 onChange={handleChange}
-                placeholder="Enter place"
+                placeholder="Enter place/location"
+                required
               />
-              {errors.place && <span className="error-text">{errors.place}</span>}
             </div>
-
             <div className="form-group">
-              <label htmlFor="position">
-                Position of Play <span className="required">*</span>
-              </label>
-              <select
-                id="position"
-                name="position"
-                value={formData.position}
-                onChange={handleChange}
-              >
-                <option value="">Select position</option>
-                {POSITIONS.map((pos) => (
-                  <option key={pos} value={pos}>
-                    {pos}
-                  </option>
-                ))}
+              <label>Position *</label>
+              <select name="position" value={formData.position} onChange={handleChange} required>
+                <option value="">Select Position</option>
+                {POSITIONS.map(pos => <option key={pos} value={pos}>{pos}</option>)}
               </select>
-              {errors.position && <span className="error-text">{errors.position}</span>}
             </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="photo">
-              Player Photo <span className="required">*</span>
-            </label>
+          <div className="form-group form-group-full">
+            <label>Player Photo (Optional)</label>
             <input
               type="file"
-              id="photo"
-              name="photo"
               accept="image/*"
               onChange={handlePhotoChange}
+              className="file-input"
             />
-            {errors.photo && <span className="error-text">{errors.photo}</span>}
-            {photoPreview && (
+            {formData.photo && (
               <div className="photo-preview">
-                <img src={photoPreview} alt="Player preview" />
+                <img src={formData.photo} alt="Preview" />
               </div>
             )}
           </div>
 
           <div className="form-actions">
-            <button type="submit" className="btn-submit">
-              Register Player
-            </button>
             <button
               type="button"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/players')}
               className="btn-cancel"
+              disabled={loading}
             >
               Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn-submit"
+              disabled={loading}
+            >
+              {loading ? 'Registering...' : 'Register Player'}
             </button>
           </div>
         </form>

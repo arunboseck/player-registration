@@ -4,8 +4,13 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import RegisterPlayer from './pages/RegisterPlayer';
+import EditPlayer from './pages/EditPlayer';
 import Players from './pages/Players';
 import PublicRegister from './pages/PublicRegister';
+import AddTournament from './pages/AddTournament';
+import Tournaments from './pages/Tournaments';
+import TournamentRegister from './pages/TournamentRegister';
+import TournamentRegistrations from './pages/TournamentRegistrations';
 import './App.css';
 
 function App() {
@@ -36,6 +41,39 @@ function App() {
             element={
               <ProtectedRoute>
                 <Players />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/edit-player/:id"
+            element={
+              <ProtectedRoute>
+                <EditPlayer />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tournaments"
+            element={
+              <ProtectedRoute>
+                <Tournaments />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/add-tournament"
+            element={
+              <ProtectedRoute>
+                <AddTournament />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/tournament-register/:id" element={<TournamentRegister />} />
+          <Route
+            path="/tournament-registrations/:id"
+            element={
+              <ProtectedRoute>
+                <TournamentRegistrations />
               </ProtectedRoute>
             }
           />
