@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getTournaments, deleteTournament } from '../utils/storage';
 import { useAuth } from '../contexts/AuthContext';
+import Modal from '../components/Modal';
+import { useModal } from '../hooks/useModal';
 import './Players.css';
 
 const Tournaments = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [tournaments, setTournaments] = useState([]);
+  const { modalState, hideModal, showConfirm, showSuccess } = useModal();
 
   useEffect(() => {
     loadTournaments();
@@ -19,16 +22,25 @@ const Tournaments = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this tournament?')) {
+    const confirmed = await showConfirm(
+      'Are you sure you want to delete this tournament? This action cannot be undone.',
+      '🗑️ Delete Tournament'
+    );
+
+    if (confirmed) {
       await deleteTournament(id);
       loadTournaments();
+      await showSuccess('Tournament has been deleted successfully!');
     }
   };
 
-  const handleGetLink = (id) => {
+  const handleGetLink = async (id) => {
     const link = `${window.location.origin}/tournament-register/${id}`;
     navigator.clipboard.writeText(link);
-    alert(`Registration link copied to clipboard!\n\n${link}`);
+    await showSuccess(
+      `Registration link copied to clipboard!\n\n${link}`,
+      '📋 Link Copied'
+    );
   };
 
   const handleLogout = () => {
@@ -159,6 +171,20 @@ const Tournaments = () => {
           </div>
         )}
       </div>
+
+      <Modal
+        show={modalState.show}
+        onClose={hideModal}
+        onConfirm={modalState.onConfirm}
+        onCancel={modalState.onCancel}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        showCancel={modalState.showCancel}
+        icon={modalState.icon}
+      />
     </div>
   );
 };
