@@ -172,8 +172,10 @@ const TournamentRegistrations = () => {
     doc.text(`Date: ${new Date(tournament.startDate).toLocaleDateString()} - ${new Date(tournament.endDate).toLocaleDateString()}`, 14, 34);
     doc.text(`Total Registrations: ${filteredRegistrations.length}`, 14, 40);
 
+    // Prepare table data with photos
     const tableData = filteredRegistrations.map((reg, index) => [
       index + 1,
+      reg.photo || '', // Photo will be added in didDrawCell
       reg.name,
       reg.mobile,
       reg.dateOfBirth ? new Date(reg.dateOfBirth).toLocaleDateString() : 'N/A',
@@ -184,11 +186,48 @@ const TournamentRegistrations = () => {
 
     autoTable(doc, {
       startY: 45,
-      head: [['S.No', 'Name', 'Mobile', 'DOB', 'Blood Group', 'Place', 'Position']],
+      head: [['S.No', 'Photo', 'Name', 'Mobile', 'DOB', 'Blood Group', 'Place', 'Position']],
       body: tableData,
       theme: 'grid',
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [102, 126, 234] },
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+      },
+      headStyles: {
+        fillColor: [102, 126, 234],
+        fontSize: 9,
+        fontStyle: 'bold'
+      },
+      columnStyles: {
+        0: { cellWidth: 10 }, // S.No
+        1: { cellWidth: 20 }, // Photo
+        2: { cellWidth: 30 }, // Name
+        3: { cellWidth: 25 }, // Mobile
+        4: { cellWidth: 22 }, // DOB
+        5: { cellWidth: 18 }, // Blood Group
+        6: { cellWidth: 25 }, // Place
+        7: { cellWidth: 30 }, // Position
+      },
+      didDrawCell: (data) => {
+        // Add photos to the Photo column (column index 1)
+        if (data.column.index === 1 && data.cell.section === 'body') {
+          const reg = filteredRegistrations[data.row.index];
+          if (reg.photo) {
+            try {
+              const imgData = reg.photo;
+              const cellX = data.cell.x + 2;
+              const cellY = data.cell.y + 2;
+              const imgWidth = 16;
+              const imgHeight = 16;
+
+              doc.addImage(imgData, 'JPEG', cellX, cellY, imgWidth, imgHeight);
+            } catch (error) {
+              console.error('Error adding image to PDF:', error);
+            }
+          }
+        }
+      },
+      margin: { top: 45 },
     });
 
     const filename = `${tournament.name}_Registrations_${new Date().toISOString().split('T')[0]}.pdf`;
