@@ -122,13 +122,14 @@ const TournamentRegistrations = () => {
     setBulkDeleteModal({ show: false, count: 0 });
   };
 
-  const handleDownloadExcel = () => {
+  const handleDownloadCSV = () => {
     if (filteredRegistrations.length === 0) {
       alert('No registrations to download');
       return;
     }
 
-    const excelData = filteredRegistrations.map((reg, index) => ({
+    // Prepare CSV data
+    const csvData = filteredRegistrations.map((reg, index) => ({
       'S.No': index + 1,
       'Name': reg.name,
       'Mobile': reg.mobile,
@@ -139,18 +140,41 @@ const TournamentRegistrations = () => {
       'Registered On': reg.registeredAt ? new Date(reg.registeredAt).toLocaleString() : 'N/A',
     }));
 
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Registrations');
+    // Convert to CSV format
+    const headers = Object.keys(csvData[0]);
+    const csvRows = [];
 
-    const columnWidths = [
-      { wch: 6 }, { wch: 25 }, { wch: 15 }, { wch: 15 },
-      { wch: 12 }, { wch: 20 }, { wch: 35 }, { wch: 20 }
-    ];
-    worksheet['!cols'] = columnWidths;
+    // Add headers
+    csvRows.push(headers.join(','));
 
-    const filename = `${tournament.name}_Registrations_${new Date().toISOString().split('T')[0]}.xlsx`;
-    XLSX.writeFile(workbook, filename);
+    // Add data rows
+    csvData.forEach(row => {
+      const values = headers.map(header => {
+        const value = row[header];
+        // Escape values that contain commas or quotes
+        if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+          return `"${value.replace(/"/g, '""')}"`;
+        }
+        return value;
+      });
+      csvRows.push(values.join(','));
+    });
+
+    // Create CSV content
+    const csvContent = csvRows.join('\n');
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    const filename = `${tournament.name}_Registrations_${new Date().toISOString().split('T')[0]}.csv`;
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Helper function to resize and crop image to circular 80x80px (maintains aspect ratio)
@@ -386,8 +410,8 @@ const TournamentRegistrations = () => {
             <button onClick={handleDownloadPDF} className="btn-download btn-pdf">
               📄 Download PDF
             </button>
-            <button onClick={handleDownloadExcel} className="btn-download btn-excel">
-              📥 Download Excel
+            <button onClick={handleDownloadCSV} className="btn-download btn-csv">
+              📊 Download CSV
             </button>
           </div>
         </div>
