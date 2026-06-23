@@ -195,6 +195,34 @@
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+/* Date of Birth Custom Input */
+.dob-input-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.dob-input {
+  flex: 1;
+  text-align: center;
+  padding: 0.875rem 0.5rem !important;
+  min-width: 0;
+  font-weight: 600;
+  font-size: 1rem !important;
+}
+
+.dob-input-year {
+  flex: 1.5;
+}
+
+.dob-separator {
+  color: #667eea;
+  font-weight: 700;
+  font-size: 1.25rem;
+  user-select: none;
+}
+
 
 .submit-button {
   width: 100%;
@@ -364,6 +392,15 @@
     font-size: 0.9rem;
   }
 
+  .dob-input {
+    padding: 0.75rem 0.5rem !important;
+    font-size: 0.9rem !important;
+  }
+
+  .dob-separator {
+    font-size: 1.1rem;
+  }
+
   .submit-button {
     padding: 1rem;
     font-size: 1rem;
@@ -417,6 +454,15 @@
     padding: 0.7rem 0.8rem;
     font-size: 0.875rem;
     border-radius: 8px;
+  }
+
+  .dob-input {
+    padding: 0.7rem 0.4rem !important;
+    font-size: 0.875rem !important;
+  }
+
+  .dob-separator {
+    font-size: 1rem;
   }
 
   .submit-button {

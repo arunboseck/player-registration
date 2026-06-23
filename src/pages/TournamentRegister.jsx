@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getTournamentById, addTournamentRegistration } from '../utils/storage';
 import './TournamentRegister.css';
@@ -22,6 +22,10 @@ const TournamentRegister = () => {
   const [formData, setFormData] = useState({
     name: '', mobile: '', dateOfBirth: '', bloodGroup: '', place: '', position: '', photo: ''
   });
+  const [dob, setDob] = useState({ day: '', month: '', year: '' });
+  const dayRef = useRef(null);
+  const monthRef = useRef(null);
+  const yearRef = useRef(null);
 
   useEffect(() => {
     const loadTournament = async () => {
@@ -37,6 +41,51 @@ const TournamentRegister = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleDobChange = (field, value) => {
+    // Allow only numbers
+    const numericValue = value.replace(/[^0-9]/g, '');
+
+    if (field === 'day') {
+      if (numericValue.length <= 2) {
+        const dayValue = numericValue === '' ? '' : Math.min(parseInt(numericValue) || 0, 31).toString();
+        setDob((prev) => ({ ...prev, day: dayValue }));
+        if (numericValue.length === 2) {
+          monthRef.current?.focus();
+        }
+      }
+    } else if (field === 'month') {
+      if (numericValue.length <= 2) {
+        const monthValue = numericValue === '' ? '' : Math.min(parseInt(numericValue) || 0, 12).toString();
+        setDob((prev) => ({ ...prev, month: monthValue }));
+        if (numericValue.length === 2) {
+          yearRef.current?.focus();
+        }
+      }
+    } else if (field === 'year') {
+      if (numericValue.length <= 4) {
+        setDob((prev) => ({ ...prev, year: numericValue }));
+      }
+    }
+
+    // Update formData with combined date
+    const newDob = { ...dob, [field]: numericValue };
+    if (newDob.day && newDob.month && newDob.year && newDob.year.length === 4) {
+      const formattedDate = `${newDob.year}-${newDob.month.padStart(2, '0')}-${newDob.day.padStart(2, '0')}`;
+      setFormData((prev) => ({ ...prev, dateOfBirth: formattedDate }));
+    }
+  };
+
+  const handleDobKeyDown = (field, e) => {
+    // Handle backspace to go to previous field
+    if (e.key === 'Backspace') {
+      if (field === 'month' && dob.month === '') {
+        dayRef.current?.focus();
+      } else if (field === 'year' && dob.year === '') {
+        monthRef.current?.focus();
+      }
+    }
   };
 
   const handlePhotoChange = (e) => {
@@ -156,8 +205,44 @@ const TournamentRegister = () => {
 
             <div className="form-row">
               <div className="form-group">
-                <label>Date of Birth *</label>
-                <input type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange} required />
+                <label>Date of Birth (DD/MM/YYYY) *</label>
+                <div className="dob-input-container">
+                  <input
+                    ref={dayRef}
+                    type="text"
+                    placeholder="DD"
+                    value={dob.day}
+                    onChange={(e) => handleDobChange('day', e.target.value)}
+                    onKeyDown={(e) => handleDobKeyDown('day', e)}
+                    maxLength={2}
+                    className="dob-input"
+                    required
+                  />
+                  <span className="dob-separator">/</span>
+                  <input
+                    ref={monthRef}
+                    type="text"
+                    placeholder="MM"
+                    value={dob.month}
+                    onChange={(e) => handleDobChange('month', e.target.value)}
+                    onKeyDown={(e) => handleDobKeyDown('month', e)}
+                    maxLength={2}
+                    className="dob-input"
+                    required
+                  />
+                  <span className="dob-separator">/</span>
+                  <input
+                    ref={yearRef}
+                    type="text"
+                    placeholder="YYYY"
+                    value={dob.year}
+                    onChange={(e) => handleDobChange('year', e.target.value)}
+                    onKeyDown={(e) => handleDobKeyDown('year', e)}
+                    maxLength={4}
+                    className="dob-input dob-input-year"
+                    required
+                  />
+                </div>
               </div>
               <div className="form-group">
                 <label>Blood Group *</label>
