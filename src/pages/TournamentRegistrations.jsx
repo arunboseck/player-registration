@@ -62,7 +62,7 @@ const TournamentRegistrations = () => {
   };
 
   const handleCloseImageModal = () => {
-    setImageModal({ show: false, image: null, name: \'\' });
+    setImageModal({ show: false, image: null, name: '' });
   };
 
   const handleDeleteClick = (registration) => {
