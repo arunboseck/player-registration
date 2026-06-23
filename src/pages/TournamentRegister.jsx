@@ -19,6 +19,7 @@ const TournamentRegister = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '', mobile: '', dateOfBirth: '', bloodGroup: '', place: '', position: '', photo: ''
   });
@@ -102,6 +103,11 @@ const TournamentRegister = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Prevent multiple submissions
+    if (submitting) {
+      return;
+    }
+
     // Validate photo is uploaded
     if (!formData.photo) {
       setError(true);
@@ -113,6 +119,8 @@ const TournamentRegister = () => {
       return;
     }
 
+    setSubmitting(true);
+
     try {
       const result = await addTournamentRegistration(id, formData);
 
@@ -120,6 +128,7 @@ const TournamentRegister = () => {
         // Player is already registered for this tournament
         setError(true);
         setErrorMessage(result.message);
+        setSubmitting(false);
         setTimeout(() => {
           setError(false);
           setErrorMessage('');
@@ -134,6 +143,7 @@ const TournamentRegister = () => {
         name: '', mobile: '', dateOfBirth: '', bloodGroup: '', place: '', position: '', photo: ''
       });
       setDob({ day: '', month: '', year: '' }); // Reset date fields
+      setSubmitting(false);
       setTimeout(() => {
         setSuccess(false);
         setSuccessMessage('');
@@ -141,6 +151,7 @@ const TournamentRegister = () => {
     } catch (error) {
       setError(true);
       setErrorMessage('Error registering for tournament. Please try again.');
+      setSubmitting(false);
       setTimeout(() => {
         setError(false);
         setErrorMessage('');
@@ -291,8 +302,8 @@ const TournamentRegister = () => {
               )}
             </div>
 
-            <button type="submit" className="submit-button">
-              Register for Tournament
+            <button type="submit" className="submit-button" disabled={submitting}>
+              {submitting ? 'Submitting...' : 'Register for Tournament'}
             </button>
           </form>
         </div>
