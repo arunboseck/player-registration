@@ -153,85 +153,137 @@ const TournamentRegistrations = () => {
     XLSX.writeFile(workbook, filename);
   };
 
-  const handleDownloadPDF = () => {
+  // Helper function to resize image to 40x40px
+  const resizeImage = (base64Str, maxWidth = 40, maxHeight = 40) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = maxWidth;
+        canvas.height = maxHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
+        resolve(canvas.toDataURL('image/jpeg', 0.7)); // 0.7 quality for smaller size
+      };
+      img.onerror = () => resolve(null);
+      img.src = base64Str;
+    });
+  };
+
+  const handleDownloadPDF = async () => {
     if (filteredRegistrations.length === 0) {
       alert('No registrations to download');
       return;
     }
 
-    const doc = new jsPDF();
+    try {
+      // Show loading indicator
+      const originalButton = document.querySelector('.btn-pdf');
+      if (originalButton) {
+        originalButton.disabled = true;
+        originalButton.textContent = '⏳ Generating PDF...';
+      }
 
-    // Add title
-    doc.setFontSize(18);
-    doc.setFont(undefined, 'bold');
-    doc.text(`${tournament.name} - Registrations`, 14, 20);
-
-    doc.setFontSize(10);
-    doc.setFont(undefined, 'normal');
-    doc.text(`Location: ${tournament.location}`, 14, 28);
-    doc.text(`Date: ${new Date(tournament.startDate).toLocaleDateString()} - ${new Date(tournament.endDate).toLocaleDateString()}`, 14, 34);
-    doc.text(`Total Registrations: ${filteredRegistrations.length}`, 14, 40);
-
-    // Prepare table data with photos
-    const tableData = filteredRegistrations.map((reg, index) => [
-      index + 1,
-      reg.photo || '', // Photo will be added in didDrawCell
-      reg.name,
-      reg.mobile,
-      reg.dateOfBirth ? new Date(reg.dateOfBirth).toLocaleDateString() : 'N/A',
-      reg.bloodGroup || 'N/A',
-      reg.place,
-      reg.position,
-    ]);
-
-    autoTable(doc, {
-      startY: 45,
-      head: [['S.No', 'Photo', 'Name', 'Mobile', 'DOB', 'Blood Group', 'Place', 'Position']],
-      body: tableData,
-      theme: 'grid',
-      styles: {
-        fontSize: 8,
-        cellPadding: 2,
-      },
-      headStyles: {
-        fillColor: [102, 126, 234],
-        fontSize: 9,
-        fontStyle: 'bold'
-      },
-      columnStyles: {
-        0: { cellWidth: 10 }, // S.No
-        1: { cellWidth: 20 }, // Photo
-        2: { cellWidth: 30 }, // Name
-        3: { cellWidth: 25 }, // Mobile
-        4: { cellWidth: 22 }, // DOB
-        5: { cellWidth: 18 }, // Blood Group
-        6: { cellWidth: 25 }, // Place
-        7: { cellWidth: 30 }, // Position
-      },
-      didDrawCell: (data) => {
-        // Add photos to the Photo column (column index 1)
-        if (data.column.index === 1 && data.cell.section === 'body') {
-          const reg = filteredRegistrations[data.row.index];
+      // Resize all images first
+      const resizedRegistrations = await Promise.all(
+        filteredRegistrations.map(async (reg) => {
           if (reg.photo) {
-            try {
-              const imgData = reg.photo;
-              const cellX = data.cell.x + 2;
-              const cellY = data.cell.y + 2;
-              const imgWidth = 16;
-              const imgHeight = 16;
+            const resizedPhoto = await resizeImage(reg.photo);
+            return { ...reg, resizedPhoto };
+          }
+          return reg;
+        })
+      );
 
-              doc.addImage(imgData, 'JPEG', cellX, cellY, imgWidth, imgHeight);
-            } catch (error) {
-              console.error('Error adding image to PDF:', error);
+      const doc = new jsPDF();
+
+      // Add title
+      doc.setFontSize(18);
+      doc.setFont(undefined, 'bold');
+      doc.text(`${tournament.name} - Registrations`, 14, 20);
+
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Location: ${tournament.location}`, 14, 28);
+      doc.text(`Date: ${new Date(tournament.startDate).toLocaleDateString()} - ${new Date(tournament.endDate).toLocaleDateString()}`, 14, 34);
+      doc.text(`Total Registrations: ${filteredRegistrations.length}`, 14, 40);
+
+      // Prepare table data
+      const tableData = resizedRegistrations.map((reg, index) => [
+        index + 1,
+        '', // Photo will be added in didDrawCell
+        reg.name,
+        reg.mobile,
+        reg.dateOfBirth ? new Date(reg.dateOfBirth).toLocaleDateString() : 'N/A',
+        reg.bloodGroup || 'N/A',
+        reg.place,
+        reg.position,
+      ]);
+
+      autoTable(doc, {
+        startY: 45,
+        head: [['S.No', 'Photo', 'Name', 'Mobile', 'DOB', 'Blood Group', 'Place', 'Position']],
+        body: tableData,
+        theme: 'grid',
+        styles: {
+          fontSize: 8,
+          cellPadding: 2,
+          minCellHeight: 12,
+        },
+        headStyles: {
+          fillColor: [102, 126, 234],
+          fontSize: 9,
+          fontStyle: 'bold'
+        },
+        columnStyles: {
+          0: { cellWidth: 10, halign: 'center' }, // S.No
+          1: { cellWidth: 15, halign: 'center' }, // Photo (smaller width)
+          2: { cellWidth: 32 }, // Name
+          3: { cellWidth: 25 }, // Mobile
+          4: { cellWidth: 22 }, // DOB
+          5: { cellWidth: 18, halign: 'center' }, // Blood Group
+          6: { cellWidth: 25 }, // Place
+          7: { cellWidth: 28 }, // Position
+        },
+        didDrawCell: (data) => {
+          // Add photos to the Photo column (column index 1)
+          if (data.column.index === 1 && data.cell.section === 'body') {
+            const reg = resizedRegistrations[data.row.index];
+            if (reg.resizedPhoto) {
+              try {
+                const cellX = data.cell.x + 2;
+                const cellY = data.cell.y + 1;
+                const imgSize = 10; // 10mm = approximately 40px at 96 DPI
+
+                doc.addImage(reg.resizedPhoto, 'JPEG', cellX, cellY, imgSize, imgSize);
+              } catch (error) {
+                console.error('Error adding image to PDF:', error);
+              }
             }
           }
-        }
-      },
-      margin: { top: 45 },
-    });
+        },
+        margin: { top: 45 },
+      });
 
-    const filename = `${tournament.name}_Registrations_${new Date().toISOString().split('T')[0]}.pdf`;
-    doc.save(filename);
+      const filename = `${tournament.name}_Registrations_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(filename);
+
+      // Reset button
+      if (originalButton) {
+        originalButton.disabled = false;
+        originalButton.textContent = '📄 Download PDF';
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+
+      // Reset button on error
+      const originalButton = document.querySelector('.btn-pdf');
+      if (originalButton) {
+        originalButton.disabled = false;
+        originalButton.textContent = '📄 Download PDF';
+      }
+    }
   };
 
   const handleLogout = () => {
