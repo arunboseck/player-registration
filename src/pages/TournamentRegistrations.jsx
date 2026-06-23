@@ -153,7 +153,7 @@ const TournamentRegistrations = () => {
     XLSX.writeFile(workbook, filename);
   };
 
-  // Helper function to resize and crop image to 40x40px square (maintains aspect ratio)
+  // Helper function to resize and crop image to circular 80x80px (maintains aspect ratio)
   const resizeImage = (base64Str, size = 80) => {
     return new Promise((resolve) => {
       const img = new Image();
@@ -181,12 +181,28 @@ const TournamentRegistrations = () => {
           sy = (img.height - sHeight) / 2; // Center vertically
         }
 
-        // Fill with white background first (in case of transparency)
+        // Fill with white background first
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(0, 0, size, size);
 
-        // Draw cropped and resized image
+        // Create circular clipping path
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+
+        // Draw cropped and resized image (will be clipped to circle)
         ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, size, size);
+
+        ctx.restore();
+
+        // Optional: Add circular border
+        ctx.strokeStyle = '#667eea'; // Purple border matching theme
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(size / 2, size / 2, size / 2 - 1, 0, Math.PI * 2);
+        ctx.stroke();
 
         // Use 92% quality for better clarity
         resolve(canvas.toDataURL('image/jpeg', 0.92));
