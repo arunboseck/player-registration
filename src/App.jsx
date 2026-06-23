@@ -8,6 +8,7 @@ import EditPlayer from './pages/EditPlayer';
 import Players from './pages/Players';
 import PublicRegister from './pages/PublicRegister';
 import AddTournament from './pages/AddTournament';
+import EditTournament from './pages/EditTournament';
 import Tournaments from './pages/Tournaments';
 import TournamentRegister from './pages/TournamentRegister';
 import TournamentRegistrations from './pages/TournamentRegistrations';
@@ -65,6 +66,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AddTournament />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/edit-tournament/:id"
+            element={
+              <ProtectedRoute>
+                <EditTournament />
               </ProtectedRoute>
             }
           />

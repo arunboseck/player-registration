@@ -25,13 +25,11 @@ const TournamentRegister = () => {
 
   useEffect(() => {
     const tournamentData = getTournamentById(id);
-    if (!tournamentData) {
-      alert('Tournament not found!');
-      navigate('/');
-    } else {
+    if (tournamentData) {
       setTournament(tournamentData);
     }
-  }, [id, navigate]);
+    // If tournament is not found, we'll show an error message instead of redirecting
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -85,7 +83,23 @@ const TournamentRegister = () => {
     }
   };
 
-  if (!tournament) return <div>Loading...</div>;
+  if (!tournament) {
+    return (
+      <div className="public-register-container">
+        <div className="public-register-content">
+          <div className="public-header" style={{textAlign: 'center', padding: '3rem 1.5rem'}}>
+            <h1 style={{fontSize: '2rem', marginBottom: '1rem', color: '#dc2626'}}>⚠️ Tournament Not Found</h1>
+            <p style={{fontSize: '1.1rem', marginBottom: '1.5rem', color: '#64748b'}}>
+              The tournament you're trying to register for doesn't exist or the registration link is invalid.
+            </p>
+            <p style={{fontSize: '0.95rem', color: '#94a3b8'}}>
+              Please contact the tournament organizer for the correct registration link.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="public-register-container">
