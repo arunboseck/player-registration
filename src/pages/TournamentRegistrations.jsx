@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTournamentById, getTournamentRegistrations } from '../utils/storage';
+import { getTournamentById, getTournamentRegistrations, deleteRegistration } from '../utils/storage';
 import { useAuth } from '../contexts/AuthContext';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -47,18 +47,19 @@ const TournamentRegistrations = () => {
     setDeleteModal({ show: true, registration });
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (deleteModal.registration) {
-      // Get all registrations
-      const allRegistrations = JSON.parse(localStorage.getItem('tournamentRegistrations') || '[]');
-      // Filter out the one to delete
-      const updatedRegistrations = allRegistrations.filter(reg => reg.id !== deleteModal.registration.id);
-      // Save back to localStorage
-      localStorage.setItem('tournamentRegistrations', JSON.stringify(updatedRegistrations));
-      // Reload data
-      loadData();
-      // Close modal
-      setDeleteModal({ show: false, registration: null });
+      try {
+        // Delete from Firebase
+        await deleteRegistration(id, deleteModal.registration.id);
+        // Reload data
+        await loadData();
+        // Close modal
+        setDeleteModal({ show: false, registration: null });
+      } catch (error) {
+        console.error('Error deleting registration:', error);
+        alert('Failed to delete registration. Please try again.');
+      }
     }
   };
 
