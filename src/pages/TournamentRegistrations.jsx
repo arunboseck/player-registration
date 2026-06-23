@@ -31,6 +31,7 @@ const TournamentRegistrations = () => {
   const monthRef = useRef(null);
   const yearRef = useRef(null);
   const [imageModal, setImageModal] = useState({ show: false, image: null, name: '' });
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -537,6 +538,14 @@ const TournamentRegistrations = () => {
   if (loading || !tournament) {
     return (
       <div className="loading-container">
+      <button className="hamburger-menu-btn" onClick={() => setSidebarOpen(true)} aria-label="Open menu">
+        <div className="hamburger-icon">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </button>
+
         <div className="loading-content">
           <div className="cricket-ball-loader">
             <div className="ball">
@@ -888,6 +897,62 @@ const TournamentRegistrations = () => {
           </div>
         </div>
       )}
+
+      {/* Sidebar Menu */}
+      <div className={`sidebar-menu ${sidebarOpen ? 'sidebar-open' : ''}`}>
+        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>
+        <div className="sidebar-content">
+          <div className="sidebar-header">
+            <h2>🏏 Menu</h2>
+            <button className="sidebar-close-btn" onClick={() => setSidebarOpen(false)}>
+              ✕
+            </button>
+          </div>
+          <div className="sidebar-body">
+            <h3 className="sidebar-section-title">Quick Actions</h3>
+            <button 
+              className="sidebar-menu-item sidebar-menu-item-purple"
+              onClick={() => {
+                navigate('/register-player');
+                setSidebarOpen(false);
+              }}
+            >
+              <span className="sidebar-menu-icon">👤</span>
+              <span>Register Player</span>
+            </button>
+            <button 
+              className="sidebar-menu-item sidebar-menu-item-indigo"
+              onClick={() => {
+                navigate('/players');
+                setSidebarOpen(false);
+              }}
+            >
+              <span className="sidebar-menu-icon">👥</span>
+              <span>View Players</span>
+            </button>
+            <button 
+              className="sidebar-menu-item sidebar-menu-item-green"
+              onClick={() => {
+                navigate('/add-tournament');
+                setSidebarOpen(false);
+              }}
+            >
+              <span className="sidebar-menu-icon">🏆</span>
+              <span>Create Tournament</span>
+            </button>
+            <button 
+              className="sidebar-menu-item sidebar-menu-item-blue"
+              onClick={() => {
+                navigate('/tournaments');
+                setSidebarOpen(false);
+              }}
+            >
+              <span className="sidebar-menu-icon">📋</span>
+              <span>View Tournaments</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
             {/* Image Modal */}
       {imageModal.show && (
