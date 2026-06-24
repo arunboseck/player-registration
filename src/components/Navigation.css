@@ -88,7 +88,7 @@
 }
 
 .sidebar-header {
-  padding: 24px 20px;
+  padding: 24px 20px 24px 90px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
@@ -101,6 +101,7 @@
   font-size: 1.5rem;
   color: white;
   font-weight: 700;
+  opacity: 1;
 }
 
 .sidebar-close-btn {
@@ -126,7 +127,7 @@
 
 .sidebar-body {
   flex: 1;
-  padding: 24px 20px;
+  padding: 24px 20px 24px 90px;
   overflow-y: auto;
 }
 
@@ -274,5 +275,16 @@
   .tournament-register-container h1 {
     padding-left: 70px !important;
     font-size: 1.5rem !important;
+  }
+}
+
+/* Mobile: Adjust sidebar header padding */
+@media (max-width: 768px) {
+  .sidebar-header {
+    padding: 20px 15px 20px 80px !important;
+  }
+  
+  .sidebar-header h2 {
+    font-size: 1.3rem !important;
   }
 }
