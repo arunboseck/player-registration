@@ -23,9 +23,19 @@ const Players = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this player?')) {
-      await deletePlayer(id);
-      loadPlayers();
+    if (window.confirm('Are you sure you want to delete this player? This action cannot be undone.')) {
+      try {
+        const result = await deletePlayer(id);
+        if (result) {
+          alert('Player deleted successfully!');
+          loadPlayers();
+        } else {
+          alert('Failed to delete player. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error deleting player:', error);
+        alert('An error occurred while deleting the player.');
+      }
     }
   };
 
