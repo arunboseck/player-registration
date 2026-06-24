@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getPlayers, deletePlayer } from '../utils/storage';
 import { useAuth } from '../contexts/AuthContext';
 import * as XLSX from 'xlsx';
+import Navigation from '../components/Navigation';
 import './Players.css';
 
 const Players = () => {
@@ -97,6 +98,7 @@ const Players = () => {
 
   return (
     <div className="players-container">
+      <Navigation />
       <nav className="navbar">
         <div className="navbar-brand">
           <h1>Cricket Player Management</h1>

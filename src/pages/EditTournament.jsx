@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getTournamentById, updateTournament } from '../utils/storage';
 import { useAuth } from '../contexts/AuthContext';
+import Navigation from '../components/Navigation';
 import './RegisterPlayer.css';
 
 const TOURNAMENT_STATUSES = ['Upcoming', 'Ongoing', 'Completed', 'Cancelled'];
@@ -85,6 +86,7 @@ const EditTournament = () => {
         fontSize: '1.2rem',
         color: '#667eea'
       }}>
+      <Navigation />
         Loading...
       </div>
     );

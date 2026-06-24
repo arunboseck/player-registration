@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getTournamentById, addTournamentRegistration } from '../utils/storage';
+import Navigation from '../components/Navigation';
 import './TournamentRegister.css';
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -206,6 +207,7 @@ const TournamentRegister = () => {
   if (!tournament) {
     return (
       <div className="public-register-container">
+      <Navigation />
         <div className="public-register-content">
           <div className="public-header" style={{textAlign: 'center', padding: '3rem 1.5rem'}}>
             <h1 style={{fontSize: '2rem', marginBottom: '1rem', color: '#dc2626'}}>⚠️ Tournament Not Found</h1>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addTournament } from '../utils/storage';
 import { useAuth } from '../contexts/AuthContext';
+import Navigation from '../components/Navigation';
 import './RegisterPlayer.css';
 
 const TOURNAMENT_STATUSES = ['Upcoming', 'Ongoing', 'Completed', 'Cancelled'];
@@ -61,6 +62,7 @@ const AddTournament = () => {
 
   return (
     <div className="register-container">
+      <Navigation />
       <nav className="navbar">
         <div className="navbar-brand">
           <h1>Cricket Player Management</h1>
