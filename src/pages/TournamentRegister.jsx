@@ -20,6 +20,7 @@ const TournamentRegister = () => {
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '', mobile: '', dateOfBirth: '', bloodGroup: '', place: '', position: '', photo: ''
   });
@@ -146,6 +147,8 @@ const TournamentRegister = () => {
     // Set lock
     localStorage.setItem(lockKey, Date.now().toString());
     setSubmitting(true);
+    setIsSubmitting(true);
+    setIsSubmitting(true);
 
     try {
       const result = await addTournamentRegistration(id, formData);
@@ -155,6 +158,8 @@ const TournamentRegister = () => {
         setError(true);
         setErrorMessage(result.message);
         setSubmitting(false);
+        setIsSubmitting(false);
+        setIsSubmitting(false);
         // Remove lock on error
         localStorage.removeItem(lockKey);
         setTimeout(() => {
@@ -175,6 +180,8 @@ const TournamentRegister = () => {
       // Keep submitting true for a bit longer to prevent rapid re-submission
       setTimeout(() => {
         setSubmitting(false);
+        setIsSubmitting(false);
+        setIsSubmitting(false);
         // Remove lock after successful submission
         localStorage.removeItem(lockKey);
       }, 3000);
@@ -187,6 +194,8 @@ const TournamentRegister = () => {
       setError(true);
       setErrorMessage('Error registering for tournament. Please try again.');
       setSubmitting(false);
+        setIsSubmitting(false);
+        setIsSubmitting(false);
       setTimeout(() => {
         setError(false);
         setErrorMessage('');
