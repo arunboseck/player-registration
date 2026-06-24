@@ -3,7 +3,7 @@
   position: fixed;
   top: 20px;
   left: 20px;
-  z-index: 1001;
+  z-index: 10000;
   background: rgba(99, 102, 241, 0.9);
   border: none;
   width: 50px;
@@ -46,7 +46,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 1000;
+  z-index: 9999;
   pointer-events: none;
 }
 
@@ -245,4 +245,34 @@
   line-height: 1.5;
   margin-bottom: 16px;
   padding: 0 4px;
+}
+
+/* Prevent title overlap with hamburger menu */
+.dashboard-container h1,
+.players-container h1,
+.register-container h1,
+.tournaments-container h1,
+.add-tournament-container h1,
+.edit-tournament-container h1,
+.edit-player-container h1,
+.login-container h1,
+.public-register-container h1,
+.tournament-register-container h1 {
+  padding-left: 80px !important;
+}
+
+@media (max-width: 768px) {
+  .dashboard-container h1,
+  .players-container h1,
+  .register-container h1,
+  .tournaments-container h1,
+  .add-tournament-container h1,
+  .edit-tournament-container h1,
+  .edit-player-container h1,
+  .login-container h1,
+  .public-register-container h1,
+  .tournament-register-container h1 {
+    padding-left: 70px !important;
+    font-size: 1.5rem !important;
+  }
 }
