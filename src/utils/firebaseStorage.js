@@ -20,14 +20,22 @@ export const getPlayers = async () => {
 
 export const getPlayerByMobile = async (mobile) => {
   try {
-    const players = await getPlayers();
-    return players.find((p) => p.mobile === mobile) || null;
+    // OPTIMIZED: Use Firebase query instead of fetching all players
+    const playersRef = ref(database, "players");
+    const mobileQuery = query(playersRef, orderByChild("mobile"), equalTo(mobile));
+    const snapshot = await get(mobileQuery);
+    
+    if (snapshot.exists()) {
+      const playersObj = snapshot.val();
+      const key = Object.keys(playersObj)[0];
+      return { id: key, ...playersObj[key] };
+    }
+    return null;
   } catch (error) {
-    console.error('Error fetching player by mobile:', error);
+    console.error("Error fetching player by mobile:", error);
     return null;
   }
 };
-
 export const addPlayer = async (player) => {
   try {
     const playersRef = ref(database, 'players');
@@ -183,18 +191,7 @@ export const addTournamentRegistration = async (tournamentId, playerData) => {
       };
     }
 
-    // Double-check in the actual registrations list (fallback)
-    const existingRegistrations = await getTournamentRegistrations(tournamentId);
-    const existingTournamentReg = existingRegistrations.find(reg =>
-      reg.mobile.replace(/[^0-9]/g, '') === sanitizedMobile
-    );
-
-    if (existingTournamentReg) {
-      return {
-        success: false,
-        message: `${playerData.name} (${playerData.mobile}) is already registered for this tournament!`
-      };
-    }
+    // Unique key check above is sufficient - removed redundant query for performance
 
     // Check if player exists in Players module
     const existingPlayer = await getPlayerByMobile(playerData.mobile);
