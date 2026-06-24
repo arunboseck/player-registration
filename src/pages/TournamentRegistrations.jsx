@@ -467,6 +467,7 @@ const TournamentRegistrations = () => {
           fontSize: 8,
           cellPadding: 2,
           minCellHeight: 18, // Increased for better photo display
+          valign: 'middle', // Vertically center all content
         },
         headStyles: {
           fillColor: [102, 126, 234],
@@ -474,14 +475,14 @@ const TournamentRegistrations = () => {
           fontStyle: 'bold'
         },
         columnStyles: {
-          0: { cellWidth: 10, halign: 'center' }, // S.No
+          0: { cellWidth: 10, halign: 'center', valign: 'middle' }, // S.No
           1: { cellWidth: 18, halign: 'center', valign: 'middle' }, // Photo (increased width)
-          2: { cellWidth: 30 }, // Name
-          3: { cellWidth: 25 }, // Mobile
-          4: { cellWidth: 22 }, // DOB
+          2: { cellWidth: 30, valign: 'middle' }, // Name
+          3: { cellWidth: 25, valign: 'middle' }, // Mobile
+          4: { cellWidth: 22, valign: 'middle' }, // DOB
           5: { cellWidth: 18, halign: 'center' }, // Blood Group
-          6: { cellWidth: 25 }, // Place
-          7: { cellWidth: 28 }, // Position
+          6: { cellWidth: 25, valign: 'middle' }, // Place
+          7: { cellWidth: 28, valign: 'middle' }, // Position
         },
         didDrawCell: (data) => {
           // Add photos to the Photo column (column index 1)
@@ -490,8 +491,9 @@ const TournamentRegistrations = () => {
             if (reg.resizedPhoto) {
               try {
                 const cellX = data.cell.x + 2.5;
-                const cellY = data.cell.y + 2;
+                const cellHeight = data.cell.height;
                 const imgSize = 13; // 13mm for better visibility
+                const cellY = data.cell.y + (cellHeight - imgSize) / 2; // Center vertically
 
                 doc.addImage(reg.resizedPhoto, 'JPEG', cellX, cellY, imgSize, imgSize);
               } catch (error) {
