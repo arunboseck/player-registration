@@ -26,7 +26,10 @@ const TournamentRegistrations = () => {
   const loadData = async () => {
     setLoading(true);
     try {
+      console.log('Loading tournament:', id);
       const tournamentData = await getTournamentById(id);
+      console.log('Tournament data:', tournamentData);
+
       if (!tournamentData) {
         alert('Tournament not found!');
         navigate('/tournaments');
@@ -35,10 +38,11 @@ const TournamentRegistrations = () => {
       setTournament(tournamentData);
 
       const regs = await getTournamentRegistrations(id);
+      console.log('Registrations:', regs);
       setRegistrations(Array.isArray(regs) ? regs : []);
     } catch (error) {
       console.error('Error loading tournament data:', error);
-      alert('Error loading tournament data');
+      alert('Error loading tournament data: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -53,7 +57,7 @@ const TournamentRegistrations = () => {
       try {
         await deleteRegistration(id, deleteModal.registration.id);
         // Reload data
-        loadData();
+        await loadData();
         // Close modal
         setDeleteModal({ show: false, registration: null });
       } catch (error) {
