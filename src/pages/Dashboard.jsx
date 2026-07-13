@@ -10,16 +10,22 @@ const Dashboard = () => {
   const { user, logout } = useAuth();
   const [playerCount, setPlayerCount] = useState(0);
   const [tournamentCount, setTournamentCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadStats();
   }, []);
 
   const loadStats = async () => {
-    const players = await getPlayers();
-    const tournaments = await getTournaments();
-    setPlayerCount(players.length);
-    setTournamentCount(tournaments.length);
+    setLoading(true);
+    // Simulate slight delay to ensure smooth loading animation
+    setTimeout(async () => {
+      const players = await getPlayers();
+      const tournaments = await getTournaments();
+      setPlayerCount(players.length);
+      setTournamentCount(tournaments.length);
+      setLoading(false);
+    }, 500);
   };
 
   const handleLogout = () => {
@@ -50,7 +56,15 @@ const Dashboard = () => {
             <div className="stat-icon">👥</div>
             <div className="stat-info">
               <div className="stat-label">Total Players</div>
-              <div className="stat-value">{playerCount}</div>
+              <div className="stat-value">
+                {loading ? (
+                  <div className="loading-spinner">
+                    <div className="spinner"></div>
+                  </div>
+                ) : (
+                  playerCount
+                )}
+              </div>
             </div>
           </div>
 
@@ -76,7 +90,15 @@ const Dashboard = () => {
             <div className="stat-icon">🏆</div>
             <div className="stat-info">
               <div className="stat-label">Total Tournaments</div>
-              <div className="stat-value">{tournamentCount}</div>
+              <div className="stat-value">
+                {loading ? (
+                  <div className="loading-spinner">
+                    <div className="spinner"></div>
+                  </div>
+                ) : (
+                  tournamentCount
+                )}
+              </div>
             </div>
           </div>
 
