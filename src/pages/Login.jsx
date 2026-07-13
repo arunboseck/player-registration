@@ -12,10 +12,10 @@ const Login = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (credentials.username === 'admin' && credentials.password === 'admin123') {
-      login();
+      login(credentials.username, credentials.password);
       navigate('/dashboard');
     } else {
-      setError('Invalid credentials. Use admin/admin123');
+      setError('Invalid username or password');
     }
   };
 
@@ -48,7 +48,6 @@ const Login = () => {
           </div>
           <button type="submit" className="btn-login">Login</button>
         </form>
-        <p className="hint">Default: admin / admin123</p>
       </div>
     </div>
   );
