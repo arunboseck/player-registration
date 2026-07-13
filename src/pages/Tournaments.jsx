@@ -11,6 +11,7 @@ const Tournaments = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [tournaments, setTournaments] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { modalState, hideModal, showConfirm, showSuccess } = useModal();
 
   useEffect(() => {
@@ -18,8 +19,13 @@ const Tournaments = () => {
   }, []);
 
   const loadTournaments = async () => {
-    const allTournaments = await getTournaments();
-    setTournaments(allTournaments);
+    setLoading(true);
+    // Simulate slight delay to ensure smooth loading animation
+    setTimeout(async () => {
+      const allTournaments = await getTournaments();
+      setTournaments(allTournaments);
+      setLoading(false);
+    }, 500);
   };
 
   const handleDelete = async (id) => {
@@ -83,7 +89,14 @@ const Tournaments = () => {
           </div>
         </div>
 
-        {tournaments.length === 0 ? (
+        {loading ? (
+          <div className="loading-container">
+            <div className="loading-spinner-large">
+              <div className="spinner-large"></div>
+            </div>
+            <p className="loading-text">Loading tournaments...</p>
+          </div>
+        ) : tournaments.length === 0 ? (
           <div className="no-data">
             <p>No tournaments found. Create your first tournament!</p>
           </div>
