@@ -5,7 +5,6 @@ import { useAuth } from '../contexts/AuthContext';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import LoadingSpinner from '../components/LoadingSpinner';
 import './Players.css';
 import './TournamentRegistrations.css';
 
@@ -17,7 +16,6 @@ const TournamentRegistrations = () => {
   const [registrations, setRegistrations] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteModal, setDeleteModal] = useState({ show: false, registration: null });
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadData();
@@ -26,17 +24,25 @@ const TournamentRegistrations = () => {
   const loadData = () => {
     setLoading(true);
     setTimeout(() => {
-      const tournamentData = getTournamentById(id);
-      if (!tournamentData) {
-        alert('Tournament not found!');
-        navigate('/tournaments');
-        return;
-      }
-      setTournament(tournamentData);
+      try {
+        const tournamentData = getTournamentById(id);
+        if (!tournamentData) {
+          alert('Tournament not found!');
+          navigate('/tournaments');
+          setLoading(false);
+          return;
+        }
+        setTournament(tournamentData);
 
-      const regs = getTournamentRegistrations(id);
-      setRegistrations(regs);
-      setLoading(false);
+        const regs = getTournamentRegistrations(id);
+        // Ensure regs is always an array
+        setRegistrations(Array.isArray(regs) ? regs : []);
+      } catch (error) {
+        console.error('Error loading tournament data:', error);
+        setRegistrations([]);
+      } finally {
+        setLoading(false);
+      }
     }, 500);
   };
 
@@ -141,13 +147,16 @@ const TournamentRegistrations = () => {
     navigate('/');
   };
 
-  const filteredRegistrations = registrations.filter((reg) =>
-    reg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    reg.place.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    reg.mobile.includes(searchTerm)
-  );
+  // Safely filter registrations - ensure it's always an array
+  const filteredRegistrations = Array.isArray(registrations)
+    ? registrations.filter((reg) =>
+        reg.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reg.place?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reg.mobile?.includes(searchTerm)
+      )
+    : [];
 
-  if (!tournament) return <div>Loading...</div>;
+  if (!tournament && !loading) return <div>Loading...</div>;
 
   return (
     <div className="players-container">
@@ -195,12 +204,7 @@ const TournamentRegistrations = () => {
           </div>
         </div>
 
-        {loading ? (
-          <LoadingSpinner
-            message="Loading Tournament Registrations"
-            subMessage="Please wait while we fetch the player data..."
-          />
-        ) : filteredRegistrations.length === 0 ? (
+        {filteredRegistrations.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">🏏</div>
             <h3>No Registrations Yet</h3>
