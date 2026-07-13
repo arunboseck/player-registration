@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { addPlayer, getPlayerByMobile } from '../utils/storage';
+import { addPlayer, getPlayerByMobile } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import Navigation from '../components/Navigation';
 import './RegisterPlayer.css';

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getPlayers, updatePlayer } from '../utils/storage';
+import { getPlayers, updatePlayer } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import Navigation from '../components/Navigation';
 import './RegisterPlayer.css';

@@ -21,43 +21,26 @@ const TournamentRegistrations = () => {
     loadData();
   }, [id]);
 
-  const loadData = () => {
-    setLoading(true);
-    setTimeout(() => {
-      try {
-        const tournamentData = getTournamentById(id);
-        if (!tournamentData) {
-          alert('Tournament not found!');
-          navigate('/tournaments');
-          setLoading(false);
-          return;
-        }
-        setTournament(tournamentData);
+  const loadData = async () => {
+    const tournamentData = await getTournamentById(id);
+    if (!tournamentData) {
+      alert('Tournament not found!');
+      navigate('/tournaments');
+      return;
+    }
+    setTournament(tournamentData);
 
-        const regs = getTournamentRegistrations(id);
-        // Ensure regs is always an array
-        setRegistrations(Array.isArray(regs) ? regs : []);
-      } catch (error) {
-        console.error('Error loading tournament data:', error);
-        setRegistrations([]);
-      } finally {
-        setLoading(false);
-      }
-    }, 500);
+    const regs = await getTournamentRegistrations(id);
+    setRegistrations(Array.isArray(regs) ? regs : []);
   };
 
   const handleDeleteClick = (registration) => {
     setDeleteModal({ show: true, registration });
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (deleteModal.registration) {
-      // Get all registrations
-      const allRegistrations = JSON.parse(localStorage.getItem('tournamentRegistrations') || '[]');
-      // Filter out the one to delete
-      const updatedRegistrations = allRegistrations.filter(reg => reg.id !== deleteModal.registration.id);
-      // Save back to localStorage
-      localStorage.setItem('tournamentRegistrations', JSON.stringify(updatedRegistrations));
+      await deleteRegistration(id, deleteModal.registration.id);
       // Reload data
       loadData();
       // Close modal
@@ -147,16 +130,13 @@ const TournamentRegistrations = () => {
     navigate('/');
   };
 
-  // Safely filter registrations - ensure it's always an array
-  const filteredRegistrations = Array.isArray(registrations)
-    ? registrations.filter((reg) =>
-        reg.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        reg.place?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        reg.mobile?.includes(searchTerm)
-      )
-    : [];
+  const filteredRegistrations = registrations.filter((reg) =>
+    reg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    reg.place.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    reg.mobile.includes(searchTerm)
+  );
 
-  if (!tournament && !loading) return <div>Loading...</div>;
+  if (!tournament) return <div>Loading...</div>;
 
   return (
     <div className="players-container">

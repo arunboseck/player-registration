@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getTournaments, deleteTournament } from '../utils/storage';
+import { getTournaments, deleteTournament } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
 import { useModal } from '../hooks/useModal';

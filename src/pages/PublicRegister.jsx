@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { addPlayer } from '../utils/storage';
+import { addPlayer } from '../utils/firebaseStorage';
 import './PublicRegister.css';
 
 const POSITIONS = ['Batsman', 'Bowler', 'All-rounder', 'Wicket-keeper'];

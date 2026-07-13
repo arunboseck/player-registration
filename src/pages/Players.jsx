@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getPlayers, deletePlayer } from '../utils/storage';
+import { getPlayers, deletePlayer } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import * as XLSX from 'xlsx';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -18,18 +18,18 @@ const Players = () => {
     loadPlayers();
   }, []);
 
-  const loadPlayers = () => {
+  const loadPlayers = async () => {
     setLoading(true);
-    setTimeout(() => {
-      const allPlayers = getPlayers();
+    setTimeout(async () => {
+      const allPlayers = await getPlayers();
       setPlayers(allPlayers);
       setLoading(false);
     }, 500);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this player?')) {
-      deletePlayer(id);
+      await deletePlayer(id);
       loadPlayers();
     }
   };
@@ -158,12 +158,7 @@ const Players = () => {
         </div>
 
 
-        {loading ? (
-          <LoadingSpinner
-            message="Loading Players"
-            subMessage="Please wait while we fetch the player data..."
-          />
-        ) : filteredPlayers.length === 0 ? (
+        {filteredPlayers.length === 0 ? (
           <div className="no-players">
             <p>No players found. {searchTerm || filterPosition ? 'Try adjusting your filters.' : 'Register your first player!'}</p>
           </div>

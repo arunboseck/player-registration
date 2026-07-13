@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getTournamentById, updateTournament } from '../utils/storage';
+import { getTournamentById, updateTournament } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import Navigation from '../components/Navigation';
 import './RegisterPlayer.css';

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getPlayers, getTournaments } from '../utils/storage';
+import { getPlayers, getTournaments } from '../utils/firebaseStorage';
 import Navigation from '../components/Navigation';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './Dashboard.css';
