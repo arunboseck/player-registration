@@ -1,0 +1,174 @@
+/* Cricket Loading Animation */
+.cricket-loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  padding: 2rem;
+}
+
+.cricket-loading-card {
+  background: white;
+  padding: 4rem 3rem;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(102, 126, 234, 0.15);
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+  animation: fadeInScale 0.4s ease-out;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Cricket Animation */
+.cricket-animation {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Cricket Bat */
+.cricket-bat {
+  width: 8px;
+  height: 80px;
+  background: linear-gradient(180deg, #8b4513 0%, #654321 100%);
+  border-radius: 4px;
+  position: absolute;
+  transform-origin: center bottom;
+  animation: batSwing 1.2s ease-in-out infinite;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.cricket-bat::before {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 15px;
+  background: #654321;
+  border-radius: 0 0 8px 8px;
+}
+
+@keyframes batSwing {
+  0%, 100% {
+    transform: rotate(-45deg);
+  }
+  50% {
+    transform: rotate(45deg);
+  }
+}
+
+/* Cricket Ball */
+.cricket-ball {
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  border-radius: 50%;
+  position: absolute;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4), inset -2px -2px 4px rgba(0, 0, 0, 0.2);
+  animation: ballBounce 1.2s ease-in-out infinite;
+}
+
+.cricket-ball::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  right: 2px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-50%);
+  border-radius: 1px;
+}
+
+.cricket-ball::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  right: 2px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-50%) rotate(20deg);
+  border-radius: 1px;
+}
+
+@keyframes ballBounce {
+  0%, 100% {
+    transform: translateY(-30px) translateX(-40px) scale(1);
+  }
+  25% {
+    transform: translateY(0px) translateX(-20px) scale(0.9);
+  }
+  50% {
+    transform: translateY(-30px) translateX(0px) scale(1);
+  }
+  75% {
+    transform: translateY(0px) translateX(20px) scale(0.9);
+  }
+}
+
+/* Loading Text */
+.loading-title {
+  color: #667eea;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem 0;
+  letter-spacing: -0.5px;
+}
+
+.loading-subtitle {
+  color: #9ca3af;
+  font-size: 1rem;
+  margin: 0 0 2rem 0;
+  line-height: 1.5;
+}
+
+/* Loading Dots */
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.loading-dots span {
+  width: 10px;
+  height: 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  animation: dotPulse 1.4s ease-in-out infinite;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loading-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes dotPulse {
+  0%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}

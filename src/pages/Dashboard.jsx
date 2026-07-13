@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getPlayers, getTournaments } from '../utils/storage';
 import Navigation from '../components/Navigation';
+import LoadingSpinner from '../components/LoadingSpinner';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -50,23 +51,22 @@ const Dashboard = () => {
 
       <div className="dashboard-content">
         <h2 className="dashboard-title">Dashboard</h2>
-        
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon">👥</div>
-            <div className="stat-info">
-              <div className="stat-label">Total Players</div>
-              <div className="stat-value">
-                {loading ? (
-                  <div className="loading-spinner">
-                    <div className="spinner"></div>
-                  </div>
-                ) : (
-                  playerCount
-                )}
+
+        {loading ? (
+          <LoadingSpinner
+            message="Loading Dashboard"
+            subMessage="Please wait while we fetch your statistics..."
+          />
+        ) : (
+          <>
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-icon">👥</div>
+                <div className="stat-info">
+                  <div className="stat-label">Total Players</div>
+                  <div className="stat-value">{playerCount}</div>
+                </div>
               </div>
-            </div>
-          </div>
 
           <div className="stat-card clickable" onClick={() => navigate('/players')}>
             <div className="stat-icon">📋</div>
@@ -85,22 +85,14 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="stats-grid" style={{marginTop: '2rem'}}>
-          <div className="stat-card">
-            <div className="stat-icon">🏆</div>
-            <div className="stat-info">
-              <div className="stat-label">Total Tournaments</div>
-              <div className="stat-value">
-                {loading ? (
-                  <div className="loading-spinner">
-                    <div className="spinner"></div>
-                  </div>
-                ) : (
-                  tournamentCount
-                )}
+            <div className="stats-grid" style={{marginTop: '2rem'}}>
+              <div className="stat-card">
+                <div className="stat-icon">🏆</div>
+                <div className="stat-info">
+                  <div className="stat-label">Total Tournaments</div>
+                  <div className="stat-value">{tournamentCount}</div>
+                </div>
               </div>
-            </div>
-          </div>
 
           <div className="stat-card clickable" onClick={() => navigate('/tournaments')}>
             <div className="stat-icon">📊</div>
@@ -110,32 +102,34 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="stat-card clickable" onClick={() => navigate('/add-tournament')}>
-            <div className="stat-icon">🎯</div>
-            <div className="stat-info">
-              <div className="stat-label">Create New Tournament</div>
-              <div className="stat-subtitle">Click to add a tournament</div>
+              <div className="stat-card clickable" onClick={() => navigate('/add-tournament')}>
+                <div className="stat-icon">🎯</div>
+                <div className="stat-info">
+                  <div className="stat-label">Create New Tournament</div>
+                  <div className="stat-subtitle">Click to add a tournament</div>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div className="quick-actions">
-          <h3>Quick Actions</h3>
-          <div className="action-buttons">
-            <button onClick={() => navigate('/register-player')} className="action-btn primary">
-              Register Player
-            </button>
-            <button onClick={() => navigate('/players')} className="action-btn secondary">
-              View Players
-            </button>
-            <button onClick={() => navigate('/add-tournament')} className="action-btn success">
-              Create Tournament
-            </button>
-            <button onClick={() => navigate('/tournaments')} className="action-btn info">
-              View Tournaments
-            </button>
-          </div>
-        </div>
+            <div className="quick-actions">
+              <h3>Quick Actions</h3>
+              <div className="action-buttons">
+                <button onClick={() => navigate('/register-player')} className="action-btn primary">
+                  Register Player
+                </button>
+                <button onClick={() => navigate('/players')} className="action-btn secondary">
+                  View Players
+                </button>
+                <button onClick={() => navigate('/add-tournament')} className="action-btn success">
+                  Create Tournament
+                </button>
+                <button onClick={() => navigate('/tournaments')} className="action-btn info">
+                  View Tournaments
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

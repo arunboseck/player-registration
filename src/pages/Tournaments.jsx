@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
 import { useModal } from '../hooks/useModal';
 import Navigation from '../components/Navigation';
+import LoadingSpinner from '../components/LoadingSpinner';
 import './Players.css';
 
 const Tournaments = () => {
@@ -90,12 +91,10 @@ const Tournaments = () => {
         </div>
 
         {loading ? (
-          <div className="loading-container">
-            <div className="loading-spinner-large">
-              <div className="spinner-large"></div>
-            </div>
-            <p className="loading-text">Loading tournaments...</p>
-          </div>
+          <LoadingSpinner
+            message="Loading Tournaments"
+            subMessage="Please wait while we fetch the tournament data..."
+          />
         ) : tournaments.length === 0 ? (
           <div className="no-data">
             <p>No tournaments found. Create your first tournament!</p>

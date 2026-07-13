@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getPlayers, deletePlayer } from '../utils/storage';
 import { useAuth } from '../contexts/AuthContext';
 import * as XLSX from 'xlsx';
+import LoadingSpinner from '../components/LoadingSpinner';
 import './Players.css';
 
 const Players = () => {
@@ -19,7 +20,6 @@ const Players = () => {
 
   const loadPlayers = () => {
     setLoading(true);
-    // Simulate slight delay to ensure smooth loading animation
     setTimeout(() => {
       const allPlayers = getPlayers();
       setPlayers(allPlayers);
@@ -159,12 +159,10 @@ const Players = () => {
 
 
         {loading ? (
-          <div className="loading-container">
-            <div className="loading-spinner-large">
-              <div className="spinner-large"></div>
-            </div>
-            <p className="loading-text">Loading players...</p>
-          </div>
+          <LoadingSpinner
+            message="Loading Players"
+            subMessage="Please wait while we fetch the player data..."
+          />
         ) : filteredPlayers.length === 0 ? (
           <div className="no-players">
             <p>No players found. {searchTerm || filterPosition ? 'Try adjusting your filters.' : 'Register your first player!'}</p>
