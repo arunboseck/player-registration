@@ -1,14 +1,15 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { addTournament } from '../utils/storage';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { getTournamentById, updateTournament } from '../utils/storage';
 import { useAuth } from '../contexts/AuthContext';
 import Navigation from '../components/Navigation';
 import './RegisterPlayer.css';
 
 const TOURNAMENT_STATUSES = ['Upcoming', 'Ongoing', 'Completed', 'Cancelled'];
 
-const AddTournament = () => {
+const EditTournament = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const { logout } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
@@ -19,6 +20,21 @@ const AddTournament = () => {
     description: '',
   });
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadTournament = async () => {
+      const tournament = await getTournamentById(id);
+      if (tournament) {
+        setFormData(tournament);
+        setLoading(false);
+      } else {
+        alert('Tournament not found!');
+        navigate('/tournaments');
+      }
+    };
+    loadTournament();
+  }, [id, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,11 +62,11 @@ const AddTournament = () => {
     e.preventDefault();
     if (validateForm()) {
       try {
-        await addTournament(formData);
-        alert('Tournament created successfully!');
+        await updateTournament(id, formData);
+        alert('Tournament updated successfully!');
         navigate('/tournaments');
       } catch (error) {
-        alert('Error creating tournament. Please try again.');
+        alert('Error updating tournament. Please try again.');
       }
     }
   };
@@ -60,12 +76,27 @@ const AddTournament = () => {
     navigate('/');
   };
 
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
+        fontSize: '1.2rem',
+        color: '#667eea'
+      }}>
+      <Navigation />
+        Loading...
+      </div>
+    );
+  }
+
   return (
     <div className="register-container">
-      <Navigation />
       <nav className="navbar">
         <div className="navbar-brand">
-          <h1>Cricket Player Management</h1>
+          <h1>🏏 Cricket Player Management</h1>
         </div>
         <div className="navbar-actions">
           <button onClick={() => navigate('/dashboard')} className="btn-nav">Dashboard</button>
@@ -76,7 +107,7 @@ const AddTournament = () => {
 
       <div className="register-content">
         <div className="register-form-container">
-          <h2>Create New Tournament</h2>
+          <h2>Edit Tournament</h2>
           <form onSubmit={handleSubmit} className="register-form">
             <div className="form-row">
               <div className="form-group">
@@ -123,7 +154,7 @@ const AddTournament = () => {
 
             <div className="form-actions">
               <button type="button" onClick={() => navigate('/tournaments')} className="btn-secondary">Cancel</button>
-              <button type="submit" className="btn-primary">Create Tournament</button>
+              <button type="submit" className="btn-primary">Update Tournament</button>
             </div>
           </form>
         </div>
@@ -132,4 +163,4 @@ const AddTournament = () => {
   );
 };
 
-export default AddTournament;
+export default EditTournament;

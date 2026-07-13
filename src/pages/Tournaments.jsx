@@ -2,33 +2,46 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getTournaments, deleteTournament } from '../utils/storage';
 import { useAuth } from '../contexts/AuthContext';
+import Modal from '../components/Modal';
+import { useModal } from '../hooks/useModal';
+import Navigation from '../components/Navigation';
 import './Players.css';
 
 const Tournaments = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [tournaments, setTournaments] = useState([]);
+  const { modalState, hideModal, showConfirm, showSuccess } = useModal();
 
   useEffect(() => {
     loadTournaments();
   }, []);
 
-  const loadTournaments = () => {
-    const allTournaments = getTournaments();
+  const loadTournaments = async () => {
+    const allTournaments = await getTournaments();
     setTournaments(allTournaments);
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this tournament?')) {
-      deleteTournament(id);
+  const handleDelete = async (id) => {
+    const confirmed = await showConfirm(
+      'Are you sure you want to delete this tournament? This action cannot be undone.',
+      '🗑️ Delete Tournament'
+    );
+
+    if (confirmed) {
+      await deleteTournament(id);
       loadTournaments();
+      await showSuccess('Tournament has been deleted successfully!');
     }
   };
 
-  const handleGetLink = (id) => {
+  const handleGetLink = async (id) => {
     const link = `${window.location.origin}/tournament-register/${id}`;
     navigator.clipboard.writeText(link);
-    alert(`Registration link copied to clipboard!\n\n${link}`);
+    await showSuccess(
+      `Registration link copied to clipboard!\n\n${link}`,
+      '📋 Link Copied'
+    );
   };
 
   const handleLogout = () => {
@@ -48,6 +61,7 @@ const Tournaments = () => {
 
   return (
     <div className="players-container">
+      <Navigation />
       <nav className="navbar">
         <div className="navbar-brand">
           <h1>Cricket Player Management</h1>
@@ -129,6 +143,16 @@ const Tournaments = () => {
                           </svg>
                         </button>
                         <button
+                          onClick={() => navigate(`/edit-tournament/${tournament.id}`)}
+                          className="btn-icon-action btn-edit"
+                          title="Edit Tournament"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                          </svg>
+                        </button>
+                        <button
                           onClick={() => handleDelete(tournament.id)}
                           className="btn-icon-action btn-delete-tournament"
                           title="Delete Tournament"
@@ -149,6 +173,20 @@ const Tournaments = () => {
           </div>
         )}
       </div>
+
+      <Modal
+        show={modalState.show}
+        onClose={hideModal}
+        onConfirm={modalState.onConfirm}
+        onCancel={modalState.onCancel}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        showCancel={modalState.showCancel}
+        icon={modalState.icon}
+      />
     </div>
   );
 };

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getPlayers, getTournaments } from '../utils/storage';
+import Navigation from '../components/Navigation';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -14,9 +15,9 @@ const Dashboard = () => {
     loadStats();
   }, []);
 
-  const loadStats = () => {
-    const players = getPlayers();
-    const tournaments = getTournaments();
+  const loadStats = async () => {
+    const players = await getPlayers();
+    const tournaments = await getTournaments();
     setPlayerCount(players.length);
     setTournamentCount(tournaments.length);
   };
@@ -28,6 +29,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
+      <Navigation />
       <nav className="navbar">
         <div className="navbar-brand">
           <h1>Cricket Player Management</h1>

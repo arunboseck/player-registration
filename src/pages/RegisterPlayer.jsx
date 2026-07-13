@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addPlayer, getPlayerByMobile } from '../utils/storage';
 import { useAuth } from '../contexts/AuthContext';
+import Navigation from '../components/Navigation';
 import './RegisterPlayer.css';
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -33,13 +34,13 @@ const RegisterPlayer = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     // Check if mobile number already exists
-    const existingPlayer = getPlayerByMobile(formData.mobile);
+    const existingPlayer = await getPlayerByMobile(formData.mobile);
     if (existingPlayer) {
       setError(`A player with mobile number ${formData.mobile} already exists: ${existingPlayer.name}`);
       setLoading(false);
@@ -47,7 +48,7 @@ const RegisterPlayer = () => {
     }
 
     try {
-      addPlayer(formData);
+      await addPlayer(formData);
       navigate('/players');
     } catch (err) {
       setError('Failed to register player. Please try again.');
@@ -62,6 +63,7 @@ const RegisterPlayer = () => {
 
   return (
     <div className="register-container">
+      <Navigation />
       <nav className="navbar">
         <div className="navbar-brand">
           <h1>🏏 Cricket Player Management</h1>

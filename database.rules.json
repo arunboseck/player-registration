@@ -1,0 +1,24 @@
+{
+  "rules": {
+    ".read": true,
+    ".write": true,
+    
+    "players": {
+      ".indexOn": ["mobile", "name", "position"]
+    },
+    
+    "tournaments": {
+      ".indexOn": ["name", "date", "createdAt"]
+    },
+    
+    "tournament_registrations": {
+      "$tournamentId": {
+        ".indexOn": ["mobile", "name", "registeredAt"]
+      }
+    },
+    
+    "tournament_registrations_unique": {
+      ".indexOn": [".value"]
+    }
+  }
+}

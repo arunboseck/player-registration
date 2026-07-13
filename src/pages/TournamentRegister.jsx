@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getTournamentById, addTournamentRegistration } from '../utils/storage';
+import Navigation from '../components/Navigation';
 import './TournamentRegister.css';
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -19,23 +20,75 @@ const TournamentRegister = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '', mobile: '', dateOfBirth: '', bloodGroup: '', place: '', position: '', photo: ''
   });
+  const [dob, setDob] = useState({ day: '', month: '', year: '' });
+  const dayRef = useRef(null);
+  const monthRef = useRef(null);
+  const yearRef = useRef(null);
 
   useEffect(() => {
-    const tournamentData = getTournamentById(id);
-    if (!tournamentData) {
-      alert('Tournament not found!');
-      navigate('/');
-    } else {
-      setTournament(tournamentData);
-    }
-  }, [id, navigate]);
+    const loadTournament = async () => {
+      const tournamentData = await getTournamentById(id);
+      if (tournamentData) {
+        setTournament(tournamentData);
+      }
+      // If tournament is not found, we'll show an error message instead of redirecting
+    };
+    loadTournament();
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleDobChange = (field, value) => {
+    // Allow only numbers
+    const numericValue = value.replace(/[^0-9]/g, '');
+
+    if (field === 'day') {
+      if (numericValue.length <= 2) {
+        const dayValue = numericValue === '' ? '' : Math.min(parseInt(numericValue) || 0, 31).toString();
+        setDob((prev) => ({ ...prev, day: dayValue }));
+        if (numericValue.length === 2) {
+          monthRef.current?.focus();
+        }
+      }
+    } else if (field === 'month') {
+      if (numericValue.length <= 2) {
+        const monthValue = numericValue === '' ? '' : Math.min(parseInt(numericValue) || 0, 12).toString();
+        setDob((prev) => ({ ...prev, month: monthValue }));
+        if (numericValue.length === 2) {
+          yearRef.current?.focus();
+        }
+      }
+    } else if (field === 'year') {
+      if (numericValue.length <= 4) {
+        setDob((prev) => ({ ...prev, year: numericValue }));
+      }
+    }
+
+    // Update formData with combined date
+    const newDob = { ...dob, [field]: numericValue };
+    if (newDob.day && newDob.month && newDob.year && newDob.year.length === 4) {
+      const formattedDate = `${newDob.year}-${newDob.month.padStart(2, '0')}-${newDob.day.padStart(2, '0')}`;
+      setFormData((prev) => ({ ...prev, dateOfBirth: formattedDate }));
+    }
+  };
+
+  const handleDobKeyDown = (field, e) => {
+    // Handle backspace to go to previous field
+    if (e.key === 'Backspace') {
+      if (field === 'month' && dob.month === '') {
+        dayRef.current?.focus();
+      } else if (field === 'year' && dob.year === '') {
+        monthRef.current?.focus();
+      }
+    }
   };
 
   const handlePhotoChange = (e) => {
@@ -49,15 +102,67 @@ const TournamentRegister = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Prevent multiple submissions
+    if (submitting) {
+      return;
+    }
+
+    // Validate photo is uploaded
+    if (!formData.photo) {
+      setError(true);
+      setErrorMessage('Player photo is required. Please upload a photo before submitting.');
+      setTimeout(() => {
+        setError(false);
+        setErrorMessage('');
+      }, 5000);
+      return;
+    }
+
+    // Validate mobile number format
+    if (!formData.mobile || formData.mobile.length < 10) {
+      setError(true);
+      setErrorMessage('Please enter a valid 10-digit mobile number.');
+      setTimeout(() => {
+        setError(false);
+        setErrorMessage('');
+      }, 5000);
+      return;
+    }
+
+    // Check for recent submission lock (prevents double-click and race conditions)
+    const lockKey = `registration_lock_${id}_${formData.mobile}`;
+    const lockTime = localStorage.getItem(lockKey);
+    if (lockTime && Date.now() - parseInt(lockTime) < 5000) {
+      setError(true);
+      setErrorMessage('Please wait a moment before submitting again.');
+      setTimeout(() => {
+        setError(false);
+        setErrorMessage('');
+      }, 3000);
+      return;
+    }
+
+    // Set lock
+    localStorage.setItem(lockKey, Date.now().toString());
+    setSubmitting(true);
+    setIsSubmitting(true);
+    setIsSubmitting(true);
+
     try {
-      const result = addTournamentRegistration(id, formData);
+      const result = await addTournamentRegistration(id, formData);
 
       if (!result.success) {
         // Player is already registered for this tournament
         setError(true);
         setErrorMessage(result.message);
+        setSubmitting(false);
+        setIsSubmitting(false);
+        setIsSubmitting(false);
+        // Remove lock on error
+        localStorage.removeItem(lockKey);
         setTimeout(() => {
           setError(false);
           setErrorMessage('');
@@ -71,6 +176,17 @@ const TournamentRegister = () => {
       setFormData({
         name: '', mobile: '', dateOfBirth: '', bloodGroup: '', place: '', position: '', photo: ''
       });
+      setDob({ day: '', month: '', year: '' }); // Reset date fields
+
+      // Keep submitting true for a bit longer to prevent rapid re-submission
+      setTimeout(() => {
+        setSubmitting(false);
+        setIsSubmitting(false);
+        setIsSubmitting(false);
+        // Remove lock after successful submission
+        localStorage.removeItem(lockKey);
+      }, 3000);
+
       setTimeout(() => {
         setSuccess(false);
         setSuccessMessage('');
@@ -78,6 +194,9 @@ const TournamentRegister = () => {
     } catch (error) {
       setError(true);
       setErrorMessage('Error registering for tournament. Please try again.');
+      setSubmitting(false);
+        setIsSubmitting(false);
+        setIsSubmitting(false);
       setTimeout(() => {
         setError(false);
         setErrorMessage('');
@@ -85,7 +204,24 @@ const TournamentRegister = () => {
     }
   };
 
-  if (!tournament) return <div>Loading...</div>;
+  if (!tournament) {
+    return (
+      <div className="public-register-container">
+      <Navigation />
+        <div className="public-register-content">
+          <div className="public-header" style={{textAlign: 'center', padding: '3rem 1.5rem'}}>
+            <h1 style={{fontSize: '2rem', marginBottom: '1rem', color: '#dc2626'}}>⚠️ Tournament Not Found</h1>
+            <p style={{fontSize: '1.1rem', marginBottom: '1.5rem', color: '#64748b'}}>
+              The tournament you're trying to register for doesn't exist or the registration link is invalid.
+            </p>
+            <p style={{fontSize: '0.95rem', color: '#94a3b8'}}>
+              Please contact the tournament organizer for the correct registration link.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="public-register-container">
@@ -139,8 +275,44 @@ const TournamentRegister = () => {
 
             <div className="form-row">
               <div className="form-group">
-                <label>Date of Birth *</label>
-                <input type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange} required />
+                <label>Date of Birth (DD/MM/YYYY) *</label>
+                <div className="dob-input-container">
+                  <input
+                    ref={dayRef}
+                    type="text"
+                    placeholder="DD"
+                    value={dob.day}
+                    onChange={(e) => handleDobChange('day', e.target.value)}
+                    onKeyDown={(e) => handleDobKeyDown('day', e)}
+                    maxLength={2}
+                    className="dob-input"
+                    required
+                  />
+                  <span className="dob-separator">/</span>
+                  <input
+                    ref={monthRef}
+                    type="text"
+                    placeholder="MM"
+                    value={dob.month}
+                    onChange={(e) => handleDobChange('month', e.target.value)}
+                    onKeyDown={(e) => handleDobKeyDown('month', e)}
+                    maxLength={2}
+                    className="dob-input"
+                    required
+                  />
+                  <span className="dob-separator">/</span>
+                  <input
+                    ref={yearRef}
+                    type="text"
+                    placeholder="YYYY"
+                    value={dob.year}
+                    onChange={(e) => handleDobChange('year', e.target.value)}
+                    onKeyDown={(e) => handleDobKeyDown('year', e)}
+                    maxLength={4}
+                    className="dob-input dob-input-year"
+                    required
+                  />
+                </div>
               </div>
               <div className="form-group">
                 <label>Blood Group *</label>
@@ -166,12 +338,22 @@ const TournamentRegister = () => {
             </div>
 
             <div className="form-group" style={{marginBottom: '1.25rem'}}>
-              <label>Player Photo (Optional)</label>
-              <input type="file" accept="image/*" onChange={handlePhotoChange} />
+              <label>Player Photo *</label>
+              <input type="file" accept="image/*" onChange={handlePhotoChange} required />
+              {formData.photo && (
+                <div className="photo-preview">
+                  <img src={formData.photo} alt="Preview" />
+                  <span className="photo-uploaded">✓ Photo uploaded</span>
+                </div>
+              )}
             </div>
 
-            <button type="submit" className="submit-button">
-              Register for Tournament
+            <button type="submit" className="submit-button" disabled={submitting} style={{
+              opacity: submitting ? 0.6 : 1,
+              cursor: submitting ? 'not-allowed' : 'pointer',
+              pointerEvents: submitting ? 'none' : 'auto'
+            }}>
+              {submitting ? '⏳ Processing... Please wait' : '✓ Register for Tournament'}
             </button>
           </form>
         </div>

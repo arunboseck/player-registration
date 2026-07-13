@@ -8,9 +8,11 @@ import EditPlayer from './pages/EditPlayer';
 import Players from './pages/Players';
 import PublicRegister from './pages/PublicRegister';
 import AddTournament from './pages/AddTournament';
+import EditTournament from './pages/EditTournament';
 import Tournaments from './pages/Tournaments';
 import TournamentRegister from './pages/TournamentRegister';
 import TournamentRegistrations from './pages/TournamentRegistrations';
+import CleanupDuplicates from './pages/CleanupDuplicates';
 import './App.css';
 
 function App() {
@@ -68,12 +70,28 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/edit-tournament/:id"
+            element={
+              <ProtectedRoute>
+                <EditTournament />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/tournament-register/:id" element={<TournamentRegister />} />
           <Route
             path="/tournament-registrations/:id"
             element={
               <ProtectedRoute>
                 <TournamentRegistrations />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cleanup-duplicates"
+            element={
+              <ProtectedRoute>
+                <CleanupDuplicates />
               </ProtectedRoute>
             }
           />

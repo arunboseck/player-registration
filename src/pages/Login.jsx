@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import Navigation from '../components/Navigation';
 import './Login.css';
 
 const Login = () => {
@@ -21,6 +22,7 @@ const Login = () => {
 
   return (
     <div className="login-container">
+      <Navigation />
       <div className="login-box">
         <h1>🏏 Cricket Player Management</h1>
         <h2>Admin Login</h2>

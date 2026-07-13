@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getPlayers, deletePlayer } from '../utils/storage';
 import { useAuth } from '../contexts/AuthContext';
 import * as XLSX from 'xlsx';
+import Navigation from '../components/Navigation';
 import './Players.css';
 
 const Players = () => {
@@ -16,15 +17,25 @@ const Players = () => {
     loadPlayers();
   }, []);
 
-  const loadPlayers = () => {
-    const allPlayers = getPlayers();
+  const loadPlayers = async () => {
+    const allPlayers = await getPlayers();
     setPlayers(allPlayers);
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this player?')) {
-      deletePlayer(id);
-      loadPlayers();
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this player? This action cannot be undone.')) {
+      try {
+        const result = await deletePlayer(id);
+        if (result) {
+          alert('Player deleted successfully!');
+          loadPlayers();
+        } else {
+          alert('Failed to delete player. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error deleting player:', error);
+        alert('An error occurred while deleting the player.');
+      }
     }
   };
 
@@ -97,6 +108,7 @@ const Players = () => {
 
   return (
     <div className="players-container">
+      <Navigation />
       <nav className="navbar">
         <div className="navbar-brand">
           <h1>Cricket Player Management</h1>
