@@ -1,22 +1,27 @@
-# 🚀 Vercel Environment Variables Setup
+# 🚀 Vercel Environment Variables Setup - COMPLETE GUIDE
 
-## Add These Variables to Vercel:
+## ⚡ Quick Setup (5 minutes)
 
-Go to: https://vercel.com/dashboard
-→ Click your `player-registration` project
-→ Settings → Environment Variables
+### Step 1: Go to Vercel Dashboard
+1. Open: **https://vercel.com/dashboard**
+2. Find and click on your **player-registration** project
+
+### Step 2: Add Environment Variables
+1. Click **Settings** (top navigation)
+2. Click **Environment Variables** (left sidebar)
+3. Add ALL 7 variables below:
 
 ---
 
-## Copy-Paste These (One by One):
+## 📋 COPY-PASTE THESE VARIABLES:
 
 ### Variable 1:
-**Name:** `VITE_FIREBASE_API_KEY`
-**Value:** `AIzaSyDjS1gfnv8DHocsCKNr_HD3F7w89mgKUqs`
+- **Name:** `VITE_FIREBASE_API_KEY`
+- **Value:** `AIzaSyDjS1gfnv8DHocsCKNr_HD3F7w89mgKUqs`
 
 ### Variable 2:
-**Name:** `VITE_FIREBASE_AUTH_DOMAIN`
-**Value:** `cricket-player-app.firebaseapp.com`
+- **Name:** `VITE_FIREBASE_AUTH_DOMAIN`
+- **Value:** `cricket-player-app.firebaseapp.com`
 
 ### Variable 3:
 **Name:** `VITE_FIREBASE_DATABASE_URL`
