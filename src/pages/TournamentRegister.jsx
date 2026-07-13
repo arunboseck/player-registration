@@ -237,15 +237,19 @@ const TournamentRegister = () => {
           <h2>Register for {tournament.name}</h2>
 
           {success && (
-            <div className="success-message">
-              <div style={{fontSize: '1.1rem', fontWeight: '700', marginBottom: '0.5rem'}}>
-                ✅ Successfully Registered!
-              </div>
-              <div style={{fontSize: '0.9rem'}}>
-                {successMessage}
-              </div>
-              <div style={{fontSize: '0.85rem', marginTop: '0.5rem', opacity: '0.9'}}>
-                You can register another player.
+            <div className="modal-overlay" onClick={() => setSuccess(false)}>
+              <div className="success-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="success-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <h3 className="success-title">Successfully Registered! 🎉</h3>
+                <p className="success-text">{successMessage}</p>
+                <p className="success-subtext">You can register another player or close this message.</p>
+                <button className="success-close-btn" onClick={() => setSuccess(false)}>
+                  Continue
+                </button>
               </div>
             </div>
           )}
