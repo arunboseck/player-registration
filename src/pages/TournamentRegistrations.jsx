@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTournamentById, getTournamentRegistrations } from '../utils/storage';
+import { getTournamentById, getTournamentRegistrations, deleteRegistration } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import LoadingSpinner from '../components/LoadingSpinner';
 import './Players.css';
 import './TournamentRegistrations.css';
 
@@ -16,22 +17,31 @@ const TournamentRegistrations = () => {
   const [registrations, setRegistrations] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteModal, setDeleteModal] = useState({ show: false, registration: null });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadData();
   }, [id]);
 
   const loadData = async () => {
-    const tournamentData = await getTournamentById(id);
-    if (!tournamentData) {
-      alert('Tournament not found!');
-      navigate('/tournaments');
-      return;
-    }
-    setTournament(tournamentData);
+    setLoading(true);
+    try {
+      const tournamentData = await getTournamentById(id);
+      if (!tournamentData) {
+        alert('Tournament not found!');
+        navigate('/tournaments');
+        return;
+      }
+      setTournament(tournamentData);
 
-    const regs = await getTournamentRegistrations(id);
-    setRegistrations(Array.isArray(regs) ? regs : []);
+      const regs = await getTournamentRegistrations(id);
+      setRegistrations(Array.isArray(regs) ? regs : []);
+    } catch (error) {
+      console.error('Error loading tournament data:', error);
+      alert('Error loading tournament data');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteClick = (registration) => {
@@ -40,11 +50,16 @@ const TournamentRegistrations = () => {
 
   const handleConfirmDelete = async () => {
     if (deleteModal.registration) {
-      await deleteRegistration(id, deleteModal.registration.id);
-      // Reload data
-      loadData();
-      // Close modal
-      setDeleteModal({ show: false, registration: null });
+      try {
+        await deleteRegistration(id, deleteModal.registration.id);
+        // Reload data
+        loadData();
+        // Close modal
+        setDeleteModal({ show: false, registration: null });
+      } catch (error) {
+        console.error('Error deleting registration:', error);
+        alert('Failed to delete registration');
+      }
     }
   };
 
@@ -130,11 +145,22 @@ const TournamentRegistrations = () => {
     navigate('/');
   };
 
-  const filteredRegistrations = registrations.filter((reg) =>
-    reg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    reg.place.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    reg.mobile.includes(searchTerm)
-  );
+  const filteredRegistrations = Array.isArray(registrations)
+    ? registrations.filter((reg) =>
+        reg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reg.place.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reg.mobile.includes(searchTerm)
+      )
+    : [];
+
+  if (loading) {
+    return (
+      <LoadingSpinner
+        message="Loading Tournament Registrations"
+        subMessage="Please wait while we fetch the registration data..."
+      />
+    );
+  }
 
   if (!tournament) return <div>Loading...</div>;
 
