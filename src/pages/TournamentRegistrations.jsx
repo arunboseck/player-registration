@@ -102,46 +102,140 @@ const TournamentRegistrations = () => {
     XLSX.writeFile(workbook, filename);
   };
 
-  const handleDownloadPDF = () => {
+  // Helper function to resize and crop image to 100x100px for PDF optimization
+  const resizeImageTo100x100 = (imageDataUrl) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        // Create canvas for 100x100px output
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 100;
+        canvas.height = 100;
+
+        // Calculate crop dimensions to get center square (focus on face area)
+        const size = Math.min(img.width, img.height);
+        const x = (img.width - size) / 2;
+        const y = (img.height - size) / 2;
+
+        // Draw cropped and resized image
+        ctx.drawImage(img, x, y, size, size, 0, 0, 100, 100);
+
+        // Convert to base64 with quality optimization
+        const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        resolve(resizedDataUrl);
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = imageDataUrl;
+    });
+  };
+
+  const handleDownloadPDF = async () => {
     if (filteredRegistrations.length === 0) {
       alert('No registrations to download');
       return;
     }
 
-    const doc = new jsPDF();
+    try {
+      const doc = new jsPDF();
 
-    // Add title
-    doc.setFontSize(18);
-    doc.setFont(undefined, 'bold');
-    doc.text(`${tournament.name} - Registrations`, 14, 20);
+      // Add title
+      doc.setFontSize(18);
+      doc.setFont(undefined, 'bold');
+      doc.text(`${tournament.name} - Registrations`, 14, 20);
 
-    doc.setFontSize(10);
-    doc.setFont(undefined, 'normal');
-    doc.text(`Location: ${tournament.location}`, 14, 28);
-    doc.text(`Date: ${new Date(tournament.startDate).toLocaleDateString()} - ${new Date(tournament.endDate).toLocaleDateString()}`, 14, 34);
-    doc.text(`Total Registrations: ${filteredRegistrations.length}`, 14, 40);
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Location: ${tournament.location}`, 14, 28);
+      doc.text(`Date: ${new Date(tournament.startDate).toLocaleDateString()} - ${new Date(tournament.endDate).toLocaleDateString()}`, 14, 34);
+      doc.text(`Total Registrations: ${filteredRegistrations.length}`, 14, 40);
 
-    const tableData = filteredRegistrations.map((reg, index) => [
-      index + 1,
-      reg.name,
-      reg.mobile,
-      reg.dateOfBirth ? new Date(reg.dateOfBirth).toLocaleDateString() : 'N/A',
-      reg.bloodGroup || 'N/A',
-      reg.place,
-      reg.position,
-    ]);
+      // Pre-process all photos to 100x100px for optimal PDF size
+      const processedPhotos = await Promise.all(
+        filteredRegistrations.map(async (reg) => {
+          if (reg.photo && reg.photo.trim() !== '') {
+            try {
+              return await resizeImageTo100x100(reg.photo);
+            } catch (error) {
+              console.error('Error processing photo for:', reg.name, error);
+              return null;
+            }
+          }
+          return null;
+        })
+      );
 
-    autoTable(doc, {
-      startY: 45,
-      head: [['S.No', 'Name', 'Mobile', 'DOB', 'Blood Group', 'Place', 'Position']],
-      body: tableData,
-      theme: 'grid',
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [102, 126, 234] },
-    });
+      // Prepare table data with photo column (removed DOB)
+      const tableData = filteredRegistrations.map((reg, index) => [
+        index + 1,
+        '', // Photo placeholder
+        reg.name,
+        reg.mobile,
+        reg.bloodGroup || 'N/A',
+        reg.place,
+        reg.position,
+      ]);
 
-    const filename = `${tournament.name}_Registrations_${new Date().toISOString().split('T')[0]}.pdf`;
-    doc.save(filename);
+      // Create table with photos
+      autoTable(doc, {
+        startY: 45,
+        head: [['S.No', 'Photo', 'Name', 'Mobile', 'Blood Group', 'Place', 'Position']],
+        body: tableData,
+        theme: 'grid',
+        styles: {
+          fontSize: 8,
+          cellPadding: 2,
+          minCellHeight: 15,
+        },
+        headStyles: { fillColor: [102, 126, 234] },
+        columnStyles: {
+          0: { cellWidth: 10 },  // S.No
+          1: { cellWidth: 18 },  // Photo
+          2: { cellWidth: 35 },  // Name
+          3: { cellWidth: 25 },  // Mobile
+          4: { cellWidth: 20 },  // Blood Group
+          5: { cellWidth: 30 },  // Place
+          6: { cellWidth: 40 },  // Position
+        },
+        didDrawCell: (data) => {
+          // Add 100x100px resized photos in the Photo column
+          if (data.column.index === 1 && data.cell.section === 'body') {
+            const rowIndex = data.row.index;
+            const photoUrl = processedPhotos[rowIndex];
+
+            if (photoUrl) {
+              try {
+                // Add the 100x100px optimized image
+                const imgWidth = 12;
+                const imgHeight = 12;
+                const x = data.cell.x + 3;
+                const y = data.cell.y + 1.5;
+                doc.addImage(photoUrl, 'JPEG', x, y, imgWidth, imgHeight);
+              } catch (error) {
+                console.error('Error adding photo to PDF:', error);
+                // Draw placeholder text if image fails
+                doc.setFontSize(7);
+                doc.setTextColor(150, 150, 150);
+                doc.text('No Photo', data.cell.x + 4, data.cell.y + 9);
+                doc.setTextColor(0, 0, 0);
+              }
+            } else {
+              // Draw placeholder for missing photos
+              doc.setFontSize(7);
+              doc.setTextColor(150, 150, 150);
+              doc.text('No Photo', data.cell.x + 4, data.cell.y + 9);
+              doc.setTextColor(0, 0, 0);
+            }
+          }
+        },
+      });
+
+      const filename = `${tournament.name}_Registrations_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(filename);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error generating PDF. Please try again.');
+    }
   };
 
   const handleLogout = () => {
