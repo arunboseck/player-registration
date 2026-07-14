@@ -313,8 +313,8 @@
 .registration-info {
   flex: 1;
   display: grid;
-  grid-template-columns: 2fr 1.5fr 1.5fr 1.2fr 1fr 1.2fr;
-  gap: 1.5rem;
+  grid-template-columns: 1.8fr 1.2fr 1.3fr 1.2fr 1fr 1.5fr;
+  gap: 1rem;
   align-items: center;
 }
 
@@ -322,34 +322,42 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  min-width: 0;
 }
 
 .info-column label {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: #9ca3af;
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
 .info-column strong {
   color: #111827;
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .info-column span {
   color: #374151;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Badge inline styles */
 .badge-inline {
   display: inline-block;
-  padding: 0.25rem 0.625rem;
+  padding: 0.2rem 0.5rem;
   border-radius: 6px;
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   white-space: nowrap;
 }
 
@@ -1054,10 +1062,7 @@
   transform: scale(1.2);
 }
 
-/* Update registration-info grid to remove position column */
-.registration-info {
-  grid-template-columns: 1.5fr 1fr 1fr 1fr 0.8fr;
-}
+
 
 /* Make registration avatar clickable */
 .registration-avatar img {
