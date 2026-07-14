@@ -97,46 +97,139 @@ const TournamentRegistrations = () => {
     XLSX.writeFile(workbook, filename);
   };
 
-  const handleDownloadPDF = () => {
+  const makeCircularImage = (imageDataUrl) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 100;
+        canvas.height = 100;
+
+        // White background
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, 100, 100);
+
+        // Clip to circle
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(50, 50, 45, 0, Math.PI * 2);
+        ctx.clip();
+
+        // Draw cropped image (center square)
+        const size = Math.min(img.width, img.height);
+        const x = (img.width - size) / 2;
+        const y = (img.height - size) / 2;
+        ctx.drawImage(img, x, y, size, size, 5, 5, 90, 90);
+        ctx.restore();
+
+        // Blue border
+        ctx.strokeStyle = '#667EEA';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(50, 50, 47, 0, Math.PI * 2);
+        ctx.stroke();
+
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = imageDataUrl;
+    });
+  };
+
+  const handleDownloadPDF = async () => {
     if (filteredRegistrations.length === 0) {
       alert('No registrations to download');
       return;
     }
 
-    const doc = new jsPDF();
+    try {
+      const doc = new jsPDF();
 
-    // Add title
-    doc.setFontSize(18);
-    doc.setFont(undefined, 'bold');
-    doc.text(`${tournament.name} - Registrations`, 14, 20);
+      // Add title
+      doc.setFontSize(18);
+      doc.setFont(undefined, 'bold');
+      doc.text(`${tournament.name} - Registrations`, 14, 20);
 
-    doc.setFontSize(10);
-    doc.setFont(undefined, 'normal');
-    doc.text(`Location: ${tournament.location}`, 14, 28);
-    doc.text(`Date: ${new Date(tournament.startDate).toLocaleDateString()} - ${new Date(tournament.endDate).toLocaleDateString()}`, 14, 34);
-    doc.text(`Total Registrations: ${filteredRegistrations.length}`, 14, 40);
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Location: ${tournament.location}`, 14, 28);
+      doc.text(`Date: ${new Date(tournament.startDate).toLocaleDateString()} - ${new Date(tournament.endDate).toLocaleDateString()}`, 14, 34);
+      doc.text(`Total Registrations: ${filteredRegistrations.length}`, 14, 40);
 
-    const tableData = filteredRegistrations.map((reg, index) => [
-      index + 1,
-      reg.name,
-      reg.mobile,
-      reg.dateOfBirth ? new Date(reg.dateOfBirth).toLocaleDateString() : 'N/A',
-      reg.bloodGroup || 'N/A',
-      reg.place,
-      reg.position,
-    ]);
+      // Process all photos to circular bordered images
+      const circularPhotos = await Promise.all(
+        filteredRegistrations.map(async (reg) => {
+          if (reg.photo && reg.photo.trim()) {
+            try {
+              return await makeCircularImage(reg.photo);
+            } catch (e) {
+              return null;
+            }
+          }
+          return null;
+        })
+      );
 
-    autoTable(doc, {
-      startY: 45,
-      head: [['S.No', 'Name', 'Mobile', 'DOB', 'Blood Group', 'Place', 'Position']],
-      body: tableData,
-      theme: 'grid',
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [102, 126, 234] },
-    });
+      const tableData = filteredRegistrations.map((reg, index) => [
+        index + 1,
+        '', // Photo column
+        reg.name,
+        reg.mobile,
+        reg.bloodGroup || 'N/A',
+        reg.place,
+        reg.position,
+      ]);
 
-    const filename = `${tournament.name}_Registrations_${new Date().toISOString().split('T')[0]}.pdf`;
-    doc.save(filename);
+      autoTable(doc, {
+        startY: 45,
+        head: [['S.No', 'Photo', 'Name', 'Mobile', 'Blood Group', 'Place', 'Position']],
+        body: tableData,
+        theme: 'grid',
+        styles: {
+          fontSize: 8,
+          cellPadding: 3,
+          minCellHeight: 18,
+          valign: 'middle',
+          halign: 'center',
+        },
+        headStyles: {
+          fillColor: [102, 126, 234],
+          halign: 'center',
+          valign: 'middle',
+        },
+        columnStyles: {
+          0: { cellWidth: 15, halign: 'center' },
+          1: { cellWidth: 18, halign: 'center' },
+          2: { cellWidth: 30, halign: 'center' },
+          3: { cellWidth: 25, halign: 'center' },
+          4: { cellWidth: 25, halign: 'center' },
+          5: { cellWidth: 28, halign: 'center' },
+          6: { cellWidth: 37, halign: 'center' },
+        },
+        didDrawCell: (data) => {
+          if (data.column.index === 1 && data.cell.section === 'body') {
+            const photo = circularPhotos[data.row.index];
+            if (photo) {
+              try {
+                const size = 12;
+                const x = data.cell.x + (data.cell.width - size) / 2;
+                const y = data.cell.y + (data.cell.height - size) / 2;
+                doc.addImage(photo, 'JPEG', x, y, size, size);
+              } catch (e) {
+                console.error('Photo error:', e);
+              }
+            }
+          }
+        },
+      });
+
+      const filename = `${tournament.name}_Registrations_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(filename);
+    } catch (error) {
+      console.error('PDF error:', error);
+      alert('Error generating PDF');
+    }
   };
 
   const handleLogout = () => {
