@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTournamentById, getTournamentRegistrations } from '../utils/storage';
+import { getTournamentById, getTournamentRegistrations, deleteRegistration } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import LoadingSpinner from '../components/LoadingSpinner';
 import './Players.css';
 import './TournamentRegistrations.css';
 
@@ -16,40 +17,53 @@ const TournamentRegistrations = () => {
   const [registrations, setRegistrations] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteModal, setDeleteModal] = useState({ show: false, registration: null });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadData();
   }, [id]);
 
-  const loadData = () => {
-    const tournamentData = getTournamentById(id);
-    if (!tournamentData) {
-      alert('Tournament not found!');
-      navigate('/tournaments');
-      return;
-    }
-    setTournament(tournamentData);
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      console.log('Loading tournament:', id);
+      const tournamentData = await getTournamentById(id);
+      console.log('Tournament data:', tournamentData);
 
-    const regs = getTournamentRegistrations(id);
-    setRegistrations(regs);
+      if (!tournamentData) {
+        alert('Tournament not found!');
+        navigate('/tournaments');
+        return;
+      }
+      setTournament(tournamentData);
+
+      const regs = await getTournamentRegistrations(id);
+      console.log('Registrations:', regs);
+      setRegistrations(Array.isArray(regs) ? regs : []);
+    } catch (error) {
+      console.error('Error loading tournament data:', error);
+      alert('Error loading tournament data: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteClick = (registration) => {
     setDeleteModal({ show: true, registration });
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (deleteModal.registration) {
-      // Get all registrations
-      const allRegistrations = JSON.parse(localStorage.getItem('tournamentRegistrations') || '[]');
-      // Filter out the one to delete
-      const updatedRegistrations = allRegistrations.filter(reg => reg.id !== deleteModal.registration.id);
-      // Save back to localStorage
-      localStorage.setItem('tournamentRegistrations', JSON.stringify(updatedRegistrations));
-      // Reload data
-      loadData();
-      // Close modal
-      setDeleteModal({ show: false, registration: null });
+      try {
+        await deleteRegistration(id, deleteModal.registration.id);
+        // Reload data
+        await loadData();
+        // Close modal
+        setDeleteModal({ show: false, registration: null });
+      } catch (error) {
+        console.error('Error deleting registration:', error);
+        alert('Failed to delete registration');
+      }
     }
   };
 
@@ -176,11 +190,22 @@ const TournamentRegistrations = () => {
     navigate('/');
   };
 
-  const filteredRegistrations = registrations.filter((reg) =>
-    reg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    reg.place.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    reg.mobile.includes(searchTerm)
-  );
+  const filteredRegistrations = Array.isArray(registrations)
+    ? registrations.filter((reg) =>
+        reg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reg.place.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reg.mobile.includes(searchTerm)
+      )
+    : [];
+
+  if (loading) {
+    return (
+      <LoadingSpinner
+        message="Loading Tournament Registrations"
+        subMessage="Please wait while we fetch the registration data..."
+      />
+    );
+  }
 
   if (!tournament) return <div>Loading...</div>;
 
