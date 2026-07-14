@@ -38,18 +38,18 @@ const TournamentRegistrations = () => {
     setDeleteModal({ show: true, registration });
   };
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = () => {
     if (deleteModal.registration) {
-      try {
-        await deleteRegistration(id, deleteModal.registration.id);
-        // Reload data
-        await loadData();
-        // Close modal
-        setDeleteModal({ show: false, registration: null });
-      } catch (error) {
-        console.error('Error deleting registration:', error);
-        alert('Error deleting registration: ' + error.message);
-      }
+      // Get all registrations
+      const allRegistrations = JSON.parse(localStorage.getItem('tournamentRegistrations') || '[]');
+      // Filter out the one to delete
+      const updatedRegistrations = allRegistrations.filter(reg => reg.id !== deleteModal.registration.id);
+      // Save back to localStorage
+      localStorage.setItem('tournamentRegistrations', JSON.stringify(updatedRegistrations));
+      // Reload data
+      loadData();
+      // Close modal
+      setDeleteModal({ show: false, registration: null });
     }
   };
 
@@ -88,46 +88,105 @@ const TournamentRegistrations = () => {
     XLSX.writeFile(workbook, filename);
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     if (filteredRegistrations.length === 0) {
       alert('No registrations to download');
       return;
     }
 
-    const doc = new jsPDF();
+    try {
+      const doc = new jsPDF();
 
-    // Add title
-    doc.setFontSize(18);
-    doc.setFont(undefined, 'bold');
-    doc.text(`${tournament.name} - Registrations`, 14, 20);
+      // Add title
+      doc.setFontSize(18);
+      doc.setFont(undefined, 'bold');
+      doc.text(`${tournament.name} - Registrations`, 14, 20);
 
-    doc.setFontSize(10);
-    doc.setFont(undefined, 'normal');
-    doc.text(`Location: ${tournament.location}`, 14, 28);
-    doc.text(`Date: ${new Date(tournament.startDate).toLocaleDateString()} - ${new Date(tournament.endDate).toLocaleDateString()}`, 14, 34);
-    doc.text(`Total Registrations: ${filteredRegistrations.length}`, 14, 40);
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Location: ${tournament.location}`, 14, 28);
+      doc.text(`Date: ${new Date(tournament.startDate).toLocaleDateString()} - ${new Date(tournament.endDate).toLocaleDateString()}`, 14, 34);
+      doc.text(`Total Registrations: ${filteredRegistrations.length}`, 14, 40);
 
-    const tableData = filteredRegistrations.map((reg, index) => [
-      index + 1,
-      reg.name,
-      reg.mobile,
-      reg.dateOfBirth ? new Date(reg.dateOfBirth).toLocaleDateString() : 'N/A',
-      reg.bloodGroup || 'N/A',
-      reg.place,
-      reg.position,
-    ]);
+      // Prepare table data without photos first (to avoid hanging)
+      const tableData = filteredRegistrations.map((reg, index) => [
+        index + 1,
+        '', // Photo placeholder
+        reg.name,
+        reg.mobile,
+        reg.bloodGroup || 'N/A',
+        reg.place,
+        reg.position,
+      ]);
 
-    autoTable(doc, {
-      startY: 45,
-      head: [['S.No', 'Name', 'Mobile', 'DOB', 'Blood Group', 'Place', 'Position']],
-      body: tableData,
-      theme: 'grid',
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [102, 126, 234] },
-    });
+      // Create table
+      autoTable(doc, {
+        startY: 45,
+        head: [['S.No', 'Photo', 'Name', 'Mobile', 'Blood Group', 'Place', 'Position']],
+        body: tableData,
+        theme: 'grid',
+        styles: {
+          fontSize: 8,
+          cellPadding: 2,
+          minCellHeight: 12,
+        },
+        headStyles: { fillColor: [102, 126, 234] },
+        columnStyles: {
+          0: { cellWidth: 10 }, // S.No
+          1: { cellWidth: 15 }, // Photo
+          2: { cellWidth: 35 }, // Name
+          3: { cellWidth: 25 }, // Mobile
+          4: { cellWidth: 20 }, // Blood Group
+          5: { cellWidth: 30 }, // Place
+          6: { cellWidth: 40 }, // Position
+        },
+        didDrawCell: (data) => {
+          // Draw photo placeholder in the Photo column
+          if (data.column.index === 1 && data.cell.section === 'body') {
+            const reg = filteredRegistrations[data.row.index];
+            const photoUrl = reg?.photo;
 
-    const filename = `${tournament.name}_Registrations_${new Date().toISOString().split('T')[0]}.pdf`;
-    doc.save(filename);
+            if (photoUrl && photoUrl.trim() !== '') {
+              try {
+                // For base64 images (data URLs)
+                if (photoUrl.startsWith('data:image')) {
+                  const imgWidth = 10;
+                  const imgHeight = 10;
+                  const x = data.cell.x + 2.5;
+                  const y = data.cell.y + 1;
+                  doc.addImage(photoUrl, 'JPEG', x, y, imgWidth, imgHeight);
+                } else {
+                  // For Firebase URLs or other external images, show placeholder
+                  doc.setFontSize(6);
+                  doc.setTextColor(100, 100, 100);
+                  doc.text('Photo', data.cell.x + 4, data.cell.y + 7);
+                  doc.setTextColor(0, 0, 0);
+                }
+              } catch (error) {
+                console.error('Error adding photo:', error);
+                // Draw placeholder if image fails
+                doc.setFontSize(6);
+                doc.setTextColor(150, 150, 150);
+                doc.text('N/A', data.cell.x + 5, data.cell.y + 7);
+                doc.setTextColor(0, 0, 0);
+              }
+            } else {
+              // Draw placeholder for missing photos
+              doc.setFontSize(6);
+              doc.setTextColor(150, 150, 150);
+              doc.text('N/A', data.cell.x + 5, data.cell.y + 7);
+              doc.setTextColor(0, 0, 0);
+            }
+          }
+        },
+      });
+
+      const filename = `${tournament.name}_Registrations_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(filename);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error generating PDF. Please try again.');
+    }
   };
 
   const handleLogout = () => {
@@ -135,24 +194,13 @@ const TournamentRegistrations = () => {
     navigate('/');
   };
 
-  const filteredRegistrations = Array.isArray(registrations)
-    ? registrations.filter((reg) =>
-        reg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        reg.place.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        reg.mobile.includes(searchTerm)
-      )
-    : [];
+  const filteredRegistrations = registrations.filter((reg) =>
+    reg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    reg.place.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    reg.mobile.includes(searchTerm)
+  );
 
-  if (loading) {
-    return (
-      <LoadingSpinner
-        message="Loading Tournament Registrations"
-        subMessage="Please wait while we fetch the registration data..."
-      />
-    );
-  }
-
-  if (!tournament) return <div>Tournament not found</div>;
+  if (!tournament) return <div>Loading...</div>;
 
   return (
     <div className="players-container">
