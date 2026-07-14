@@ -176,57 +176,93 @@ const TournamentRegistrations = () => {
         reg.position,
       ]);
 
-      // Create table with photos
+      // Create table with circular photos and centered alignment
       autoTable(doc, {
         startY: 45,
         head: [['S.No', 'Photo', 'Name', 'Mobile', 'Blood Group', 'Place', 'Position']],
         body: tableData,
         theme: 'grid',
-        styles: {
+        styles: { 
           fontSize: 8,
-          cellPadding: 2,
-          minCellHeight: 15,
+          cellPadding: 3,
+          minCellHeight: 18,
+          valign: 'middle',       // Vertical center alignment
+          halign: 'center',       // Horizontal center alignment
         },
-        headStyles: { fillColor: [102, 126, 234] },
+        headStyles: { 
+          fillColor: [102, 126, 234],
+          halign: 'center',
+          valign: 'middle',
+        },
         columnStyles: {
-          0: { cellWidth: 10 },  // S.No
-          1: { cellWidth: 18 },  // Photo
-          2: { cellWidth: 35 },  // Name
-          3: { cellWidth: 25 },  // Mobile
-          4: { cellWidth: 20 },  // Blood Group
-          5: { cellWidth: 30 },  // Place
-          6: { cellWidth: 40 },  // Position
+          0: { cellWidth: 15, halign: 'center' },   // S.No - Wider for single line
+          1: { cellWidth: 18, halign: 'center' },   // Photo - Centered
+          2: { cellWidth: 30, halign: 'center' },   // Name - Centered
+          3: { cellWidth: 25, halign: 'center' },   // Mobile - Centered
+          4: { cellWidth: 25, halign: 'center' },   // Blood Group - Wider for single line
+          5: { cellWidth: 28, halign: 'center' },   // Place - Centered
+          6: { cellWidth: 37, halign: 'center' },   // Position - Centered
         },
         didDrawCell: (data) => {
-          // Add 100x100px resized photos in the Photo column
+          // Add circular photos with border in the Photo column
           if (data.column.index === 1 && data.cell.section === 'body') {
             const rowIndex = data.row.index;
             const photoUrl = processedPhotos[rowIndex];
-
+            
             if (photoUrl) {
               try {
-                // Add the 100x100px optimized image
-                const imgWidth = 12;
-                const imgHeight = 12;
-                const x = data.cell.x + 3;
-                const y = data.cell.y + 1.5;
-                doc.addImage(photoUrl, 'JPEG', x, y, imgWidth, imgHeight);
+                // Calculate center position for the circular photo
+                const cellCenterX = data.cell.x + data.cell.width / 2;
+                const cellCenterY = data.cell.y + data.cell.height / 2;
+                const radius = 6; // Circle radius
+                
+                // Draw white circle background
+                doc.setFillColor(255, 255, 255);
+                doc.circle(cellCenterX, cellCenterY, radius, 'F');                doc.circle(cellCenterX, cellCenterY, radius, 'F');                doc.cir102, 126, 234); // Blue border color
+                doc.setLineWidth(0.5);
+                doc.circle(cellCenterX, cellCenterY, radius, 'S');
+                
+                // Add circular clipped image
+                // Save the graphics state
+                doc.saveGraphicsState();
+                
+                // Create circular clipping path
+                doc.circle(cellCenterX, cellCenterY, radius - 0.3, 'S');
+                                          e image (it will be clipped to circle)
+                const imgSize = radius * 2 - 0.6;
+                                                                                                                                              (photoUrl, 'JPEG', imgX, imgY, imgSize, imgSize);
+                
+                // Restore graphics state
+                doc.restoreGraphicsState();
+                
+                // Redraw the border to ensure it's on top
+                doc.setDrawColor(102, 126, 234);
+                doc.setLineWidth(0.5);
+                doc.circle(cellCenterX, ce                doc.circle(cellCenter    
               } catch (error) {
-                console.error('Error adding photo to PDF:', error);
-                // Draw placeholder text if image fails
-                doc.setFontSize(7);
+                console.error('E               to to PDF:', error);
+                // Draw pla                // Draw pla                  doc.setFontSize(7);
                 doc.setTextColor(150, 150, 150);
-                doc.text('No Photo', data.cell.x + 4, data.cell.y + 9);
-                doc.setTextColor(0, 0, 0);
-              }
-            } else {
-              // Draw placeholder for missing photos
-              doc.setFontSize(7);
+                const cellCenterX = data.cell.x + data.cell.width / 2;
+                const cellCenterY = data.cell.y + data.cell.height / 2;
+                doc.text('No Photo', cellCenter                doc.text('No Photo', cellCenter                   doc.text('No Photo', cellCenter                doc.text('No Photo', cellCenter                   doc.text('No Photo', cellCenter                doc.text('No Photo', cellCenteh / 2;
+                                                data.cell.height / 2;
+              const radius = 6;
+              
+              // Draw gray circle
+              doc.setFillColor(240, 240, 240);
+              doc.circle(cellCenterX, cellCenterY, radius, 'F');
+              doc.setDrawColor(200, 200, 200);
+              doc.setLineWidth(0.5);              doc.setLineWidthCe              doc.setLineWidth(0.5);              doc.setLineWidthAdd "No Photo" text
+              doc.setFontSize(6);
               doc.setTextColor(150, 150, 150);
-              doc.text('No Photo', data.cell.x + 4, data.cell.y + 9);
+              doc.text('No', cellCenterX, cellCenterY - 1, { align: 'center' });
+              doc.text('Photo', cellCenterX, cellCenterY + 2, { align: 'center' });
               doc.setTextColor(0, 0, 0);
             }
           }
+        },
+      });
         },
       });
 
