@@ -1,0 +1,11 @@
+{
+  "remoteName": "origin",
+  "projects": [
+    {
+      "id": "prj_NuiAFuv2cQcuu4TDJY6EEidm2zxa",
+      "name": "player-registration",
+      "directory": ".",
+      "orgId": "team_nRbw2qbtNsUJzVJqdqvfwaVv"
+    }
+  ]
+}
