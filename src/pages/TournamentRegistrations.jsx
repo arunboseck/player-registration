@@ -72,29 +72,45 @@ const TournamentRegistrations = () => {
       return;
     }
 
-    const excelData = filteredRegistrations.map((reg, index) => ({
-      'S.No': index + 1,
-      'Name': reg.name,
-      'Mobile': reg.mobile,
-      'Date of Birth': reg.dateOfBirth ? new Date(reg.dateOfBirth).toLocaleDateString() : 'N/A',
-      'Blood Group': reg.bloodGroup || 'N/A',
-      'Place': reg.place,
-      'Position': reg.position,
-      'Registered On': reg.registeredAt ? new Date(reg.registeredAt).toLocaleString() : 'N/A',
-    }));
+    // Prepare CSV data
+    const headers = ['S.No', 'Name', 'Mobile', 'Date of Birth', 'Blood Group', 'Place', 'Position', 'Registered On'];
 
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Registrations');
+    const rows = filteredRegistrations.map((reg, index) => [
+      index + 1,
+      reg.name,
+      reg.mobile,
+      reg.dateOfBirth ? new Date(reg.dateOfBirth).toLocaleDateString() : 'N/A',
+      reg.bloodGroup || 'N/A',
+      reg.place,
+      reg.position,
+      reg.registeredAt ? new Date(reg.registeredAt).toLocaleString() : 'N/A',
+    ]);
 
-    const columnWidths = [
-      { wch: 6 }, { wch: 25 }, { wch: 15 }, { wch: 15 },
-      { wch: 12 }, { wch: 20 }, { wch: 35 }, { wch: 20 }
-    ];
-    worksheet['!cols'] = columnWidths;
+    // Create CSV content
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => {
+        // Escape commas and quotes in cell values
+        const cellStr = String(cell);
+        if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+          return `"${cellStr.replace(/"/g, '""')}"`;
+        }
+        return cellStr;
+      }).join(','))
+    ].join('\n');
 
-    const filename = `${tournament.name}_Registrations_${new Date().toISOString().split('T')[0]}.xlsx`;
-    XLSX.writeFile(workbook, filename);
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${tournament.name}_Registrations_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const makeCircularImage = (imageDataUrl) => {
