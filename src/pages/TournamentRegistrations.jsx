@@ -187,9 +187,9 @@ const TournamentRegistrations = () => {
         body: tableData,
         theme: 'grid',
         styles: {
-          fontSize: 8,
-          cellPadding: 3,
-          minCellHeight: 18,
+          fontSize: 7,
+          cellPadding: 2,
+          minCellHeight: 16,
           valign: 'middle',
           halign: 'center',
         },
@@ -197,15 +197,16 @@ const TournamentRegistrations = () => {
           fillColor: [102, 126, 234],
           halign: 'center',
           valign: 'middle',
+          fontSize: 7,
         },
         columnStyles: {
-          0: { cellWidth: 15, halign: 'center' },
-          1: { cellWidth: 18, halign: 'center' },
-          2: { cellWidth: 30, halign: 'center' },
-          3: { cellWidth: 25, halign: 'center' },
-          4: { cellWidth: 25, halign: 'center' },
-          5: { cellWidth: 28, halign: 'center' },
-          6: { cellWidth: 37, halign: 'center' },
+          0: { cellWidth: 12, halign: 'center' },  // S.No - reduced
+          1: { cellWidth: 16, halign: 'center' },  // Photo - reduced
+          2: { cellWidth: 35, halign: 'center' },  // Name - increased
+          3: { cellWidth: 28, halign: 'center' },  // Mobile - increased
+          4: { cellWidth: 28, halign: 'center' },  // Blood Group - increased
+          5: { cellWidth: 30, halign: 'center' },  // Place - increased
+          6: { cellWidth: 40, halign: 'center' },  // Position - increased
         },
         didDrawCell: (data) => {
           if (data.column.index === 1 && data.cell.section === 'body') {
