@@ -110,7 +110,6 @@ const Tournaments = () => {
                   <th>Start Date</th>
                   <th>End Date</th>
                   <th>Status</th>
-                  <th>Description</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -126,9 +125,6 @@ const Tournaments = () => {
                       <span className={`status-badge ${getStatusClass(tournament.status)}`}>
                         {tournament.status}
                       </span>
-                    </td>
-                    <td className="description-cell" title={tournament.description}>
-                      {tournament.description}
                     </td>
                     <td>
                       <div className="action-buttons">
