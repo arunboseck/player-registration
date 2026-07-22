@@ -10,7 +10,7 @@ const MigratePhotos = () => {
   const [result, setResult] = useState(null);
 
   const handleMigrate = async () => {
-    if (!window.confirm('This will convert all base64 photos to Firebase Storage URLs. Continue?')) {
+    if (!window.confirm('This will convert all base64 photos to Cloudinary URLs (FREE cloud storage). Continue?')) {
       return;
     }
 
@@ -45,7 +45,7 @@ const MigratePhotos = () => {
 
       <div className="players-content">
         <div className="migration-panel" style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <h2>Migrate Photos to Firebase Storage</h2>
+          <h2>Migrate Photos to Cloudinary (FREE)</h2>
           
           <div className="info-box" style={{ 
             padding: '20px', 
@@ -57,14 +57,14 @@ const MigratePhotos = () => {
             <h3 style={{ marginTop: 0, color: '#1e40af' }}>📸 What This Does:</h3>
             <ul style={{ lineHeight: '1.8' }}>
               <li><strong>Converts</strong> all base64-encoded photos in the database</li>
-              <li><strong>Uploads</strong> them to Firebase Storage</li>
+              <li><strong>Uploads</strong> them to Cloudinary (FREE cloud storage)</li>
               <li><strong>Replaces</strong> base64 data with lightweight URLs</li>
               <li><strong>Result:</strong> 99% smaller database, 100x faster loading!</li>
             </ul>
-            
+
             <h3 style={{ color: '#1e40af' }}>⚠️ Before You Start:</h3>
             <ul style={{ lineHeight: '1.8' }}>
-              <li>Make sure Firebase Storage is enabled in Firebase Console</li>
+              <li>Make sure Cloudinary credentials are configured (check console logs if errors occur)</li>
               <li>This process may take 5-10 minutes for 170 players</li>
               <li>Do not close this page during migration</li>
               <li>Safe to run multiple times (skips already-migrated photos)</li>
@@ -75,7 +75,7 @@ const MigratePhotos = () => {
             <div style={{ textAlign: 'center', padding: '40px' }}>
               <LoadingSpinner />
               <p style={{ marginTop: '20px', fontSize: '18px' }}>
-                Migrating photos to Storage... This may take several minutes.
+                Migrating photos to Cloudinary... This may take several minutes.
               </p>
               <p style={{ color: '#6b7280' }}>
                 Check the browser console for progress updates.
@@ -107,13 +107,13 @@ const MigratePhotos = () => {
                   <p><strong>Duration:</strong> {result.duration}</p>
                   
                   {result.migrated > 0 && (
-                    <div style={{ 
-                      marginTop: '20px', 
-                      padding: '15px', 
+                    <div style={{
+                      marginTop: '20px',
+                      padding: '15px',
                       backgroundColor: '#dcfce7',
                       borderRadius: '6px'
                     }}>
-                      <strong>🎉 Success!</strong> Your photos are now stored in Firebase Storage.
+                      <strong>🎉 Success!</strong> Your photos are now stored in Cloudinary (FREE cloud storage).
                       <br/>
                       The players page should now load <strong>100x faster</strong>!
                     </div>
@@ -145,16 +145,16 @@ const MigratePhotos = () => {
             </button>
           </div>
 
-          <div style={{ 
-            marginTop: '30px', 
-            padding: '15px', 
+          <div style={{
+            marginTop: '30px',
+            padding: '15px',
             backgroundColor: '#fffbeb',
             border: '1px solid #f59e0b',
             borderRadius: '6px',
             fontSize: '14px'
           }}>
             <strong>💡 Tip:</strong> After migration completes, new players will automatically
-            use Firebase Storage for photos. No further action needed!
+            use Cloudinary for photos. No further action needed!
           </div>
         </div>
       </div>
