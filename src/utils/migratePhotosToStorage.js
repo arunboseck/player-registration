@@ -3,12 +3,12 @@ import { database } from '../firebase/config';
 import { uploadPhotoToStorage } from './firebaseStorage';
 
 /**
- * Migration utility to convert all base64 photos in the database to Firebase Storage URLs
+ * Migration utility to convert all base64 photos in the database to Cloudinary URLs
  * This should be run ONCE to migrate existing data
  */
 export const migrateAllPhotosToStorage = async () => {
   try {
-    console.log('🔄 Starting photo migration to Firebase Storage...');
+    console.log('🔄 Starting photo migration to Cloudinary (FREE)...');
     const startTime = Date.now();
     
     // Fetch all players
@@ -41,8 +41,8 @@ export const migrateAllPhotosToStorage = async () => {
           continue;
         }
         
-        // Skip if already a Storage URL
-        if (player.photo.includes('firebasestorage.googleapis.com')) {
+        // Skip if already a Cloudinary URL
+        if (player.photo.includes('cloudinary.com')) {
           skipped++;
           continue;
         }
@@ -54,8 +54,8 @@ export const migrateAllPhotosToStorage = async () => {
         }
         
         console.log(`📤 [${i + 1}/${playerIds.length}] Migrating photo for player: ${player.name} (${playerId})`);
-        
-        // Upload to Storage
+
+        // Upload to Cloudinary
         const photoURL = await uploadPhotoToStorage(player.photo, playerId);
         
         // Update database with URL instead of base64
@@ -125,8 +125,8 @@ export const migrateSinglePlayerPhoto = async (playerId) => {
       return { success: false, message: 'No photo to migrate' };
     }
     
-    if (player.photo.includes('firebasestorage.googleapis.com')) {
-      return { success: false, message: 'Already using Storage URL' };
+    if (player.photo.includes('cloudinary.com')) {
+      return { success: false, message: 'Already using Cloudinary URL' };
     }
     
     if (!player.photo.startsWith('data:image/')) {
@@ -146,7 +146,7 @@ export const migrateSinglePlayerPhoto = async (playerId) => {
     
     return {
       success: true,
-      message: 'Photo migrated to Storage',
+      message: 'Photo migrated to Cloudinary',
       photoURL
     };
     
