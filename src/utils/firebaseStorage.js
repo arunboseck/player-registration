@@ -1,5 +1,71 @@
-import { ref, set, get, remove, push, query, orderByChild, orderByKey, equalTo, limitToFirst, startAfter, endBefore, limitToLast } from 'firebase/database';
-import { database } from '../firebase/config';
+import { ref as dbRef, set, get, remove, push, query, orderByChild, orderByKey, equalTo, limitToFirst, startAfter, endBefore, limitToLast } from 'firebase/database';
+import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { database, storage } from '../firebase/config';
+
+// ==================== PHOTO STORAGE HELPERS ====================
+
+/**
+ * Upload a photo to Firebase Storage and return the download URL
+ * @param {string} base64Photo - Base64 encoded photo string
+ * @param {string} playerId - Player ID for unique filename
+ * @returns {Promise<string>} - Download URL for the uploaded photo
+ */
+export const uploadPhotoToStorage = async (base64Photo, playerId) => {
+  try {
+    if (!base64Photo || !base64Photo.startsWith('data:image/')) {
+      throw new Error('Invalid photo format');
+    }
+
+    console.log('📤 Uploading photo to Firebase Storage...');
+
+    // Convert base64 to blob
+    const response = await fetch(base64Photo);
+    const blob = await response.blob();
+
+    // Create unique filename
+    const filename = `players/${playerId}/photo_${Date.now()}.jpg`;
+    const photoRef = storageRef(storage, filename);
+
+    // Upload to Firebase Storage
+    const startTime = Date.now();
+    await uploadBytes(photoRef, blob);
+    const uploadTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
+    // Get download URL
+    const downloadURL = await getDownloadURL(photoRef);
+
+    console.log(`✅ Photo uploaded in ${uploadTime}s - URL: ${downloadURL.substring(0, 50)}...`);
+    return downloadURL;
+  } catch (error) {
+    console.error('❌ Error uploading photo:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a photo from Firebase Storage
+ * @param {string} photoURL - Download URL of the photo to delete
+ */
+export const deletePhotoFromStorage = async (photoURL) => {
+  try {
+    if (!photoURL || !photoURL.includes('firebasestorage.googleapis.com')) {
+      return; // Not a storage URL, skip
+    }
+
+    console.log('🗑️ Deleting photo from Firebase Storage...');
+
+    // Extract path from URL
+    const urlObj = new URL(photoURL);
+    const path = decodeURIComponent(urlObj.pathname.split('/o/')[1].split('?')[0]);
+    const photoRef = storageRef(storage, path);
+
+    await deleteObject(photoRef);
+    console.log('✅ Photo deleted from storage');
+  } catch (error) {
+    console.error('⚠️ Error deleting photo (may not exist):', error.message);
+    // Don't throw - photo might already be deleted
+  }
+};
 
 // ==================== PLAYERS ====================
 
@@ -9,7 +75,7 @@ export const getPlayersPaginated = async (pageSize = 20, lastKey = null) => {
     const startTime = Date.now();
     console.log(`🔍 Fetching page of ${pageSize} players (lastKey: ${lastKey || 'start'})...`);
 
-    const playersRef = ref(database, 'players');
+    const playersRef = dbRef(database, 'players');
     let playersQuery;
 
     if (lastKey) {
@@ -26,8 +92,11 @@ export const getPlayersPaginated = async (pageSize = 20, lastKey = null) => {
       const playersObj = snapshot.val();
       const players = Object.keys(playersObj).map(key => {
         const player = { id: key, ...playersObj[key] };
-        // Remove photo to speed up load
-        delete player.photo;
+        // Keep photo URLs (they're small), only remove base64 photos (large)
+        if (player.photo && player.photo.startsWith('data:image/')) {
+          delete player.photo; // Remove base64 (should not happen with new system)
+        }
+        // Photo URLs stay - they're just strings, very small!
         return player;
       });
 
@@ -55,7 +124,7 @@ export const getPlayersPaginated = async (pageSize = 20, lastKey = null) => {
 export const getPlayersCount = async () => {
   try {
     console.log('🔢 Getting players count (fast method)...');
-    const playersRef = ref(database, 'players');
+    const playersRef = dbRef(database, 'players');
 
     // Use shallow query to get only keys, not full data
     const snapshot = await get(query(playersRef, orderByKey()));
@@ -77,21 +146,23 @@ export const getPlayersWithoutPhotos = async () => {
   try {
     const startTime = Date.now();
     console.log('⚡ Fast fetch: Getting players WITHOUT photos...');
-    const playersRef = ref(database, 'players');
+    const playersRef = dbRef(database, 'players');
     const snapshot = await get(playersRef);
 
     if (snapshot.exists()) {
       const playersObj = snapshot.val();
       const players = Object.keys(playersObj).map(key => {
         const player = { id: key, ...playersObj[key] };
-        // Remove photo to speed up initial load
-        delete player.photo;
+        // Keep photo URLs (small), remove base64 (large - legacy data)
+        if (player.photo && player.photo.startsWith('data:image/')) {
+          delete player.photo;
+        }
         return player;
       });
       const endTime = Date.now();
       const duration = ((endTime - startTime) / 1000).toFixed(2);
 
-      console.log(`✅ Fast fetch complete: ${players.length} players in ${duration}s (photos excluded)`);
+      console.log(`✅ Fast fetch complete: ${players.length} players in ${duration}s`);
       return players;
     }
     return [];
@@ -105,7 +176,7 @@ export const getPlayers = async () => {
   try {
     const startTime = Date.now();
     console.log('🔍 Fetching players from Firebase...');
-    const playersRef = ref(database, 'players');
+    const playersRef = dbRef(database, 'players');
     const snapshot = await get(playersRef);
 
     if (snapshot.exists()) {
@@ -145,7 +216,7 @@ export const getPlayers = async () => {
 export const getPlayerByMobile = async (mobile) => {
   try {
     // OPTIMIZED: Use Firebase query instead of fetching all players
-    const playersRef = ref(database, "players");
+    const playersRef = dbRef(database, "players");
     const mobileQuery = query(playersRef, orderByChild("mobile"), equalTo(mobile));
     const snapshot = await get(mobileQuery);
     
@@ -162,13 +233,28 @@ export const getPlayerByMobile = async (mobile) => {
 };
 export const addPlayer = async (player) => {
   try {
-    const playersRef = ref(database, 'players');
+    const playersRef = dbRef(database, 'players');
     const newPlayerRef = push(playersRef);
+    const playerId = newPlayerRef.key;
+
+    // Handle photo upload to Storage if base64 photo exists
+    let photoURL = null;
+    if (player.photo && player.photo.startsWith('data:image/')) {
+      console.log('📸 Converting base64 photo to Storage URL...');
+      photoURL = await uploadPhotoToStorage(player.photo, playerId);
+      console.log('✅ Photo uploaded to Storage, saving URL instead of base64');
+    } else if (player.photo && player.photo.includes('firebasestorage.googleapis.com')) {
+      // Already a storage URL, keep it
+      photoURL = player.photo;
+    }
+
     const newPlayer = {
       ...player,
-      id: newPlayerRef.key,
+      photo: photoURL, // Store URL instead of base64
+      id: playerId,
       createdAt: new Date().toISOString()
     };
+
     await set(newPlayerRef, newPlayer);
     return newPlayer;
   } catch (error) {
@@ -179,10 +265,43 @@ export const addPlayer = async (player) => {
 
 export const updatePlayer = async (id, updatedData) => {
   try {
-    const playerRef = ref(database, `players/${id}`);
+    const playerRef = dbRef(database, `players/${id}`);
     const snapshot = await get(playerRef);
     if (snapshot.exists()) {
-      const updatedPlayer = { ...snapshot.val(), ...updatedData };
+      const existingPlayer = snapshot.val();
+
+      // Handle photo update
+      let photoURL = existingPlayer.photo; // Keep existing by default
+
+      if (updatedData.photo && updatedData.photo.startsWith('data:image/')) {
+        // New base64 photo - upload to Storage
+        console.log('📸 Updating photo - uploading to Storage...');
+
+        // Delete old photo if it exists in Storage
+        if (existingPlayer.photo && existingPlayer.photo.includes('firebasestorage.googleapis.com')) {
+          await deletePhotoFromStorage(existingPlayer.photo);
+        }
+
+        // Upload new photo
+        photoURL = await uploadPhotoToStorage(updatedData.photo, id);
+        console.log('✅ Photo updated in Storage');
+      } else if (updatedData.photo && updatedData.photo.includes('firebasestorage.googleapis.com')) {
+        // Already a storage URL
+        photoURL = updatedData.photo;
+      } else if (updatedData.photo === null || updatedData.photo === '') {
+        // Photo removed
+        if (existingPlayer.photo && existingPlayer.photo.includes('firebasestorage.googleapis.com')) {
+          await deletePhotoFromStorage(existingPlayer.photo);
+        }
+        photoURL = null;
+      }
+
+      const updatedPlayer = {
+        ...existingPlayer,
+        ...updatedData,
+        photo: photoURL
+      };
+
       await set(playerRef, updatedPlayer);
       return updatedPlayer;
     }
@@ -195,7 +314,19 @@ export const updatePlayer = async (id, updatedData) => {
 
 export const deletePlayer = async (id) => {
   try {
-    const playerRef = ref(database, `players/${id}`);
+    const playerRef = dbRef(database, `players/${id}`);
+    const snapshot = await get(playerRef);
+
+    // Delete photo from Storage if it exists
+    if (snapshot.exists()) {
+      const player = snapshot.val();
+      if (player.photo && player.photo.includes('firebasestorage.googleapis.com')) {
+        console.log('🗑️ Deleting player photo from Storage...');
+        await deletePhotoFromStorage(player.photo);
+      }
+    }
+
+    // Delete player from database
     await remove(playerRef);
     return true;
   } catch (error) {
@@ -208,7 +339,7 @@ export const deletePlayer = async (id) => {
 
 export const getTournaments = async () => {
   try {
-    const tournamentsRef = ref(database, 'tournaments');
+    const tournamentsRef = dbRef(database, 'tournaments');
     const snapshot = await get(tournamentsRef);
     if (snapshot.exists()) {
       const tournamentsObj = snapshot.val();
@@ -223,7 +354,7 @@ export const getTournaments = async () => {
 
 export const getTournamentById = async (id) => {
   try {
-    const tournamentRef = ref(database, `tournaments/${id}`);
+    const tournamentRef = dbRef(database, `tournaments/${id}`);
     const snapshot = await get(tournamentRef);
     if (snapshot.exists()) {
       return { id, ...snapshot.val() };
@@ -237,7 +368,7 @@ export const getTournamentById = async (id) => {
 
 export const addTournament = async (tournament) => {
   try {
-    const tournamentsRef = ref(database, 'tournaments');
+    const tournamentsRef = dbRef(database, 'tournaments');
     const newTournamentRef = push(tournamentsRef);
     const newTournament = {
       ...tournament,
@@ -254,7 +385,7 @@ export const addTournament = async (tournament) => {
 
 export const updateTournament = async (id, updatedData) => {
   try {
-    const tournamentRef = ref(database, `tournaments/${id}`);
+    const tournamentRef = dbRef(database, `tournaments/${id}`);
     const snapshot = await get(tournamentRef);
     if (snapshot.exists()) {
       const updatedTournament = { ...snapshot.val(), ...updatedData };
@@ -270,7 +401,7 @@ export const updateTournament = async (id, updatedData) => {
 
 export const deleteTournament = async (id) => {
   try {
-    const tournamentRef = ref(database, `tournaments/${id}`);
+    const tournamentRef = dbRef(database, `tournaments/${id}`);
     await remove(tournamentRef);
     return true;
   } catch (error) {
@@ -284,7 +415,7 @@ export const deleteTournament = async (id) => {
 
 export const getTournamentRegistrations = async (tournamentId) => {
   try {
-    const registrationsRef = ref(database, `tournament_registrations/${tournamentId}`);
+    const registrationsRef = dbRef(database, `tournament_registrations/${tournamentId}`);
     const snapshot = await get(registrationsRef);
     if (snapshot.exists()) {
       const registrationsObj = snapshot.val();
@@ -304,7 +435,7 @@ export const addTournamentRegistration = async (tournamentId, playerData) => {
     const uniqueRegistrationKey = `${tournamentId}_${sanitizedMobile}`;
 
     // Create a unique path using mobile number
-    const uniqueCheckRef = ref(database, `tournament_registrations_unique/${uniqueRegistrationKey}`);
+    const uniqueCheckRef = dbRef(database, `tournament_registrations_unique/${uniqueRegistrationKey}`);
 
     // Check if this unique key already exists
     const uniqueSnapshot = await get(uniqueCheckRef);
@@ -341,7 +472,7 @@ export const addTournamentRegistration = async (tournamentId, playerData) => {
     }
 
     // Add tournament registration
-    const registrationsRef = ref(database, `tournament_registrations/${tournamentId}`);
+    const registrationsRef = dbRef(database, `tournament_registrations/${tournamentId}`);
     const newRegistrationRef = push(registrationsRef);
     const registrationId = newRegistrationRef.key;
 
@@ -376,7 +507,7 @@ export const addTournamentRegistration = async (tournamentId, playerData) => {
 
 export const updateRegistration = async (tournamentId, registrationId, updatedData) => {
   try {
-    const registrationRef = ref(database, `tournament_registrations/${tournamentId}/${registrationId}`);
+    const registrationRef = dbRef(database, `tournament_registrations/${tournamentId}/${registrationId}`);
     const snapshot = await get(registrationRef);
 
     if (!snapshot.exists()) {
@@ -407,11 +538,11 @@ export const updateRegistration = async (tournamentId, registrationId, updatedDa
       const newUniqueKey = `${tournamentId}_${newMobile}`;
 
       // Remove old unique key
-      const oldUniqueRef = ref(database, `tournament_registrations_unique/${oldUniqueKey}`);
+      const oldUniqueRef = dbRef(database, `tournament_registrations_unique/${oldUniqueKey}`);
       await remove(oldUniqueRef);
 
       // Add new unique key
-      const newUniqueRef = ref(database, `tournament_registrations_unique/${newUniqueKey}`);
+      const newUniqueRef = dbRef(database, `tournament_registrations_unique/${newUniqueKey}`);
       await set(newUniqueRef, {
         registrationId: registrationId,
         mobile: updatedData.mobile,
@@ -438,7 +569,7 @@ export const updateRegistration = async (tournamentId, registrationId, updatedDa
 export const deleteRegistration = async (tournamentId, registrationId) => {
   try {
     // First, get the registration to find the mobile number
-    const registrationRef = ref(database, `tournament_registrations/${tournamentId}/${registrationId}`);
+    const registrationRef = dbRef(database, `tournament_registrations/${tournamentId}/${registrationId}`);
     const snapshot = await get(registrationRef);
 
     if (snapshot.exists()) {
@@ -449,7 +580,7 @@ export const deleteRegistration = async (tournamentId, registrationId) => {
       // Delete both the registration and unique key
       await remove(registrationRef);
 
-      const uniqueCheckRef = ref(database, `tournament_registrations_unique/${uniqueKey}`);
+      const uniqueCheckRef = dbRef(database, `tournament_registrations_unique/${uniqueKey}`);
       await remove(uniqueCheckRef);
     } else {
       await remove(registrationRef);

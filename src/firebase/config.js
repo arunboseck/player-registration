@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
+import { getStorage } from 'firebase/storage';
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
@@ -19,6 +20,7 @@ if (import.meta.env.DEV) {
     authDomain: firebaseConfig.authDomain ? '✓ Set' : '✗ Missing',
     databaseURL: firebaseConfig.databaseURL ? '✓ Set' : '✗ Missing',
     projectId: firebaseConfig.projectId ? '✓ Set' : '✗ Missing',
+    storageBucket: firebaseConfig.storageBucket ? '✓ Set' : '✗ Missing',
   });
 }
 
@@ -33,5 +35,8 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Realtime Database
 export const database = getDatabase(app);
+
+// Initialize Firebase Storage
+export const storage = getStorage(app);
 
 export default app;
