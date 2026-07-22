@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getPlayers, getPlayersWithoutPhotos, deletePlayer } from '../utils/firebaseStorage';
+import { getPlayers, getPlayersPaginated, getPlayersCount, deletePlayer } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import * as XLSX from 'xlsx';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -10,25 +10,70 @@ const Players = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [players, setPlayers] = useState([]);
+  const [allPlayers, setAllPlayers] = useState([]); // Keep all loaded players
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPosition, setFilterPosition] = useState('');
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20); // 20 players per page
+  const [totalPlayers, setTotalPlayers] = useState(0);
+  const [lastKey, setLastKey] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
-    loadPlayers();
+    loadInitialPlayers();
   }, []);
 
-  const loadPlayers = async () => {
-    console.log('📊 Loading players...');
+  const loadInitialPlayers = async () => {
+    console.log('📊 Loading initial page of players...');
     setLoading(true);
-    // Use fast version without photos for instant load (90% faster!)
-    const allPlayers = await getPlayersWithoutPhotos();
-    console.log('📊 Setting players state with', allPlayers.length, 'players');
-    setPlayers(allPlayers);
+
+    // Get total count first
+    const count = await getPlayersCount();
+    setTotalPlayers(count);
+    console.log(`📊 Total players in database: ${count}`);
+
+    // Load first page using server-side pagination
+    const result = await getPlayersPaginated(itemsPerPage, null);
+    console.log('📊 Setting players state with', result.players.length, 'players');
+    setPlayers(result.players);
+    setAllPlayers(result.players);
+    setLastKey(result.lastKey);
+    setHasMore(result.hasMore);
+    setCurrentPage(1);
     setLoading(false);
-    console.log('📊 Loading complete. State updated.');
+    console.log('📊 Loading complete. Initial page loaded.');
+  };
+
+  const loadNextPage = async () => {
+    if (!hasMore || loading) return;
+
+    console.log('📊 Loading next page...');
+    setLoading(true);
+    const result = await getPlayersPaginated(itemsPerPage, lastKey);
+
+    // Append new players
+    const updatedPlayers = [...allPlayers, ...result.players];
+    setAllPlayers(updatedPlayers);
+    setPlayers(result.players);
+    setLastKey(result.lastKey);
+    setHasMore(result.hasMore);
+    setCurrentPage(prev => prev + 1);
+    setLoading(false);
+    console.log(`📊 Page ${currentPage + 1} loaded. Total loaded: ${updatedPlayers.length}`);
+  };
+
+  const loadPreviousPage = async () => {
+    if (currentPage === 1) return;
+
+    // For previous pages, we use the already loaded data
+    const startIdx = (currentPage - 2) * itemsPerPage;
+    const endIdx = startIdx + itemsPerPage;
+    const previousPagePlayers = allPlayers.slice(startIdx, endIdx);
+
+    setPlayers(previousPagePlayers);
+    setCurrentPage(prev => prev - 1);
+    console.log(`📊 Showing page ${currentPage - 1}`);
   };
 
   const handleDelete = async (id) => {
@@ -42,14 +87,18 @@ const Players = () => {
     navigate(`/edit-player/${id}`);
   };
 
-  const handleDownloadExcel = () => {
-    if (filteredPlayers.length === 0) {
+  const handleDownloadExcel = async () => {
+    if (totalPlayers === 0) {
       alert('No players to download');
       return;
     }
 
+    // Fetch all players for Excel download (without pagination)
+    console.log('📥 Downloading all players for Excel...');
+    const allPlayersForExcel = await getPlayers();
+
     // Prepare data for Excel
-    const excelData = filteredPlayers.map((player, index) => ({
+    const excelData = allPlayersForExcel.map((player, index) => ({
       'S.No': index + 1,
       'Name': player.name,
       'Mobile': player.mobile,
@@ -90,7 +139,7 @@ const Players = () => {
     navigate('/');
   };
 
-  // Filter players based on search and position
+  // Filter players based on search and position (client-side filter on current page only)
   const filteredPlayers = players.filter((player) => {
     const matchesSearch =
       player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -102,19 +151,12 @@ const Players = () => {
     return matchesSearch && matchesPosition;
   });
 
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredPlayers.length / itemsPerPage);
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentPlayers = filteredPlayers.slice(indexOfFirstItem, indexOfLastItem);
+  // Pagination calculations - now based on total players, not filtered
+  const totalPages = Math.ceil(totalPlayers / itemsPerPage);
+  const currentPlayers = filteredPlayers; // Show filtered players from current page
 
-  // Reset to page 1 when search/filter changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, filterPosition]);
-
-  // Get unique positions for filter
-  const uniquePositions = [...new Set(players.map((p) => p.position))];
+  // Get unique positions for filter (from all loaded players)
+  const uniquePositions = [...new Set(allPlayers.map((p) => p.position))];
 
   return (
     <div className="players-container">
@@ -180,7 +222,7 @@ const Players = () => {
         ) : (
           <>
             <div className="pagination-info">
-              <p>Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredPlayers.length)} of {filteredPlayers.length} players</p>
+              <p>Showing page {currentPage} of {totalPages} (Total: {totalPlayers} players, Loaded: {allPlayers.length})</p>
             </div>
             <div className="players-grid">
               {currentPlayers.map((player) => (
@@ -216,29 +258,21 @@ const Players = () => {
             {totalPages > 1 && (
               <div className="pagination-controls">
                 <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
+                  onClick={loadPreviousPage}
+                  disabled={currentPage === 1 || loading}
                   className="btn-pagination"
                 >
                   ← Previous
                 </button>
-                <div className="pagination-numbers">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={`btn-page ${currentPage === pageNum ? 'active' : ''}`}
-                    >
-                      {pageNum}
-                    </button>
-                  ))}
+                <div className="pagination-info-compact">
+                  Page {currentPage} of {totalPages}
                 </div>
                 <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
+                  onClick={loadNextPage}
+                  disabled={!hasMore || loading}
                   className="btn-pagination"
                 >
-                  Next →
+                  {loading ? 'Loading...' : 'Next →'}
                 </button>
               </div>
             )}

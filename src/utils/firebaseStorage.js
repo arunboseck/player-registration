@@ -1,9 +1,72 @@
-import { ref, set, get, remove, push, query, orderByChild, equalTo, limitToFirst } from 'firebase/database';
+import { ref, set, get, remove, push, query, orderByChild, orderByKey, equalTo, limitToFirst, startAfter, endBefore, limitToLast } from 'firebase/database';
 import { database } from '../firebase/config';
 
 // ==================== PLAYERS ====================
 
-// Fast version: Get players without photos for initial load
+// SERVER-SIDE PAGINATION: Get paginated players without photos
+export const getPlayersPaginated = async (pageSize = 20, lastKey = null) => {
+  try {
+    const startTime = Date.now();
+    console.log(`🔍 Fetching page of ${pageSize} players (lastKey: ${lastKey || 'start'})...`);
+
+    const playersRef = ref(database, 'players');
+    let playersQuery;
+
+    if (lastKey) {
+      // Fetch next page starting after the last key
+      playersQuery = query(playersRef, orderByKey(), startAfter(lastKey), limitToFirst(pageSize));
+    } else {
+      // Fetch first page
+      playersQuery = query(playersRef, orderByKey(), limitToFirst(pageSize));
+    }
+
+    const snapshot = await get(playersQuery);
+
+    if (snapshot.exists()) {
+      const playersObj = snapshot.val();
+      const players = Object.keys(playersObj).map(key => {
+        const player = { id: key, ...playersObj[key] };
+        // Remove photo to speed up load
+        delete player.photo;
+        return player;
+      });
+
+      const endTime = Date.now();
+      const duration = ((endTime - startTime) / 1000).toFixed(2);
+      const newLastKey = players.length > 0 ? players[players.length - 1].id : null;
+
+      console.log(`✅ Fetched ${players.length} players in ${duration}s (server-side pagination)`);
+
+      return {
+        players,
+        lastKey: newLastKey,
+        hasMore: players.length === pageSize // If we got full page, there might be more
+      };
+    }
+
+    return { players: [], lastKey: null, hasMore: false };
+  } catch (error) {
+    console.error('❌ Error fetching paginated players:', error);
+    return { players: [], lastKey: null, hasMore: false };
+  }
+};
+
+// Get total count of players (for pagination info)
+export const getPlayersCount = async () => {
+  try {
+    const playersRef = ref(database, 'players');
+    const snapshot = await get(playersRef);
+    if (snapshot.exists()) {
+      return Object.keys(snapshot.val()).length;
+    }
+    return 0;
+  } catch (error) {
+    console.error('❌ Error getting players count:', error);
+    return 0;
+  }
+};
+
+// Fast version: Get players without photos for initial load (kept for backward compatibility)
 export const getPlayersWithoutPhotos = async () => {
   try {
     const startTime = Date.now();
