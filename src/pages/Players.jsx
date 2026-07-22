@@ -13,6 +13,8 @@ const Players = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPosition, setFilterPosition] = useState('');
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20); // 20 players per page
 
   useEffect(() => {
     loadPlayers();
@@ -96,6 +98,17 @@ const Players = () => {
     return matchesSearch && matchesPosition;
   });
 
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredPlayers.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentPlayers = filteredPlayers.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Reset to page 1 when search/filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterPosition]);
+
   // Get unique positions for filter
   const uniquePositions = [...new Set(players.map((p) => p.position))];
 
@@ -161,37 +174,71 @@ const Players = () => {
             <p>No players found. {searchTerm || filterPosition ? 'Try adjusting your filters.' : 'Register your first player!'}</p>
           </div>
         ) : (
-          <div className="players-grid">
-            {filteredPlayers.map((player) => (
-              <div key={player.id} className="player-card">
-                <div className="player-photo">
-                  {player.photo ? (
-                    <img src={player.photo} alt={player.name} />
-                  ) : (
-                    <div className="photo-placeholder">📷</div>
-                  )}
-                </div>
-                <div className="player-info">
-                  <h3>{player.name}</h3>
-                  <p className="player-position">{player.position}</p>
-                  <div className="player-details">
-                    <p><strong>Mobile:</strong> {player.mobile}</p>
-                    <p><strong>DOB:</strong> {new Date(player.dateOfBirth).toLocaleDateString()}</p>
-                    <p><strong>Blood Group:</strong> {player.bloodGroup}</p>
-                    <p><strong>Place:</strong> {player.place}</p>
+          <>
+            <div className="pagination-info">
+              <p>Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredPlayers.length)} of {filteredPlayers.length} players</p>
+            </div>
+            <div className="players-grid">
+              {currentPlayers.map((player) => (
+                <div key={player.id} className="player-card">
+                  <div className="player-photo">
+                    {player.photo ? (
+                      <img src={player.photo} alt={player.name} />
+                    ) : (
+                      <div className="photo-placeholder">📷</div>
+                    )}
+                  </div>
+                  <div className="player-info">
+                    <h3>{player.name}</h3>
+                    <p className="player-position">{player.position}</p>
+                    <div className="player-details">
+                      <p><strong>Mobile:</strong> {player.mobile}</p>
+                      <p><strong>DOB:</strong> {new Date(player.dateOfBirth).toLocaleDateString()}</p>
+                      <p><strong>Blood Group:</strong> {player.bloodGroup}</p>
+                      <p><strong>Place:</strong> {player.place}</p>
+                    </div>
+                  </div>
+                  <div className="player-actions">
+                    <button onClick={() => handleEdit(player.id)} className="btn-edit">
+                      Edit
+                    </button>
+                    <button onClick={() => handleDelete(player.id)} className="btn-delete">
+                      Delete
+                    </button>
                   </div>
                 </div>
-                <div className="player-actions">
-                  <button onClick={() => handleEdit(player.id)} className="btn-edit">
-                    Edit
-                  </button>
-                  <button onClick={() => handleDelete(player.id)} className="btn-delete">
-                    Delete
-                  </button>
+              ))}
+            </div>
+            {totalPages > 1 && (
+              <div className="pagination-controls">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="btn-pagination"
+                >
+                  ← Previous
+                </button>
+                <div className="pagination-numbers">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`btn-page ${currentPage === pageNum ? 'active' : ''}`}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
                 </div>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="btn-pagination"
+                >
+                  Next →
+                </button>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
     </div>

@@ -13,6 +13,8 @@ const Tournaments = () => {
   const { logout } = useAuth();
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10); // 10 tournaments per page
   const { modalState, hideModal, showConfirm, showSuccess } = useModal();
 
   useEffect(() => {
@@ -63,6 +65,12 @@ const Tournaments = () => {
     return statusMap[status] || 'status-upcoming';
   };
 
+  // Pagination calculations
+  const totalPages = Math.ceil(tournaments.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentTournaments = tournaments.slice(indexOfFirstItem, indexOfLastItem);
+
   return (
     <div className="players-container">
       <Navigation />
@@ -97,23 +105,27 @@ const Tournaments = () => {
             <p>No tournaments found. Create your first tournament!</p>
           </div>
         ) : (
-          <div className="table-container">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>S.No</th>
-                  <th>Name</th>
-                  <th>Location</th>
-                  <th>Start Date</th>
-                  <th>End Date</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tournaments.map((tournament, index) => (
+          <>
+            <div className="pagination-info">
+              <p>Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, tournaments.length)} of {tournaments.length} tournaments</p>
+            </div>
+            <div className="table-container">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>S.No</th>
+                    <th>Name</th>
+                    <th>Location</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentTournaments.map((tournament, index) => (
                   <tr key={tournament.id}>
-                    <td>{index + 1}</td>
+                    <td>{indexOfFirstItem + index + 1}</td>
                     <td><strong>{tournament.name}</strong></td>
                     <td>{tournament.location}</td>
                     <td>{new Date(tournament.startDate).toLocaleDateString()}</td>
@@ -176,6 +188,36 @@ const Tournaments = () => {
               </tbody>
             </table>
           </div>
+          {totalPages > 1 && (
+            <div className="pagination-controls">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="btn-pagination"
+              >
+                ← Previous
+              </button>
+              <div className="pagination-numbers">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`btn-page ${currentPage === pageNum ? 'active' : ''}`}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="btn-pagination"
+              >
+                Next →
+              </button>
+            </div>
+          )}
+        </>
         )}
       </div>
 
