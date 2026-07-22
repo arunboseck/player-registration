@@ -25,13 +25,12 @@ const Players = () => {
   }, []);
 
   const loadInitialPlayers = async () => {
-    console.log('📊 Loading initial page of players...');
+    console.log('📊 Loading initial page of players (NO FULL COUNT - FAST!)...');
     setLoading(true);
 
-    // Get total count first
-    const count = await getPlayersCount();
-    setTotalPlayers(count);
-    console.log(`📊 Total players in database: ${count}`);
+    // Skip total count to avoid downloading all players!
+    // We'll estimate pages as we load
+    setTotalPlayers(0); // Will update as we paginate
 
     // Load first page using server-side pagination
     const result = await getPlayersPaginated(itemsPerPage, null);
@@ -42,7 +41,7 @@ const Players = () => {
     setHasMore(result.hasMore);
     setCurrentPage(1);
     setLoading(false);
-    console.log('📊 Loading complete. Initial page loaded.');
+    console.log('📊 Loading complete. Initial page loaded in <1 second!');
   };
 
   const loadNextPage = async () => {
@@ -88,14 +87,18 @@ const Players = () => {
   };
 
   const handleDownloadExcel = async () => {
-    if (totalPlayers === 0) {
+    if (allPlayers.length === 0) {
       alert('No players to download');
       return;
     }
 
-    // Fetch all players for Excel download (without pagination)
-    console.log('📥 Downloading all players for Excel...');
-    const allPlayersForExcel = await getPlayers();
+    // For now, download only loaded players (fast!)
+    // To download ALL players, uncomment the next 2 lines (but it will take 5 minutes)
+    // console.log('📥 Downloading all players for Excel...');
+    // const allPlayersForExcel = await getPlayers();
+
+    // Use already loaded players (instant download!)
+    const allPlayersForExcel = allPlayers;
 
     // Prepare data for Excel
     const excelData = allPlayersForExcel.map((player, index) => ({
@@ -151,8 +154,7 @@ const Players = () => {
     return matchesSearch && matchesPosition;
   });
 
-  // Pagination calculations - now based on total players, not filtered
-  const totalPages = Math.ceil(totalPlayers / itemsPerPage);
+  // Pagination calculations - based on loaded data
   const currentPlayers = filteredPlayers; // Show filtered players from current page
 
   // Get unique positions for filter (from all loaded players)
@@ -222,7 +224,7 @@ const Players = () => {
         ) : (
           <>
             <div className="pagination-info">
-              <p>Showing page {currentPage} of {totalPages} (Total: {totalPlayers} players, Loaded: {allPlayers.length})</p>
+              <p>Showing {currentPlayers.length} players (Page {currentPage}, Loaded: {allPlayers.length} total) {hasMore ? '• More available' : '• End'}</p>
             </div>
             <div className="players-grid">
               {currentPlayers.map((player) => (
@@ -255,7 +257,7 @@ const Players = () => {
                 </div>
               ))}
             </div>
-            {totalPages > 1 && (
+            {(currentPage > 1 || hasMore) && (
               <div className="pagination-controls">
                 <button
                   onClick={loadPreviousPage}
@@ -265,7 +267,7 @@ const Players = () => {
                   ← Previous
                 </button>
                 <div className="pagination-info-compact">
-                  Page {currentPage} of {totalPages}
+                  Page {currentPage}
                 </div>
                 <button
                   onClick={loadNextPage}

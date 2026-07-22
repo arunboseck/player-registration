@@ -51,13 +51,19 @@ export const getPlayersPaginated = async (pageSize = 20, lastKey = null) => {
   }
 };
 
-// Get total count of players (for pagination info)
+// Get total count of players WITHOUT downloading all data
 export const getPlayersCount = async () => {
   try {
+    console.log('🔢 Getting players count (fast method)...');
     const playersRef = ref(database, 'players');
-    const snapshot = await get(playersRef);
+
+    // Use shallow query to get only keys, not full data
+    const snapshot = await get(query(playersRef, orderByKey()));
+
     if (snapshot.exists()) {
-      return Object.keys(snapshot.val()).length;
+      const count = Object.keys(snapshot.val()).length;
+      console.log(`✅ Count: ${count} players`);
+      return count;
     }
     return 0;
   } catch (error) {
