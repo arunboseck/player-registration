@@ -21,12 +21,9 @@ const Tournaments = () => {
 
   const loadTournaments = async () => {
     setLoading(true);
-    // Simulate slight delay to ensure smooth loading animation
-    setTimeout(async () => {
-      const allTournaments = await getTournaments();
-      setTournaments(allTournaments);
-      setLoading(false);
-    }, 500);
+    const allTournaments = await getTournaments();
+    setTournaments(allTournaments);
+    setLoading(false);
   };
 
   const handleDelete = async (id) => {

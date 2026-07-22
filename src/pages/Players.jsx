@@ -20,11 +20,9 @@ const Players = () => {
 
   const loadPlayers = async () => {
     setLoading(true);
-    setTimeout(async () => {
-      const allPlayers = await getPlayers();
-      setPlayers(allPlayers);
-      setLoading(false);
-    }, 500);
+    const allPlayers = await getPlayers();
+    setPlayers(allPlayers);
+    setLoading(false);
   };
 
   const handleDelete = async (id) => {
