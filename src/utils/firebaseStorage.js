@@ -19,7 +19,8 @@ export const uploadPhotoToStorage = async (base64Photo, playerId) => {
 
     // Cloudinary configuration
     const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'unsigned_preset';
+    const apiKey = import.meta.env.VITE_CLOUDINARY_API_KEY;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
     if (!cloudName) {
       throw new Error('Cloudinary cloud name not configured. Please add VITE_CLOUDINARY_CLOUD_NAME to .env');
@@ -30,9 +31,18 @@ export const uploadPhotoToStorage = async (base64Photo, playerId) => {
     // Upload to Cloudinary
     const formData = new FormData();
     formData.append('file', base64Photo);
-    formData.append('upload_preset', uploadPreset);
     formData.append('folder', 'players'); // Organize in folder
     formData.append('public_id', `player_${playerId}_${Date.now()}`); // Unique ID
+
+    // If upload preset is available, use unsigned upload
+    if (uploadPreset) {
+      formData.append('upload_preset', uploadPreset);
+    } else if (apiKey) {
+      // Use API key for unsigned upload (no preset needed)
+      formData.append('api_key', apiKey);
+      formData.append('timestamp', Math.floor(Date.now() / 1000).toString());
+      formData.append('upload_preset', 'ml_default'); // Use default preset
+    }
 
     const response = await fetch(
       `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
@@ -44,6 +54,7 @@ export const uploadPhotoToStorage = async (base64Photo, playerId) => {
 
     if (!response.ok) {
       const error = await response.json();
+      console.error('Cloudinary error:', error);
       throw new Error(error.error?.message || 'Upload failed');
     }
 

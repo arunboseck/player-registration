@@ -83,7 +83,8 @@ function base64ToBuffer(base64String) {
 async function uploadPhotoToStorage(base64Photo, playerId) {
   try {
     const cloudName = env.VITE_CLOUDINARY_CLOUD_NAME;
-    const uploadPreset = env.VITE_CLOUDINARY_UPLOAD_PRESET || 'unsigned_preset';
+    const apiKey = env.VITE_CLOUDINARY_API_KEY;
+    const uploadPreset = env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
     if (!cloudName) {
       throw new Error('VITE_CLOUDINARY_CLOUD_NAME not set in .env file');
@@ -95,9 +96,18 @@ async function uploadPhotoToStorage(base64Photo, playerId) {
 
     const formData = new FormData();
     formData.append('file', base64Photo);
-    formData.append('upload_preset', uploadPreset);
     formData.append('folder', 'players');
     formData.append('public_id', `player_${playerId}_${Date.now()}`);
+
+    // If upload preset is available, use it
+    if (uploadPreset) {
+      formData.append('upload_preset', uploadPreset);
+    } else if (apiKey) {
+      // Use API key for unsigned upload
+      formData.append('api_key', apiKey);
+      formData.append('timestamp', Math.floor(Date.now() / 1000).toString());
+      formData.append('upload_preset', 'ml_default');
+    }
 
     const response = await fetch(
       `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
@@ -109,6 +119,7 @@ async function uploadPhotoToStorage(base64Photo, playerId) {
 
     if (!response.ok) {
       const error = await response.json();
+      console.error('Cloudinary error:', error);
       throw new Error(error.error?.message || 'Upload failed');
     }
 
