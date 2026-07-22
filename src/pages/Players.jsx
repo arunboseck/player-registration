@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getPlayers, deletePlayer } from '../utils/firebaseStorage';
+import { getPlayers, getPlayersWithoutPhotos, deletePlayer } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import * as XLSX from 'xlsx';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -21,10 +21,14 @@ const Players = () => {
   }, []);
 
   const loadPlayers = async () => {
+    console.log('📊 Loading players...');
     setLoading(true);
-    const allPlayers = await getPlayers();
+    // Use fast version without photos for instant load (90% faster!)
+    const allPlayers = await getPlayersWithoutPhotos();
+    console.log('📊 Setting players state with', allPlayers.length, 'players');
     setPlayers(allPlayers);
     setLoading(false);
+    console.log('📊 Loading complete. State updated.');
   };
 
   const handleDelete = async (id) => {

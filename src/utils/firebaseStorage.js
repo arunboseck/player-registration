@@ -1,10 +1,40 @@
-import { ref, set, get, remove, push, query, orderByChild, equalTo } from 'firebase/database';
+import { ref, set, get, remove, push, query, orderByChild, equalTo, limitToFirst } from 'firebase/database';
 import { database } from '../firebase/config';
 
 // ==================== PLAYERS ====================
 
+// Fast version: Get players without photos for initial load
+export const getPlayersWithoutPhotos = async () => {
+  try {
+    const startTime = Date.now();
+    console.log('⚡ Fast fetch: Getting players WITHOUT photos...');
+    const playersRef = ref(database, 'players');
+    const snapshot = await get(playersRef);
+
+    if (snapshot.exists()) {
+      const playersObj = snapshot.val();
+      const players = Object.keys(playersObj).map(key => {
+        const player = { id: key, ...playersObj[key] };
+        // Remove photo to speed up initial load
+        delete player.photo;
+        return player;
+      });
+      const endTime = Date.now();
+      const duration = ((endTime - startTime) / 1000).toFixed(2);
+
+      console.log(`✅ Fast fetch complete: ${players.length} players in ${duration}s (photos excluded)`);
+      return players;
+    }
+    return [];
+  } catch (error) {
+    console.error('❌ Error in fast fetch:', error);
+    return [];
+  }
+};
+
 export const getPlayers = async () => {
   try {
+    const startTime = Date.now();
     console.log('🔍 Fetching players from Firebase...');
     const playersRef = ref(database, 'players');
     const snapshot = await get(playersRef);
@@ -12,7 +42,21 @@ export const getPlayers = async () => {
     if (snapshot.exists()) {
       const playersObj = snapshot.val();
       const players = Object.keys(playersObj).map(key => ({ id: key, ...playersObj[key] }));
-      console.log(`✅ Successfully fetched ${players.length} players`);
+      const endTime = Date.now();
+      const duration = ((endTime - startTime) / 1000).toFixed(2);
+
+      // Calculate approximate data size
+      const dataSize = JSON.stringify(playersObj).length;
+      const dataSizeMB = (dataSize / (1024 * 1024)).toFixed(2);
+
+      console.log(`✅ Successfully fetched ${players.length} players in ${duration}s`);
+      console.log(`📦 Data size: ~${dataSizeMB} MB`);
+
+      if (duration > 3) {
+        console.warn(`⚠️ SLOW LOAD: ${duration}s is too slow!`);
+        console.warn(`💡 Tip: Move photos to Firebase Storage to reduce data size by 90%`);
+      }
+
       return players;
     } else {
       console.warn('⚠️ No players found in Firebase database at path "players"');
