@@ -1,11 +1,10 @@
 import { ref as dbRef, set, get, remove, push, query, orderByChild, orderByKey, equalTo, limitToFirst, startAfter, endBefore, limitToLast } from 'firebase/database';
-import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { database, storage } from '../firebase/config';
+import { database } from '../firebase/config';
 
-// ==================== PHOTO STORAGE HELPERS ====================
+// ==================== PHOTO STORAGE HELPERS (CLOUDINARY - FREE!) ====================
 
 /**
- * Upload a photo to Firebase Storage and return the download URL
+ * Upload a photo to Cloudinary and return the download URL
  * @param {string} base64Photo - Base64 encoded photo string
  * @param {string} playerId - Player ID for unique filename
  * @returns {Promise<string>} - Download URL for the uploaded photo
@@ -16,54 +15,91 @@ export const uploadPhotoToStorage = async (base64Photo, playerId) => {
       throw new Error('Invalid photo format');
     }
 
-    console.log('📤 Uploading photo to Firebase Storage...');
+    console.log('📤 Uploading photo to Cloudinary (FREE)...');
 
-    // Convert base64 to blob
-    const response = await fetch(base64Photo);
-    const blob = await response.blob();
+    // Cloudinary configuration
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'unsigned_preset';
 
-    // Create unique filename
-    const filename = `players/${playerId}/photo_${Date.now()}.jpg`;
-    const photoRef = storageRef(storage, filename);
+    if (!cloudName) {
+      throw new Error('Cloudinary cloud name not configured. Please add VITE_CLOUDINARY_CLOUD_NAME to .env');
+    }
 
-    // Upload to Firebase Storage
     const startTime = Date.now();
-    await uploadBytes(photoRef, blob);
+
+    // Upload to Cloudinary
+    const formData = new FormData();
+    formData.append('file', base64Photo);
+    formData.append('upload_preset', uploadPreset);
+    formData.append('folder', 'players'); // Organize in folder
+    formData.append('public_id', `player_${playerId}_${Date.now()}`); // Unique ID
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      {
+        method: 'POST',
+        body: formData
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'Upload failed');
+    }
+
+    const data = await response.json();
     const uploadTime = ((Date.now() - startTime) / 1000).toFixed(2);
 
-    // Get download URL
-    const downloadURL = await getDownloadURL(photoRef);
+    console.log(`✅ Photo uploaded to Cloudinary in ${uploadTime}s`);
+    console.log(`📸 URL: ${data.secure_url.substring(0, 50)}...`);
 
-    console.log(`✅ Photo uploaded in ${uploadTime}s - URL: ${downloadURL.substring(0, 50)}...`);
-    return downloadURL;
+    // Return the secure URL
+    return data.secure_url;
+
   } catch (error) {
-    console.error('❌ Error uploading photo:', error);
+    console.error('❌ Error uploading photo to Cloudinary:', error);
     throw error;
   }
 };
 
 /**
- * Delete a photo from Firebase Storage
+ * Delete a photo from Cloudinary
  * @param {string} photoURL - Download URL of the photo to delete
  */
 export const deletePhotoFromStorage = async (photoURL) => {
   try {
-    if (!photoURL || !photoURL.includes('firebasestorage.googleapis.com')) {
-      return; // Not a storage URL, skip
+    // Check if it's a Cloudinary URL
+    if (!photoURL || !photoURL.includes('cloudinary.com')) {
+      return; // Not a Cloudinary URL, skip
     }
 
-    console.log('🗑️ Deleting photo from Firebase Storage...');
+    console.log('🗑️ Deleting photo from Cloudinary...');
 
-    // Extract path from URL
-    const urlObj = new URL(photoURL);
-    const path = decodeURIComponent(urlObj.pathname.split('/o/')[1].split('?')[0]);
-    const photoRef = storageRef(storage, path);
+    // Extract public_id from URL
+    // URL format: https://res.cloudinary.com/{cloud_name}/image/upload/v{version}/{public_id}.jpg
+    const parts = photoURL.split('/upload/');
+    if (parts.length < 2) {
+      console.warn('⚠️ Invalid Cloudinary URL format');
+      return;
+    }
 
-    await deleteObject(photoRef);
-    console.log('✅ Photo deleted from storage');
+    const pathParts = parts[1].split('/');
+    const filename = pathParts[pathParts.length - 1];
+    const publicId = pathParts.slice(1).join('/').replace(/\.[^/.]+$/, ''); // Remove extension
+
+    console.log(`🗑️ Public ID: ${publicId}`);
+
+    // Note: Deletion requires authenticated API call with API Secret
+    // For security, this should be done server-side
+    // For now, we'll just log it - photos will remain in Cloudinary
+    // You can manually delete them from Cloudinary dashboard or implement server-side deletion
+
+    console.log('⚠️ Photo deletion requires server-side API (skipped for security)');
+    console.log('💡 You can delete photos manually from Cloudinary dashboard');
+
   } catch (error) {
-    console.error('⚠️ Error deleting photo (may not exist):', error.message);
-    // Don't throw - photo might already be deleted
+    console.error('⚠️ Error deleting photo:', error.message);
+    // Don't throw - photo deletion is not critical
   }
 };
 

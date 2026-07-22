@@ -12,7 +12,6 @@
 
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, get, set } from 'firebase/database';
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { readFileSync } from 'fs';
 
 // Load environment variables from .env file
@@ -58,9 +57,9 @@ if (!firebaseConfig.apiKey || !firebaseConfig.databaseURL || !firebaseConfig.sto
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
-const storage = getStorage(app);
 
 console.log('✅ Firebase initialized successfully\n');
+console.log('📸 Using Cloudinary for photo storage (FREE!)\n');
 
 /**
  * Convert base64 to Buffer for upload
@@ -79,25 +78,45 @@ function base64ToBuffer(base64String) {
 }
 
 /**
- * Upload photo to Firebase Storage
+ * Upload photo to Cloudinary (FREE!)
  */
 async function uploadPhotoToStorage(base64Photo, playerId) {
   try {
-    const { buffer, mimeType } = base64ToBuffer(base64Photo);
-    
-    // Create unique filename
-    const filename = `players/${playerId}/photo_${Date.now()}.jpg`;
-    const photoRef = storageRef(storage, filename);
-    
-    // Upload to Firebase Storage
-    await uploadBytes(photoRef, buffer, { contentType: mimeType });
-    
-    // Get download URL
-    const downloadURL = await getDownloadURL(photoRef);
-    
-    return downloadURL;
+    const cloudName = env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = env.VITE_CLOUDINARY_UPLOAD_PRESET || 'unsigned_preset';
+
+    if (!cloudName) {
+      throw new Error('VITE_CLOUDINARY_CLOUD_NAME not set in .env file');
+    }
+
+    // Use fetch with form data (Node.js 18+ has native fetch)
+    const FormData = (await import('node-fetch')).FormData || globalThis.FormData;
+    const fetch = globalThis.fetch || (await import('node-fetch')).default;
+
+    const formData = new FormData();
+    formData.append('file', base64Photo);
+    formData.append('upload_preset', uploadPreset);
+    formData.append('folder', 'players');
+    formData.append('public_id', `player_${playerId}_${Date.now()}`);
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      {
+        method: 'POST',
+        body: formData
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'Upload failed');
+    }
+
+    const data = await response.json();
+    return data.secure_url;
+
   } catch (error) {
-    console.error('Error uploading photo:', error.message);
+    console.error('Error uploading to Cloudinary:', error.message);
     throw error;
   }
 }
