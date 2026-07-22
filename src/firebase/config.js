@@ -12,6 +12,22 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
+// Log configuration status (only in development)
+if (import.meta.env.DEV) {
+  console.log('Firebase Config Status:', {
+    apiKey: firebaseConfig.apiKey ? '✓ Set' : '✗ Missing',
+    authDomain: firebaseConfig.authDomain ? '✓ Set' : '✗ Missing',
+    databaseURL: firebaseConfig.databaseURL ? '✓ Set' : '✗ Missing',
+    projectId: firebaseConfig.projectId ? '✓ Set' : '✗ Missing',
+  });
+}
+
+// Check if configuration is complete
+const isConfigured = firebaseConfig.apiKey && firebaseConfig.databaseURL && firebaseConfig.projectId;
+if (!isConfigured) {
+  console.error('❌ Firebase configuration is incomplete! Please check your environment variables in Vercel.');
+}
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 

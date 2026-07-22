@@ -5,15 +5,26 @@ import { database } from '../firebase/config';
 
 export const getPlayers = async () => {
   try {
+    console.log('🔍 Fetching players from Firebase...');
     const playersRef = ref(database, 'players');
     const snapshot = await get(playersRef);
+
     if (snapshot.exists()) {
       const playersObj = snapshot.val();
-      return Object.keys(playersObj).map(key => ({ id: key, ...playersObj[key] }));
+      const players = Object.keys(playersObj).map(key => ({ id: key, ...playersObj[key] }));
+      console.log(`✅ Successfully fetched ${players.length} players`);
+      return players;
+    } else {
+      console.warn('⚠️ No players found in Firebase database at path "players"');
+      return [];
     }
-    return [];
   } catch (error) {
-    console.error('Error fetching players:', error);
+    console.error('❌ Error fetching players:', error);
+    console.error('Error details:', {
+      code: error.code,
+      message: error.message,
+      name: error.name
+    });
     return [];
   }
 };
