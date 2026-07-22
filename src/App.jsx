@@ -13,6 +13,7 @@ import Tournaments from './pages/Tournaments';
 import TournamentRegister from './pages/TournamentRegister';
 import TournamentRegistrations from './pages/TournamentRegistrations';
 import CleanupDuplicates from './pages/CleanupDuplicates';
+import MigratePhotos from './pages/MigratePhotos';
 import './App.css';
 
 function App() {
@@ -92,6 +93,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <CleanupDuplicates />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/migrate-photos"
+            element={
+              <ProtectedRoute>
+                <MigratePhotos />
               </ProtectedRoute>
             }
           />
