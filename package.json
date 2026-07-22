@@ -6,10 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "migrate-photos": "node migrate-photos-script.js"
+    "preview": "vite preview"
   },
   "dependencies": {
+    "firebase": "^10.7.1",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "react": "^18.2.0",
