@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTournamentById, addTournamentRegistration } from '../utils/firebaseStorage';
+import { getTournamentById, addTournamentRegistration, uploadPhotoToStorage } from '../utils/firebaseStorage';
 import Navigation from '../components/Navigation';
 import './TournamentRegister.css';
 
@@ -96,6 +96,7 @@ const TournamentRegister = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
+        // Store base64 temporarily for preview and later upload to Cloudinary
         setFormData((prev) => ({ ...prev, photo: reader.result }));
       };
       reader.readAsDataURL(file);
@@ -152,7 +153,36 @@ const TournamentRegister = () => {
     setIsSubmitting(true);
 
     try {
-      const result = await addTournamentRegistration(id, formData);
+      // Upload photo to Cloudinary first (if it's base64)
+      let photoURL = formData.photo;
+      if (formData.photo && formData.photo.startsWith('data:image/')) {
+        console.log('📤 Uploading photo to Cloudinary...');
+        try {
+          // Generate a unique ID for this registration photo
+          const tempId = `reg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          photoURL = await uploadPhotoToStorage(formData.photo, tempId);
+          console.log('✅ Photo uploaded to Cloudinary:', photoURL.substring(0, 50) + '...');
+        } catch (photoError) {
+          console.error('❌ Photo upload failed:', photoError);
+          setError(true);
+          setErrorMessage('Failed to upload photo. Please try again.');
+          setSubmitting(false);
+          setIsSubmitting(false);
+          localStorage.removeItem(lockKey);
+          setTimeout(() => {
+            setError(false);
+            setErrorMessage('');
+          }, 5000);
+          return;
+        }
+      }
+
+      // Add tournament registration with Cloudinary URL
+      const registrationData = {
+        ...formData,
+        photo: photoURL
+      };
+      const result = await addTournamentRegistration(id, registrationData);
 
       if (!result.success) {
         // Player is already registered for this tournament

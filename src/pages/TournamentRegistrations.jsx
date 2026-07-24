@@ -393,7 +393,15 @@ const TournamentRegistrations = () => {
 
                 <div className="registration-avatar">
                   {reg.photo ? (
-                    <img src={reg.photo} alt={reg.name} />
+                    <img
+                      src={reg.photo}
+                      alt={reg.name}
+                      onError={(e) => {
+                        // If image fails to load, show placeholder
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = `<div class="avatar-placeholder">${reg.name.charAt(0).toUpperCase()}</div>`;
+                      }}
+                    />
                   ) : (
                     <div className="avatar-placeholder">
                       {reg.name.charAt(0).toUpperCase()}
