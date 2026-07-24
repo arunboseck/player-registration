@@ -16,6 +16,7 @@ const TournamentRegister = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [tournament, setTournament] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState(false);
@@ -32,11 +33,17 @@ const TournamentRegister = () => {
 
   useEffect(() => {
     const loadTournament = async () => {
-      const tournamentData = await getTournamentById(id);
-      if (tournamentData) {
-        setTournament(tournamentData);
+      try {
+        setLoading(true);
+        const tournamentData = await getTournamentById(id);
+        if (tournamentData) {
+          setTournament(tournamentData);
+        }
+      } catch (error) {
+        console.error('Error loading tournament:', error);
+      } finally {
+        setLoading(false);
       }
-      // If tournament is not found, we'll show an error message instead of redirecting
     };
     loadTournament();
   }, [id]);
@@ -234,10 +241,37 @@ const TournamentRegister = () => {
     }
   };
 
+  // Show loading state while tournament is being fetched
+  if (loading) {
+    return (
+      <div className="public-register-container">
+        <Navigation />
+        <div className="public-register-content">
+          <div className="public-header" style={{textAlign: 'center', padding: '3rem 1.5rem'}}>
+            <div className="loading-spinner" style={{
+              margin: '2rem auto',
+              width: '50px',
+              height: '50px',
+              border: '4px solid #f3f4f6',
+              borderTop: '4px solid #667eea',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }}></div>
+            <h2 style={{fontSize: '1.5rem', marginTop: '1rem', color: '#64748b'}}>Loading Tournament...</h2>
+            <p style={{fontSize: '0.95rem', color: '#94a3b8', marginTop: '0.5rem'}}>
+              Please wait while we load the registration form.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if tournament not found after loading
   if (!tournament) {
     return (
       <div className="public-register-container">
-      <Navigation />
+        <Navigation />
         <div className="public-register-content">
           <div className="public-header" style={{textAlign: 'center', padding: '3rem 1.5rem'}}>
             <h1 style={{fontSize: '2rem', marginBottom: '1rem', color: '#dc2626'}}>⚠️ Tournament Not Found</h1>
