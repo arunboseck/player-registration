@@ -220,39 +220,58 @@ const TournamentRegistrations = () => {
   const makeCircularImage = (imageDataUrl) => {
     return new Promise((resolve, reject) => {
       const img = new Image();
+      // Add crossOrigin attribute to allow canvas export with external images (Cloudinary)
+      img.crossOrigin = 'anonymous';
+
+      // Set timeout to prevent hanging on slow/broken images
+      const timeout = setTimeout(() => {
+        reject(new Error('Image load timeout'));
+      }, 10000); // 10 second timeout
+
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = 100;
-        canvas.height = 100;
+        clearTimeout(timeout);
+        try {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = 100;
+          canvas.height = 100;
 
-        // White background
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, 100, 100);
+          // White background
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, 100, 100);
 
-        // Clip to circle
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(50, 50, 45, 0, Math.PI * 2);
-        ctx.clip();
+          // Clip to circle
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(50, 50, 45, 0, Math.PI * 2);
+          ctx.clip();
 
-        // Draw cropped image (center square)
-        const size = Math.min(img.width, img.height);
-        const x = (img.width - size) / 2;
-        const y = (img.height - size) / 2;
-        ctx.drawImage(img, x, y, size, size, 5, 5, 90, 90);
-        ctx.restore();
+          // Draw cropped image (center square)
+          const size = Math.min(img.width, img.height);
+          const x = (img.width - size) / 2;
+          const y = (img.height - size) / 2;
+          ctx.drawImage(img, x, y, size, size, 5, 5, 90, 90);
+          ctx.restore();
 
-        // Blue border
-        ctx.strokeStyle = '#667EEA';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(50, 50, 47, 0, Math.PI * 2);
-        ctx.stroke();
+          // Blue border
+          ctx.strokeStyle = '#667EEA';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(50, 50, 47, 0, Math.PI * 2);
+          ctx.stroke();
 
-        resolve(canvas.toDataURL('image/jpeg', 0.85));
+          resolve(canvas.toDataURL('image/jpeg', 0.85));
+        } catch (error) {
+          console.error('Canvas error:', error);
+          reject(error);
+        }
       };
-      img.onerror = () => reject(new Error('Failed to load image'));
+
+      img.onerror = () => {
+        clearTimeout(timeout);
+        reject(new Error('Failed to load image'));
+      };
+
       img.src = imageDataUrl;
     });
   };
