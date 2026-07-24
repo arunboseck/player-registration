@@ -473,8 +473,8 @@ const TournamentRegistrations = () => {
           <div className="registrations-list">
             {filteredRegistrations.map((reg, index) => (
               <div key={reg.id} className="registration-card">
-                <div className="registration-checkbox">
-                  <input type="checkbox" id={`player-${reg.id}`} />
+                <div className="registration-serial">
+                  <span className="serial-number">{index + 1}</span>
                 </div>
 
                 <div className="registration-avatar">
