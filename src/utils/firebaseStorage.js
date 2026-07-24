@@ -639,3 +639,128 @@ export const deleteRegistration = async (tournamentId, registrationId) => {
     return false;
   }
 };
+
+/**
+ * Sync tournament registration photos with players collection
+ * Replaces base64 photos in tournament registrations with Cloudinary URLs from players collection
+ * Matches by mobile number
+ */
+export const syncTournamentPhotosWithPlayers = async (tournamentId) => {
+  try {
+    console.log('🔄 Starting photo sync for tournament registrations...');
+    const startTime = Date.now();
+
+    // Get all registrations for this tournament
+    const registrationsRef = dbRef(database, `tournament_registrations/${tournamentId}`);
+    const regsSnapshot = await get(registrationsRef);
+
+    if (!regsSnapshot.exists()) {
+      return {
+        success: true,
+        message: 'No registrations found for this tournament',
+        synced: 0,
+        skipped: 0,
+        failed: 0
+      };
+    }
+
+    const registrationsObj = regsSnapshot.val();
+    const registrationIds = Object.keys(registrationsObj);
+
+    let synced = 0;
+    let skipped = 0;
+    let failed = 0;
+
+    console.log(`📊 Found ${registrationIds.length} registrations to check...`);
+
+    for (let i = 0; i < registrationIds.length; i++) {
+      const regId = registrationIds[i];
+      const registration = registrationsObj[regId];
+
+      try {
+        // Skip if already has a Cloudinary URL
+        if (registration.photo && registration.photo.includes('cloudinary.com')) {
+          console.log(`⏭️  [${i + 1}/${registrationIds.length}] ${registration.name} - Already has Cloudinary URL`);
+          skipped++;
+          continue;
+        }
+
+        // Skip if no photo at all
+        if (!registration.photo) {
+          console.log(`⏭️  [${i + 1}/${registrationIds.length}] ${registration.name} - No photo`);
+          skipped++;
+          continue;
+        }
+
+        // Only sync base64 photos
+        if (!registration.photo.startsWith('data:image/')) {
+          console.log(`⏭️  [${i + 1}/${registrationIds.length}] ${registration.name} - Not a base64 photo`);
+          skipped++;
+          continue;
+        }
+
+        // Look up player by mobile number
+        console.log(`🔍 [${i + 1}/${registrationIds.length}] Looking up player: ${registration.name} (${registration.mobile})`);
+        const player = await getPlayerByMobile(registration.mobile);
+
+        if (!player) {
+          console.log(`⚠️  [${i + 1}/${registrationIds.length}] Player not found in Players collection`);
+          skipped++;
+          continue;
+        }
+
+        // Check if player has a Cloudinary URL
+        if (!player.photo || !player.photo.includes('cloudinary.com')) {
+          console.log(`⚠️  [${i + 1}/${registrationIds.length}] Player found but photo is not on Cloudinary`);
+          skipped++;
+          continue;
+        }
+
+        // Update registration with Cloudinary URL from player
+        console.log(`📤 [${i + 1}/${registrationIds.length}] Syncing photo for ${registration.name}...`);
+        const updatedRegistration = {
+          ...registration,
+          photo: player.photo
+        };
+
+        const registrationRef = dbRef(database, `tournament_registrations/${tournamentId}/${regId}`);
+        await set(registrationRef, updatedRegistration);
+
+        synced++;
+        console.log(`✅ [${i + 1}/${registrationIds.length}] Synced: ${registration.name}`);
+
+      } catch (error) {
+        console.error(`❌ Failed to sync photo for ${registration.name}:`, error.message);
+        failed++;
+      }
+    }
+
+    const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+
+    const result = {
+      success: true,
+      total: registrationIds.length,
+      synced,
+      skipped,
+      failed,
+      duration: `${duration}s`
+    };
+
+    console.log('\n✅ Photo Sync Complete!');
+    console.log('📊 Summary:');
+    console.log(`   Total registrations: ${result.total}`);
+    console.log(`   Synced: ${result.synced}`);
+    console.log(`   Skipped: ${result.skipped}`);
+    console.log(`   Failed: ${result.failed}`);
+    console.log(`   Duration: ${result.duration}`);
+
+    return result;
+
+  } catch (error) {
+    console.error('❌ Photo sync failed:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};

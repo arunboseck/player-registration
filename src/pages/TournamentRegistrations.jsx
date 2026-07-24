@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTournamentById, getTournamentRegistrations, deleteRegistration, updateRegistration } from '../utils/firebaseStorage';
+import { getTournamentById, getTournamentRegistrations, deleteRegistration, updateRegistration, syncTournamentPhotosWithPlayers } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -21,6 +21,8 @@ const TournamentRegistrations = () => {
   const [editFormData, setEditFormData] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -131,6 +133,33 @@ const TournamentRegistrations = () => {
       alert('Error updating registration');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSyncPhotos = async () => {
+    if (!window.confirm('This will replace base64 photos with Cloudinary URLs from the Players collection (matched by mobile number). Continue?')) {
+      return;
+    }
+
+    setSyncing(true);
+    setSyncResult(null);
+
+    try {
+      const result = await syncTournamentPhotosWithPlayers(id);
+      setSyncResult(result);
+
+      if (result.success && result.synced > 0) {
+        // Reload data to show updated photos
+        await loadData();
+      }
+    } catch (error) {
+      console.error('Error syncing photos:', error);
+      setSyncResult({
+        success: false,
+        error: error.message
+      });
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -353,6 +382,14 @@ const TournamentRegistrations = () => {
             </p>
           </div>
           <div className="header-actions">
+            <button
+              onClick={handleSyncPhotos}
+              className="btn-download btn-sync"
+              disabled={syncing}
+              title="Replace base64 photos with Cloudinary URLs from Players collection"
+            >
+              {syncing ? '⏳ Syncing...' : '🔄 Sync Photos'}
+            </button>
             <button onClick={handleDownloadPDF} className="btn-download btn-pdf">
               📄 Download PDF
             </button>
@@ -376,6 +413,29 @@ const TournamentRegistrations = () => {
             </span>
           </div>
         </div>
+
+        {/* Sync Result Display */}
+        {syncResult && (
+          <div className={`sync-result ${syncResult.success ? 'sync-success' : 'sync-error'}`}>
+            <div className="sync-result-header">
+              <h4>{syncResult.success ? '✅ Photo Sync Complete!' : '❌ Sync Failed'}</h4>
+              <button onClick={() => setSyncResult(null)} className="btn-close-sync">×</button>
+            </div>
+            {syncResult.success ? (
+              <div className="sync-result-body">
+                <p><strong>Total registrations:</strong> {syncResult.total}</p>
+                <p><strong>Photos synced:</strong> {syncResult.synced}</p>
+                <p><strong>Skipped:</strong> {syncResult.skipped} (already using Cloudinary or no match)</p>
+                {syncResult.failed > 0 && <p><strong>Failed:</strong> {syncResult.failed}</p>}
+                <p><strong>Duration:</strong> {syncResult.duration}</p>
+              </div>
+            ) : (
+              <div className="sync-result-body">
+                <p>Error: {syncResult.error}</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {filteredRegistrations.length === 0 ? (
           <div className="empty-state">
