@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTournamentById, getTournamentRegistrations, deleteRegistration } from '../utils/firebaseStorage';
+import { getTournamentById, getTournamentRegistrations, deleteRegistration, updateRegistration } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -17,6 +17,9 @@ const TournamentRegistrations = () => {
   const [registrations, setRegistrations] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteModal, setDeleteModal] = useState({ show: false, registration: null });
+  const [editModal, setEditModal] = useState({ show: false, registration: null });
+  const [editFormData, setEditFormData] = useState({});
+  const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -64,6 +67,71 @@ const TournamentRegistrations = () => {
 
   const handleCancelDelete = () => {
     setDeleteModal({ show: false, registration: null });
+  };
+
+  const handleEditClick = (registration) => {
+    setEditFormData({
+      name: registration.name,
+      mobile: registration.mobile,
+      place: registration.place,
+      dateOfBirth: registration.dateOfBirth,
+      bloodGroup: registration.bloodGroup || '',
+      position: registration.position,
+    });
+    setEditModal({ show: true, registration });
+  };
+
+  const handleCancelEdit = () => {
+    setEditModal({ show: false, registration: null });
+    setEditFormData({});
+  };
+
+  const handleEditFormChange = (e) => {
+    const { name, value } = e.target;
+    setEditFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editModal.registration) return;
+
+    // Validation
+    if (!editFormData.name?.trim()) {
+      alert('Name is required');
+      return;
+    }
+    if (!editFormData.mobile?.trim()) {
+      alert('Mobile number is required');
+      return;
+    }
+    if (!editFormData.place?.trim()) {
+      alert('Place is required');
+      return;
+    }
+    if (!editFormData.position?.trim()) {
+      alert('Position is required');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const result = await updateRegistration(id, editModal.registration.id, editFormData);
+
+      if (result.success) {
+        alert('Registration updated successfully!');
+        await loadData(); // Reload data
+        handleCancelEdit();
+      } else {
+        alert(result.message || 'Failed to update registration');
+      }
+    } catch (error) {
+      console.error('Error updating registration:', error);
+      alert('Error updating registration');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDownloadExcel = () => {
@@ -377,6 +445,16 @@ const TournamentRegistrations = () => {
                     </svg>
                   </button>
                   <button
+                    className="btn-icon btn-edit"
+                    title="Edit Registration"
+                    onClick={() => handleEditClick(reg)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                  </button>
+                  <button
                     className="btn-icon btn-delete"
                     title="Delete Registration"
                     onClick={() => handleDeleteClick(reg)}
@@ -416,6 +494,114 @@ const TournamentRegistrations = () => {
               </button>
               <button className="btn-confirm-delete" onClick={handleConfirmDelete}>
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Registration Modal */}
+      {editModal.show && (
+        <div className="modal-overlay" onClick={handleCancelEdit}>
+          <div className="modal-content modal-content-large" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>✏️ Edit Registration</h3>
+            </div>
+            <div className="modal-body">
+              <form className="edit-form">
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="edit-name">Name *</label>
+                    <input
+                      type="text"
+                      id="edit-name"
+                      name="name"
+                      value={editFormData.name || ''}
+                      onChange={handleEditFormChange}
+                      placeholder="Enter player name"
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="edit-mobile">Mobile *</label>
+                    <input
+                      type="tel"
+                      id="edit-mobile"
+                      name="mobile"
+                      value={editFormData.mobile || ''}
+                      onChange={handleEditFormChange}
+                      placeholder="Enter mobile number"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="edit-place">Place *</label>
+                    <input
+                      type="text"
+                      id="edit-place"
+                      name="place"
+                      value={editFormData.place || ''}
+                      onChange={handleEditFormChange}
+                      placeholder="Enter place"
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="edit-dateOfBirth">Date of Birth</label>
+                    <input
+                      type="date"
+                      id="edit-dateOfBirth"
+                      name="dateOfBirth"
+                      value={editFormData.dateOfBirth || ''}
+                      onChange={handleEditFormChange}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="edit-bloodGroup">Blood Group</label>
+                    <select
+                      id="edit-bloodGroup"
+                      name="bloodGroup"
+                      value={editFormData.bloodGroup || ''}
+                      onChange={handleEditFormChange}
+                    >
+                      <option value="">Select Blood Group</option>
+                      <option value="A+">A+</option>
+                      <option value="A-">A-</option>
+                      <option value="B+">B+</option>
+                      <option value="B-">B-</option>
+                      <option value="AB+">AB+</option>
+                      <option value="AB-">AB-</option>
+                      <option value="O+">O+</option>
+                      <option value="O-">O-</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="edit-position">Position *</label>
+                    <input
+                      type="text"
+                      id="edit-position"
+                      name="position"
+                      value={editFormData.position || ''}
+                      onChange={handleEditFormChange}
+                      placeholder="e.g., Batsman, Bowler"
+                      required
+                    />
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={handleCancelEdit} disabled={saving}>
+                Cancel
+              </button>
+              <button className="btn-save" onClick={handleSaveEdit} disabled={saving}>
+                {saving ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>
