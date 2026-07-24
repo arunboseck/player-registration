@@ -9,6 +9,13 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import './Players.css';
 import './TournamentRegistrations.css';
 
+const POSITIONS = [
+  'ALL ROUNDER', 'LEFT ARM MEDIUM (BOWLING)', 'LEFT ARM FAST MEDIUM (BOWLING)',
+  'LEFT ARM FAST (BOWLING)', 'LEFT HAND BATTING (BATTER)', 'RIGHT ARM MEDIUM (BOWLING)',
+  'RIGHT ARM FAST MEDIUM (BOWLING)', 'RIGHT ARM FAST (BOWLING)', 'RIGHT HAND BATTING (BATTER)',
+  'WICKET KEEPER BATTER'
+];
+
 const TournamentRegistrations = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -651,15 +658,20 @@ const TournamentRegistrations = () => {
                   </div>
                   <div className="form-group">
                     <label htmlFor="edit-position">Position *</label>
-                    <input
-                      type="text"
+                    <select
                       id="edit-position"
                       name="position"
                       value={editFormData.position || ''}
                       onChange={handleEditFormChange}
-                      placeholder="e.g., Batsman, Bowler"
                       required
-                    />
+                    >
+                      <option value="">Select Position</option>
+                      {POSITIONS.map((position) => (
+                        <option key={position} value={position}>
+                          {position}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </form>
