@@ -30,6 +30,7 @@ const TournamentRegistrations = () => {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState(null);
+  const [photoModal, setPhotoModal] = useState({ show: false, photo: null, name: '' });
 
   useEffect(() => {
     loadData();
@@ -168,6 +169,16 @@ const TournamentRegistrations = () => {
     } finally {
       setSyncing(false);
     }
+  };
+
+  const handlePhotoClick = (photo, name) => {
+    if (photo) {
+      setPhotoModal({ show: true, photo, name });
+    }
+  };
+
+  const handleClosePhotoModal = () => {
+    setPhotoModal({ show: false, photo: null, name: '' });
   };
 
   const handleDownloadExcel = () => {
@@ -477,7 +488,12 @@ const TournamentRegistrations = () => {
                   <span className="serial-number">{index + 1}</span>
                 </div>
 
-                <div className="registration-avatar">
+                <div
+                  className="registration-avatar"
+                  onClick={() => handlePhotoClick(reg.photo, reg.name)}
+                  style={{ cursor: reg.photo ? 'pointer' : 'default' }}
+                  title={reg.photo ? 'Click to view full size' : ''}
+                >
                   {reg.photo ? (
                     <img
                       src={reg.photo}
@@ -589,6 +605,21 @@ const TournamentRegistrations = () => {
               <button className="btn-confirm-delete" onClick={handleConfirmDelete}>
                 Delete
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Photo Fullscreen Modal */}
+      {photoModal.show && (
+        <div className="modal-overlay" onClick={handleClosePhotoModal}>
+          <div className="modal-content modal-photo-fullscreen" onClick={(e) => e.stopPropagation()}>
+            <button className="btn-close-photo-modal" onClick={handleClosePhotoModal}>×</button>
+            <div className="photo-modal-header">
+              <h3>{photoModal.name}</h3>
+            </div>
+            <div className="photo-modal-body">
+              <img src={photoModal.photo} alt={photoModal.name} className="fullscreen-photo" />
             </div>
           </div>
         </div>

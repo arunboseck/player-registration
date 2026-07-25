@@ -1216,13 +1216,20 @@
 
 
 /* Make registration avatar clickable */
-.registration-avatar img {
-  cursor: pointer;
+.registration-avatar {
   transition: transform 0.2s ease;
 }
 
-.registration-avatar img:hover {
-  transform: scale(1.05);
+.registration-avatar:hover {
+  transform: scale(1.08);
+}
+
+.registration-avatar img {
+  transition: opacity 0.2s ease;
+}
+
+.registration-avatar:hover img {
+  opacity: 0.9;
 }
 
 /* Close button positioned at top right corner */
@@ -1249,6 +1256,109 @@
 .btn-close-modal-topright:hover {
   background: rgba(239, 68, 68, 0.9);
   transform: scale(1.1);
+}
+
+/* Photo Fullscreen Modal */
+.modal-photo-fullscreen {
+  max-width: 90vw;
+  max-height: 90vh;
+  padding: 0;
+  background: #1f2937;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.btn-close-photo-modal {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.75rem;
+  cursor: pointer;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 10;
+  line-height: 1;
+  font-weight: 300;
+}
+
+.btn-close-photo-modal:hover {
+  background: rgba(239, 68, 68, 0.9);
+  transform: scale(1.15) rotate(90deg);
+}
+
+.photo-modal-header {
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.photo-modal-header h3 {
+  margin: 0;
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.photo-modal-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  overflow: hidden;
+}
+
+.fullscreen-photo {
+  max-width: 100%;
+  max-height: calc(90vh - 100px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  animation: zoomIn 0.3s ease-out;
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 768px) {
+  .modal-photo-fullscreen {
+    max-width: 95vw;
+    max-height: 95vh;
+  }
+
+  .photo-modal-body {
+    padding: 1rem;
+  }
+
+  .fullscreen-photo {
+    max-height: calc(95vh - 80px);
+  }
+
+  .btn-close-photo-modal {
+    width: 36px;
+    height: 36px;
+    font-size: 1.5rem;
+  }
 }
 /* Hamburger Menu Button */
 .hamburger-menu-btn {
