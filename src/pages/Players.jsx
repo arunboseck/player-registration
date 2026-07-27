@@ -24,6 +24,8 @@ const Players = () => {
   const [tournaments, setTournaments] = useState([]);
   const [tournamentSearch, setTournamentSearch] = useState('');
   const [assigning, setAssigning] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
 
   useEffect(() => {
     loadInitialPlayers();
@@ -208,20 +210,51 @@ const Players = () => {
     setTournamentSearch('');
   };
 
-  // Filter players based on search and position (client-side filter on current page only)
-  const filteredPlayers = players.filter((player) => {
-    const matchesSearch =
-      player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      player.place.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      player.mobile.includes(searchTerm);
+  const handleSearch = async (term) => {
+    setSearchTerm(term);
 
+    // Clear search results if search is empty
+    if (!term.trim()) {
+      setSearchResults([]);
+      setSearching(false);
+      return;
+    }
+
+    setSearching(true);
+
+    try {
+      // Search across entire database
+      const allPlayersData = await getPlayers();
+      const results = allPlayersData.filter((player) => {
+        const matchesSearch =
+          player.name.toLowerCase().includes(term.toLowerCase()) ||
+          player.mobile.includes(term);
+
+        const matchesPosition = filterPosition ? player.position === filterPosition : true;
+
+        return matchesSearch && matchesPosition;
+      });
+
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Error searching players:', error);
+      setSearchResults([]);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  // Use search results if searching, otherwise use current page players
+  const displayPlayers = searchTerm.trim() ? searchResults : players;
+
+  // Filter by position only (search already filters by name/mobile)
+  const filteredPlayers = displayPlayers.filter((player) => {
     const matchesPosition = filterPosition ? player.position === filterPosition : true;
-
-    return matchesSearch && matchesPosition;
+    return matchesPosition;
   });
 
-  // Pagination calculations - based on loaded data
-  const currentPlayers = filteredPlayers; // Show filtered players from current page
+  // Show filtered players
+  const currentPlayers = filteredPlayers;
 
   // Get unique positions for filter (from all loaded players)
   const uniquePositions = [...new Set(allPlayers.map((p) => p.position))];
@@ -262,10 +295,12 @@ const Players = () => {
           <div className="search-box">
             <input
               type="text"
-              placeholder="Search by name, place, or mobile..."
+              placeholder="Search by name or mobile (searches all players)..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => handleSearch(e.target.value)}
+              disabled={searching}
             />
+            {searching && <span className="search-loading">🔍 Searching...</span>}
           </div>
           <div className="filter-box">
             <select
@@ -290,7 +325,11 @@ const Players = () => {
         ) : (
           <>
             <div className="pagination-info">
-              <p>Showing {currentPlayers.length} players (Page {currentPage}, Loaded: {allPlayers.length} total) {hasMore ? '• More available' : '• End'}</p>
+              {searchTerm.trim() ? (
+                <p>🔍 Found {currentPlayers.length} player{currentPlayers.length !== 1 ? 's' : ''} matching "{searchTerm}"</p>
+              ) : (
+                <p>Showing {currentPlayers.length} players (Page {currentPage}, Loaded: {allPlayers.length} total) {hasMore ? '• More available' : '• End'}</p>
+              )}
             </div>
             <div className="players-grid">
               {currentPlayers.map((player) => (
@@ -330,7 +369,8 @@ const Players = () => {
                 </div>
               ))}
             </div>
-            {(currentPage > 1 || hasMore) && (
+            {/* Hide pagination when searching - show all results */}
+            {!searchTerm.trim() && (currentPage > 1 || hasMore) && (
               <div className="pagination-controls">
                 <button
                   onClick={loadPreviousPage}
