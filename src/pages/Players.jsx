@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getPlayers, getPlayersPaginated, getPlayersCount, deletePlayer } from '../utils/firebaseStorage';
+import { getPlayers, getPlayersPaginated, getPlayersCount, deletePlayer, getTournaments, addTournamentRegistration } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import * as XLSX from 'xlsx';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -19,6 +19,11 @@ const Players = () => {
   const [totalPlayers, setTotalPlayers] = useState(0);
   const [lastKey, setLastKey] = useState(null);
   const [hasMore, setHasMore] = useState(true);
+  const [showTournamentModal, setShowTournamentModal] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [tournaments, setTournaments] = useState([]);
+  const [tournamentSearch, setTournamentSearch] = useState('');
+  const [assigning, setAssigning] = useState(false);
 
   useEffect(() => {
     loadInitialPlayers();
@@ -142,6 +147,67 @@ const Players = () => {
     navigate('/');
   };
 
+  const handleAssignToTournament = async (player) => {
+    setSelectedPlayer(player);
+    setShowTournamentModal(true);
+    setTournamentSearch('');
+
+    // Load tournaments
+    try {
+      const tournamentsList = await getTournaments();
+      setTournaments(tournamentsList);
+    } catch (error) {
+      console.error('Error loading tournaments:', error);
+      alert('Failed to load tournaments. Please try again.');
+    }
+  };
+
+  const handleTournamentSelect = async (tournament) => {
+    if (!selectedPlayer || !tournament) return;
+
+    if (!window.confirm(`Assign ${selectedPlayer.name} to tournament "${tournament.name}"?`)) {
+      return;
+    }
+
+    setAssigning(true);
+
+    try {
+      // Prepare player data for tournament registration
+      const registrationData = {
+        name: selectedPlayer.name,
+        mobile: selectedPlayer.mobile,
+        dateOfBirth: selectedPlayer.dateOfBirth,
+        bloodGroup: selectedPlayer.bloodGroup,
+        place: selectedPlayer.place,
+        position: selectedPlayer.position,
+        photo: selectedPlayer.photo || '',
+        registeredAt: new Date().toISOString(),
+      };
+
+      await addTournamentRegistration(tournament.id, registrationData);
+
+      alert(`✅ ${selectedPlayer.name} successfully assigned to "${tournament.name}"!`);
+      setShowTournamentModal(false);
+      setSelectedPlayer(null);
+      setTournamentSearch('');
+    } catch (error) {
+      console.error('Error assigning player to tournament:', error);
+      if (error.message.includes('already registered')) {
+        alert(`⚠️ ${selectedPlayer.name} is already registered for this tournament.`);
+      } else {
+        alert('Failed to assign player to tournament. Please try again.');
+      }
+    } finally {
+      setAssigning(false);
+    }
+  };
+
+  const handleCloseTournamentModal = () => {
+    setShowTournamentModal(false);
+    setSelectedPlayer(null);
+    setTournamentSearch('');
+  };
+
   // Filter players based on search and position (client-side filter on current page only)
   const filteredPlayers = players.filter((player) => {
     const matchesSearch =
@@ -229,6 +295,13 @@ const Players = () => {
             <div className="players-grid">
               {currentPlayers.map((player) => (
                 <div key={player.id} className="player-card">
+                  <button
+                    className="btn-assign-tournament"
+                    onClick={() => handleAssignToTournament(player)}
+                    title="Assign to Tournament"
+                  >
+                    ⋮
+                  </button>
                   <div className="player-photo">
                     {player.photo ? (
                       <img src={player.photo} alt={player.name} />
@@ -281,6 +354,67 @@ const Players = () => {
           </>
         )}
       </div>
+
+      {/* Tournament Assignment Modal */}
+      {showTournamentModal && (
+        <div className="modal-overlay" onClick={handleCloseTournamentModal}>
+          <div className="modal-content modal-tournament-assign" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Assign {selectedPlayer?.name} to Tournament</h3>
+              <button className="btn-close-modal" onClick={handleCloseTournamentModal}>×</button>
+            </div>
+
+            <div className="modal-body">
+              <div className="tournament-search">
+                <input
+                  type="text"
+                  placeholder="Search tournaments..."
+                  value={tournamentSearch}
+                  onChange={(e) => setTournamentSearch(e.target.value)}
+                  className="tournament-search-input"
+                />
+              </div>
+
+              <div className="tournaments-list">
+                {tournaments.length === 0 ? (
+                  <div className="no-tournaments">
+                    <p>No tournaments available. Create a tournament first.</p>
+                  </div>
+                ) : (
+                  tournaments
+                    .filter((tournament) =>
+                      tournament.name.toLowerCase().includes(tournamentSearch.toLowerCase()) ||
+                      tournament.location.toLowerCase().includes(tournamentSearch.toLowerCase())
+                    )
+                    .map((tournament) => (
+                      <div
+                        key={tournament.id}
+                        className="tournament-item"
+                        onClick={() => handleTournamentSelect(tournament)}
+                      >
+                        <div className="tournament-item-info">
+                          <h4>{tournament.name}</h4>
+                          <p className="tournament-location">📍 {tournament.location}</p>
+                          <p className="tournament-dates">
+                            📅 {new Date(tournament.startDate).toLocaleDateString()} - {new Date(tournament.endDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="tournament-item-arrow">→</div>
+                      </div>
+                    ))
+                )}
+              </div>
+            </div>
+
+            {assigning && (
+              <div className="modal-loading">
+                <LoadingSpinner />
+                <p>Assigning player to tournament...</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
