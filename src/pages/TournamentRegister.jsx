@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getTournamentById, addTournamentRegistration, uploadPhotoToStorage, getPlayerByMobile } from '../utils/firebaseStorage';
 import { ref as dbRef, get } from 'firebase/database';
-import { database } from '../config/firebase';
+import { database } from '../firebase/config';
 import Navigation from '../components/Navigation';
 import './TournamentRegister.css';
 
@@ -126,22 +126,32 @@ const TournamentRegister = () => {
         registeredAt: new Date().toISOString(),
       };
 
-      await addTournamentRegistration(id, registrationData);
+      const result = await addTournamentRegistration(id, registrationData);
 
-      setSuccess(true);
-      setSuccessMessage(`🎉 ${foundPlayer.name} successfully registered for ${tournament.name}!`);
+      if (!result.success) {
+        // Player is already registered - show the already registered modal
+        setAlreadyRegistered(true);
+        setAlreadyRegisteredPlayer({
+          ...foundPlayer,
+          tournamentName: tournament.name
+        });
+        setFoundPlayer(null);
+      } else {
+        // Success - show success message and reset
+        setSuccess(true);
+        setSuccessMessage(`🎉 ${foundPlayer.name} successfully registered for ${tournament.name}!`);
 
-      setTimeout(() => {
-        navigate(`/tournament-registrations/${id}`);
-      }, 2000);
+        // Reset search form after 3 seconds
+        setTimeout(() => {
+          setFoundPlayer(null);
+          setSearchMobile('');
+          setSuccess(false);
+        }, 3000);
+      }
     } catch (error) {
       console.error('Error registering player:', error);
       setError(true);
-      if (error.message && error.message.includes('already registered')) {
-        setErrorMessage(`${foundPlayer.name} is already registered for this tournament.`);
-      } else {
-        setErrorMessage('Failed to register. Please try again.');
-      }
+      setErrorMessage('Failed to register. Please try again.');
       setTimeout(() => setError(false), 4000);
     } finally {
       setSubmitting(false);
@@ -542,9 +552,12 @@ const TournamentRegister = () => {
                 </div>
                 <h3 className="success-title">Successfully Registered! 🎉</h3>
                 <p className="success-text">{successMessage}</p>
-                <p className="success-subtext">You can register another player or close this message.</p>
-                <button className="success-close-btn" onClick={() => setSuccess(false)}>
-                  Continue
+                <p className="success-subtext">Want to register another player? Click continue below.</p>
+                <button className="success-close-btn" onClick={() => {
+                  setSuccess(false);
+                  setSuccessMessage('');
+                }}>
+                  Register Another Player
                 </button>
               </div>
             </div>
