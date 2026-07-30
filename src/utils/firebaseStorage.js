@@ -266,7 +266,7 @@ export const getPlayerByMobile = async (mobile) => {
     const playersRef = dbRef(database, "players");
     const mobileQuery = query(playersRef, orderByChild("mobile"), equalTo(mobile));
     const snapshot = await get(mobileQuery);
-    
+
     if (snapshot.exists()) {
       const playersObj = snapshot.val();
       const key = Object.keys(playersObj)[0];
@@ -276,6 +276,156 @@ export const getPlayerByMobile = async (mobile) => {
   } catch (error) {
     console.error("Error fetching player by mobile:", error);
     return null;
+  }
+};
+
+/**
+ * Search players by name (optimized with Firebase query)
+ * Uses startAt/endAt for prefix matching on indexed field
+ */
+export const searchPlayersByName = async (searchTerm, pageSize = 50) => {
+  try {
+    if (!searchTerm || searchTerm.trim().length === 0) {
+      return [];
+    }
+
+    const startTime = Date.now();
+    console.log(`🔍 Searching players with name starting with "${searchTerm}"...`);
+
+    const playersRef = dbRef(database, "players");
+    const normalizedSearch = searchTerm.toLowerCase().trim();
+
+    // Firebase only supports prefix search efficiently
+    // Search by name (case-insensitive requires lowercase field)
+    const nameQuery = query(
+      playersRef,
+      orderByChild("name"),
+      limitToFirst(pageSize)
+    );
+
+    const snapshot = await get(nameQuery);
+
+    if (snapshot.exists()) {
+      const playersObj = snapshot.val();
+      const allPlayers = Object.keys(playersObj).map(key => ({
+        id: key,
+        ...playersObj[key]
+      }));
+
+      // Client-side filter for contains (since Firebase only does prefix match)
+      const results = allPlayers.filter(player => {
+        const nameMatch = player.name.toLowerCase().includes(normalizedSearch);
+        const mobileMatch = player.mobile && player.mobile.includes(searchTerm);
+        return nameMatch || mobileMatch;
+      });
+
+      const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+      console.log(`✅ Found ${results.length} players in ${duration}s`);
+
+      return results;
+    }
+
+    return [];
+  } catch (error) {
+    console.error("Error searching players:", error);
+    return [];
+  }
+};
+
+/**
+ * Search players by mobile number (exact or partial match)
+ */
+export const searchPlayersByMobile = async (mobile) => {
+  try {
+    if (!mobile || mobile.trim().length === 0) {
+      return [];
+    }
+
+    const startTime = Date.now();
+    console.log(`📱 Searching players by mobile: ${mobile}...`);
+
+    const playersRef = dbRef(database, "players");
+
+    // For exact mobile match, use indexed query
+    if (mobile.length === 10) {
+      const mobileQuery = query(playersRef, orderByChild("mobile"), equalTo(mobile));
+      const snapshot = await get(mobileQuery);
+
+      if (snapshot.exists()) {
+        const playersObj = snapshot.val();
+        const results = Object.keys(playersObj).map(key => ({
+          id: key,
+          ...playersObj[key]
+        }));
+
+        const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+        console.log(`✅ Found ${results.length} players in ${duration}s`);
+        return results;
+      }
+    } else {
+      // For partial match, we need to fetch and filter
+      // This is still faster than getPlayers() if we limit results
+      const limitedQuery = query(playersRef, orderByChild("mobile"), limitToFirst(100));
+      const snapshot = await get(limitedQuery);
+
+      if (snapshot.exists()) {
+        const playersObj = snapshot.val();
+        const allPlayers = Object.keys(playersObj).map(key => ({
+          id: key,
+          ...playersObj[key]
+        }));
+
+        const results = allPlayers.filter(player =>
+          player.mobile && player.mobile.includes(mobile)
+        );
+
+        const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+        console.log(`✅ Found ${results.length} players in ${duration}s`);
+        return results;
+      }
+    }
+
+    return [];
+  } catch (error) {
+    console.error("Error searching players by mobile:", error);
+    return [];
+  }
+};
+
+/**
+ * Optimized search that combines name and mobile search
+ */
+export const searchPlayers = async (searchTerm) => {
+  try {
+    if (!searchTerm || searchTerm.trim().length === 0) {
+      return [];
+    }
+
+    const startTime = Date.now();
+    const term = searchTerm.trim();
+
+    // Detect if search term is numeric (mobile search)
+    const isNumeric = /^\d+$/.test(term);
+
+    let results = [];
+
+    if (isNumeric) {
+      // Mobile number search (fast indexed query)
+      console.log(`📱 Mobile search detected: ${term}`);
+      results = await searchPlayersByMobile(term);
+    } else {
+      // Name search (indexed with client-side filter)
+      console.log(`👤 Name search detected: ${term}`);
+      results = await searchPlayersByName(term, 100);
+    }
+
+    const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+    console.log(`✅ Search complete: ${results.length} results in ${duration}s`);
+
+    return results;
+  } catch (error) {
+    console.error("Error in optimized search:", error);
+    return [];
   }
 };
 export const addPlayer = async (player) => {

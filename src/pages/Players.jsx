@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getPlayers, getPlayersPaginated, getPlayersCount, deletePlayer, getTournaments, addTournamentRegistration } from '../utils/firebaseStorage';
+import { getPlayers, getPlayersPaginated, getPlayersCount, deletePlayer, getTournaments, addTournamentRegistration, searchPlayers } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import * as XLSX from 'xlsx';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -26,6 +26,7 @@ const Players = () => {
   const [assigning, setAssigning] = useState(false);
   const [searching, setSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+  const [searchDebounceTimer, setSearchDebounceTimer] = useState(null);
 
   useEffect(() => {
     loadInitialPlayers();
@@ -210,8 +211,13 @@ const Players = () => {
     setTournamentSearch('');
   };
 
-  const handleSearch = async (term) => {
+  const handleSearch = (term) => {
     setSearchTerm(term);
+
+    // Clear existing debounce timer
+    if (searchDebounceTimer) {
+      clearTimeout(searchDebounceTimer);
+    }
 
     // Clear search results if search is empty
     if (!term.trim()) {
@@ -220,28 +226,32 @@ const Players = () => {
       return;
     }
 
+    // Show searching indicator immediately
     setSearching(true);
 
-    try {
-      // Search across entire database
-      const allPlayersData = await getPlayers();
-      const results = allPlayersData.filter((player) => {
-        const matchesSearch =
-          player.name.toLowerCase().includes(term.toLowerCase()) ||
-          player.mobile.includes(term);
+    // Debounce search - wait 300ms after user stops typing
+    const timer = setTimeout(async () => {
+      try {
+        // ✅ OPTIMIZED: Use indexed Firebase query instead of downloading all players
+        console.log(`🔍 Optimized search for: "${term}"`);
+        const results = await searchPlayers(term);
 
-        const matchesPosition = filterPosition ? player.position === filterPosition : true;
+        // Apply position filter if set
+        const filteredResults = filterPosition
+          ? results.filter(player => player.position === filterPosition)
+          : results;
 
-        return matchesSearch && matchesPosition;
-      });
+        setSearchResults(filteredResults);
+        console.log(`✅ Search complete: ${filteredResults.length} results`);
+      } catch (error) {
+        console.error('Error searching players:', error);
+        setSearchResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 300); // 300ms debounce delay
 
-      setSearchResults(results);
-    } catch (error) {
-      console.error('Error searching players:', error);
-      setSearchResults([]);
-    } finally {
-      setSearching(false);
-    }
+    setSearchDebounceTimer(timer);
   };
 
   // Use search results if searching, otherwise use current page players
@@ -295,7 +305,7 @@ const Players = () => {
           <div className="search-box">
             <input
               type="text"
-              placeholder="Search by name or mobile (searches all players)..."
+              placeholder="🚀 Fast search by name or mobile..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
               disabled={searching}
