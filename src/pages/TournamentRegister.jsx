@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getTournamentById, addTournamentRegistration, uploadPhotoToStorage, getPlayerByMobile } from '../utils/firebaseStorage';
+import { ref as dbRef, get } from 'firebase/database';
+import { database } from '../config/firebase';
 import Navigation from '../components/Navigation';
 import './TournamentRegister.css';
 
@@ -37,6 +39,8 @@ const TournamentRegister = () => {
   const [searching, setSearching] = useState(false);
   const [foundPlayer, setFoundPlayer] = useState(null);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
+  const [alreadyRegistered, setAlreadyRegistered] = useState(false);
+  const [alreadyRegisteredPlayer, setAlreadyRegisteredPlayer] = useState(null);
 
   useEffect(() => {
     const loadTournament = async () => {
@@ -65,12 +69,30 @@ const TournamentRegister = () => {
 
     setSearching(true);
     setFoundPlayer(null);
+    setAlreadyRegistered(false);
+    setAlreadyRegisteredPlayer(null);
 
     try {
       const player = await getPlayerByMobile(searchMobile.trim());
 
       if (player) {
-        setFoundPlayer(player);
+        // Check if player is already registered for this tournament
+        const sanitizedMobile = searchMobile.trim().replace(/[^0-9]/g, '');
+        const uniqueRegistrationKey = `${id}_${sanitizedMobile}`;
+        const uniqueCheckRef = dbRef(database, `tournament_registrations_unique/${uniqueRegistrationKey}`);
+        const uniqueSnapshot = await get(uniqueCheckRef);
+
+        if (uniqueSnapshot.exists()) {
+          // Player is already registered
+          setAlreadyRegistered(true);
+          setAlreadyRegisteredPlayer({
+            ...player,
+            tournamentName: tournament.name
+          });
+        } else {
+          // Player found and not registered yet
+          setFoundPlayer(player);
+        }
       } else {
         setError(true);
         setErrorMessage('No player found with this mobile number. Click "Register New Player" to continue.');
@@ -463,6 +485,47 @@ const TournamentRegister = () => {
                   className="btn-register-new"
                 >
                   📝 Register as New Player
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Already Registered Modal */}
+          {alreadyRegistered && alreadyRegisteredPlayer && (
+            <div className="modal-overlay" onClick={() => setAlreadyRegistered(false)}>
+              <div className="already-registered-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="already-registered-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <h3 className="already-registered-title">Already Registered! ✅</h3>
+                <div className="already-registered-player-info">
+                  {alreadyRegisteredPlayer.photo && (
+                    <div className="already-registered-photo">
+                      <img src={alreadyRegisteredPlayer.photo} alt={alreadyRegisteredPlayer.name} />
+                    </div>
+                  )}
+                  <div className="already-registered-details">
+                    <p className="player-name-large">{alreadyRegisteredPlayer.name}</p>
+                    <p className="player-mobile">{alreadyRegisteredPlayer.mobile}</p>
+                  </div>
+                </div>
+                <p className="already-registered-text">
+                  You have already registered for <strong>{alreadyRegisteredPlayer.tournamentName}</strong>!
+                </p>
+                <p className="already-registered-subtext">
+                  We look forward to seeing you at the tournament. Good luck! 🏆
+                </p>
+                <button
+                  className="already-registered-close-btn"
+                  onClick={() => {
+                    setAlreadyRegistered(false);
+                    setSearchMobile('');
+                    setAlreadyRegisteredPlayer(null);
+                  }}
+                >
+                  Got it!
                 </button>
               </div>
             </div>
