@@ -27,10 +27,23 @@ const Players = () => {
   const [searching, setSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [searchDebounceTimer, setSearchDebounceTimer] = useState(null);
+  const [openDropdownId, setOpenDropdownId] = useState(null);
 
   useEffect(() => {
     loadAllPlayers();
   }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (openDropdownId && !event.target.closest('.card-menu')) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [openDropdownId]);
 
   const loadAllPlayers = async () => {
     console.log('📊 Loading all players...');
@@ -178,6 +191,10 @@ const Players = () => {
     setTournamentSearch('');
   };
 
+  const toggleDropdown = (playerId) => {
+    setOpenDropdownId(openDropdownId === playerId ? null : playerId);
+  };
+
   const handleSearch = (term) => {
     // Update search term immediately (no lag in input field)
     setSearchTerm(term);
@@ -310,13 +327,51 @@ const Players = () => {
           <div className="players-grid">
             {currentPlayers.map((player) => (
               <div key={player.id} className="player-card">
-                <button
-                  className="btn-assign-tournament"
-                  onClick={() => handleAssignToTournament(player)}
-                  title="Assign to Tournament"
-                >
-                  ⋮
-                </button>
+                {/* 3-Dot Menu */}
+                <div className="card-menu">
+                  <button
+                    className="btn-card-menu"
+                    onClick={() => toggleDropdown(player.id)}
+                    title="More options"
+                  >
+                    ⋮
+                  </button>
+                  {openDropdownId === player.id && (
+                    <div className="card-dropdown">
+                      <button
+                        className="dropdown-item"
+                        onClick={() => {
+                          handleEdit(player.id);
+                          setOpenDropdownId(null);
+                        }}
+                      >
+                        <span className="dropdown-icon">✏️</span>
+                        Edit Player
+                      </button>
+                      <button
+                        className="dropdown-item"
+                        onClick={() => {
+                          handleAssignToTournament(player);
+                          setOpenDropdownId(null);
+                        }}
+                      >
+                        <span className="dropdown-icon">🏆</span>
+                        Assign to Tournament
+                      </button>
+                      <button
+                        className="dropdown-item dropdown-item-danger"
+                        onClick={() => {
+                          handleDelete(player.id);
+                          setOpenDropdownId(null);
+                        }}
+                      >
+                        <span className="dropdown-icon">🗑️</span>
+                        Delete Player
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <div className="player-photo">
                   {player.photo ? (
                     <img src={player.photo} alt={player.name} />
@@ -333,14 +388,6 @@ const Players = () => {
                     <p><strong>Blood Group:</strong> {player.bloodGroup}</p>
                     <p><strong>Place:</strong> {player.place}</p>
                   </div>
-                </div>
-                <div className="player-actions">
-                  <button onClick={() => handleEdit(player.id)} className="btn-edit">
-                    Edit
-                  </button>
-                  <button onClick={() => handleDelete(player.id)} className="btn-delete">
-                    Delete
-                  </button>
                 </div>
               </div>
             ))}
