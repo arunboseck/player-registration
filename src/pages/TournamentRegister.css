@@ -511,14 +511,17 @@
     height: auto;
     min-height: 100vh;
     overflow-y: auto;
-    align-items: flex-start;
+    align-items: center;
     padding-top: 2rem;
     padding-bottom: 2rem;
   }
 
   .public-register-content {
+    grid-template-columns: 1fr;
     max-height: none;
     gap: 1.25rem;
+    width: 100%;
+    max-width: 600px;
   }
 
   .public-header {
@@ -580,18 +583,30 @@
 
   /* Mobile Responsive Modal */
   .modal-overlay {
-    padding: 0.75rem;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .success-modal {
     padding: 2rem 1.5rem;
     border-radius: 16px;
+    max-width: 90%;
+    width: 100%;
+  }
+
+  .error-message {
+    padding: 1rem;
+    font-size: 0.9rem;
+    margin: 1rem 0;
+    border-radius: 12px;
   }
 
   .success-icon {
     width: 70px;
     height: 70px;
-    margin-bottom: 1.25rem;
+    margin: 0 auto 1.25rem;
   }
 
   .success-icon svg {
@@ -633,13 +648,85 @@
   .photo-uploaded {
     font-size: 0.85rem;
   }
+
+  /* Search Section Mobile */
+  .search-box-container {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .search-mobile-input {
+    font-size: 1rem;
+    padding: 0.875rem 1rem;
+  }
+
+  .btn-search-player {
+    width: 100%;
+    padding: 0.875rem;
+    font-size: 1rem;
+  }
+
+  .search-header h3 {
+    font-size: 1.4rem;
+  }
+
+  .search-header p {
+    font-size: 0.9rem;
+  }
+
+  /* Found Player Card Mobile */
+  .found-player-card {
+    padding: 1.5rem;
+  }
+
+  .found-player-details {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+  }
+
+  .found-player-photo {
+    margin: 0 auto 1rem;
+  }
+
+  .found-player-info p {
+    font-size: 0.9rem;
+  }
+
+  .btn-quick-join {
+    font-size: 1rem;
+    padding: 1rem;
+  }
+
+  .btn-register-new {
+    width: 100%;
+    padding: 0.875rem;
+    font-size: 1rem;
+  }
+
+  .btn-back-to-search {
+    font-size: 0.9rem;
+    padding: 0.625rem 1.25rem;
+  }
+
+  .form-header h3 {
+    font-size: 1.4rem;
+  }
+
+  .form-header p {
+    font-size: 0.9rem;
+  }
 }
 
 @media (max-width: 480px) {
   .public-register-container {
-    padding: 0.75rem;
-    padding-top: 1.5rem;
-    padding-bottom: 1.5rem;
+    padding: 0.5rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .public-register-content {
+    max-width: 100%;
   }
 
   .public-header {
@@ -648,12 +735,12 @@
   }
 
   .public-header h1 {
-    font-size: 1.35rem;
+    font-size: 1.25rem;
     margin-bottom: 0.75rem;
   }
 
   .public-header p {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
   }
 
   .public-player-form {
@@ -662,7 +749,7 @@
   }
 
   .public-player-form h2 {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
   }
 
   .form-group label {
@@ -689,6 +776,102 @@
     padding: 0.875rem;
     font-size: 0.95rem;
     border-radius: 10px;
+  }
+
+  /* Search Section Small Mobile */
+  .search-header h3 {
+    font-size: 1.2rem;
+  }
+
+  .search-header p {
+    font-size: 0.85rem;
+  }
+
+  .search-mobile-input {
+    font-size: 0.95rem;
+    padding: 0.75rem 0.875rem;
+  }
+
+  .btn-search-player {
+    font-size: 0.95rem;
+    padding: 0.75rem;
+  }
+
+  .found-player-card {
+    padding: 1.25rem 1rem;
+  }
+
+  .found-player-header h4 {
+    font-size: 1.2rem;
+  }
+
+  .found-player-photo {
+    width: 80px;
+    height: 80px;
+  }
+
+  .found-player-info p {
+    font-size: 0.85rem;
+  }
+
+  .btn-quick-join {
+    font-size: 0.95rem;
+    padding: 0.875rem;
+  }
+
+  .btn-register-new {
+    font-size: 0.95rem;
+    padding: 0.75rem;
+  }
+
+  .register-new-section p {
+    font-size: 0.9rem;
+  }
+
+  .divider {
+    margin: 1.5rem 0;
+  }
+
+  .divider span {
+    font-size: 0.85rem;
+  }
+
+  .btn-back-to-search {
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .form-header h3 {
+    font-size: 1.2rem;
+  }
+
+  .form-header p {
+    font-size: 0.85rem;
+  }
+
+  .modal-overlay {
+    padding: 0.5rem;
+  }
+
+  .success-modal {
+    padding: 1.5rem 1rem;
+  }
+
+  .success-title {
+    font-size: 1.2rem;
+  }
+
+  .success-text {
+    font-size: 0.85rem;
+  }
+
+  .success-subtext {
+    font-size: 0.75rem;
+  }
+
+  .error-message {
+    padding: 0.875rem;
+    font-size: 0.85rem;
   }
 }
 
