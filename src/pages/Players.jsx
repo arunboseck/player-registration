@@ -29,64 +29,31 @@ const Players = () => {
   const [searchDebounceTimer, setSearchDebounceTimer] = useState(null);
 
   useEffect(() => {
-    loadInitialPlayers();
+    loadAllPlayers();
   }, []);
 
-  const loadInitialPlayers = async () => {
-    console.log('📊 Loading initial page of players (NO FULL COUNT - FAST!)...');
+  const loadAllPlayers = async () => {
+    console.log('📊 Loading all players...');
     setLoading(true);
 
-    // Skip total count to avoid downloading all players!
-    // We'll estimate pages as we load
-    setTotalPlayers(0); // Will update as we paginate
-
-    // Load first page using server-side pagination
-    const result = await getPlayersPaginated(itemsPerPage, null);
-    console.log('📊 Setting players state with', result.players.length, 'players');
-    setPlayers(result.players);
-    setAllPlayers(result.players);
-    setLastKey(result.lastKey);
-    setHasMore(result.hasMore);
-    setCurrentPage(1);
-    setLoading(false);
-    console.log('📊 Loading complete. Initial page loaded in <1 second!');
-  };
-
-  const loadNextPage = async () => {
-    if (!hasMore || loading) return;
-
-    console.log('📊 Loading next page...');
-    setLoading(true);
-    const result = await getPlayersPaginated(itemsPerPage, lastKey);
-
-    // Append new players
-    const updatedPlayers = [...allPlayers, ...result.players];
-    setAllPlayers(updatedPlayers);
-    setPlayers(result.players);
-    setLastKey(result.lastKey);
-    setHasMore(result.hasMore);
-    setCurrentPage(prev => prev + 1);
-    setLoading(false);
-    console.log(`📊 Page ${currentPage + 1} loaded. Total loaded: ${updatedPlayers.length}`);
-  };
-
-  const loadPreviousPage = async () => {
-    if (currentPage === 1) return;
-
-    // For previous pages, we use the already loaded data
-    const startIdx = (currentPage - 2) * itemsPerPage;
-    const endIdx = startIdx + itemsPerPage;
-    const previousPagePlayers = allPlayers.slice(startIdx, endIdx);
-
-    setPlayers(previousPagePlayers);
-    setCurrentPage(prev => prev - 1);
-    console.log(`📊 Showing page ${currentPage - 1}`);
+    try {
+      // Load ALL players at once (fast with Cloudinary photos)
+      const allPlayersData = await getPlayers();
+      console.log('📊 Loaded', allPlayersData.length, 'players');
+      setPlayers(allPlayersData);
+      setAllPlayers(allPlayersData);
+      setTotalPlayers(allPlayersData.length);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading players:', error);
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this player?')) {
       await deletePlayer(id);
-      loadPlayers();
+      loadAllPlayers(); // Reload all players after delete
     }
   };
 
@@ -293,7 +260,7 @@ const Players = () => {
 
       <div className="players-content">
         <div className="players-header">
-          <h2>All Players ({filteredPlayers.length})</h2>
+          <h2>All Players ({allPlayers.length})</h2>
           <div className="header-actions">
             <button onClick={handleDownloadExcel} className="btn-download">
               📥 Download Excel
@@ -330,80 +297,54 @@ const Players = () => {
         </div>
 
 
-        {filteredPlayers.length === 0 ? (
+        {loading ? (
+          <div className="no-players">
+            <LoadingSpinner />
+            <p>Loading players...</p>
+          </div>
+        ) : filteredPlayers.length === 0 ? (
           <div className="no-players">
             <p>No players found. {searchTerm || filterPosition ? 'Try adjusting your filters.' : 'Register your first player!'}</p>
           </div>
         ) : (
-          <>
-            <div className="pagination-info">
-              {searchTerm.trim() ? (
-                <p>🔍 Found {currentPlayers.length} player{currentPlayers.length !== 1 ? 's' : ''} matching "{searchTerm}"</p>
-              ) : (
-                <p>Showing {currentPlayers.length} players (Page {currentPage}, Loaded: {allPlayers.length} total) {hasMore ? '• More available' : '• End'}</p>
-              )}
-            </div>
-            <div className="players-grid">
-              {currentPlayers.map((player) => (
-                <div key={player.id} className="player-card">
-                  <button
-                    className="btn-assign-tournament"
-                    onClick={() => handleAssignToTournament(player)}
-                    title="Assign to Tournament"
-                  >
-                    ⋮
+          <div className="players-grid">
+            {currentPlayers.map((player) => (
+              <div key={player.id} className="player-card">
+                <button
+                  className="btn-assign-tournament"
+                  onClick={() => handleAssignToTournament(player)}
+                  title="Assign to Tournament"
+                >
+                  ⋮
+                </button>
+                <div className="player-photo">
+                  {player.photo ? (
+                    <img src={player.photo} alt={player.name} />
+                  ) : (
+                    <div className="photo-placeholder">📷</div>
+                  )}
+                </div>
+                <div className="player-info">
+                  <h3>{player.name}</h3>
+                  <p className="player-position">{player.position}</p>
+                  <div className="player-details">
+                    <p><strong>Mobile:</strong> {player.mobile}</p>
+                    <p><strong>DOB:</strong> {new Date(player.dateOfBirth).toLocaleDateString()}</p>
+                    <p><strong>Blood Group:</strong> {player.bloodGroup}</p>
+                    <p><strong>Place:</strong> {player.place}</p>
+                  </div>
+                </div>
+                <div className="player-actions">
+                  <button onClick={() => handleEdit(player.id)} className="btn-edit">
+                    Edit
                   </button>
-                  <div className="player-photo">
-                    {player.photo ? (
-                      <img src={player.photo} alt={player.name} />
-                    ) : (
-                      <div className="photo-placeholder">📷</div>
-                    )}
-                  </div>
-                  <div className="player-info">
-                    <h3>{player.name}</h3>
-                    <p className="player-position">{player.position}</p>
-                    <div className="player-details">
-                      <p><strong>Mobile:</strong> {player.mobile}</p>
-                      <p><strong>DOB:</strong> {new Date(player.dateOfBirth).toLocaleDateString()}</p>
-                      <p><strong>Blood Group:</strong> {player.bloodGroup}</p>
-                      <p><strong>Place:</strong> {player.place}</p>
-                    </div>
-                  </div>
-                  <div className="player-actions">
-                    <button onClick={() => handleEdit(player.id)} className="btn-edit">
-                      Edit
-                    </button>
-                    <button onClick={() => handleDelete(player.id)} className="btn-delete">
-                      Delete
-                    </button>
-                  </div>
+                  <button onClick={() => handleDelete(player.id)} className="btn-delete">
+                    Delete
+                  </button>
                 </div>
-              ))}
-            </div>
-            {/* Hide pagination when searching - show all results */}
-            {!searchTerm.trim() && (currentPage > 1 || hasMore) && (
-              <div className="pagination-controls">
-                <button
-                  onClick={loadPreviousPage}
-                  disabled={currentPage === 1 || loading}
-                  className="btn-pagination"
-                >
-                  ← Previous
-                </button>
-                <div className="pagination-info-compact">
-                  Page {currentPage}
-                </div>
-                <button
-                  onClick={loadNextPage}
-                  disabled={!hasMore || loading}
-                  className="btn-pagination"
-                >
-                  {loading ? 'Loading...' : 'Next →'}
-                </button>
               </div>
-            )}
-          </>
+            ))}
+          </div>
         )}
       </div>
 
