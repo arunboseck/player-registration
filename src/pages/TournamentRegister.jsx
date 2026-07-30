@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTournamentById, addTournamentRegistration, uploadPhotoToStorage } from '../utils/firebaseStorage';
+import { getTournamentById, addTournamentRegistration, uploadPhotoToStorage, getPlayerByMobile } from '../utils/firebaseStorage';
 import Navigation from '../components/Navigation';
 import './TournamentRegister.css';
 
@@ -31,6 +31,13 @@ const TournamentRegister = () => {
   const monthRef = useRef(null);
   const yearRef = useRef(null);
 
+  // Two-step registration states
+  const [showSearch, setShowSearch] = useState(true);
+  const [searchMobile, setSearchMobile] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [foundPlayer, setFoundPlayer] = useState(null);
+  const [showRegisterForm, setShowRegisterForm] = useState(false);
+
   useEffect(() => {
     const loadTournament = async () => {
       try {
@@ -47,6 +54,94 @@ const TournamentRegister = () => {
     };
     loadTournament();
   }, [id]);
+
+  const handleSearchPlayer = async () => {
+    if (!searchMobile.trim() || searchMobile.length < 10) {
+      setError(true);
+      setErrorMessage('Please enter a valid 10-digit mobile number');
+      setTimeout(() => setError(false), 3000);
+      return;
+    }
+
+    setSearching(true);
+    setFoundPlayer(null);
+
+    try {
+      const player = await getPlayerByMobile(searchMobile.trim());
+
+      if (player) {
+        setFoundPlayer(player);
+      } else {
+        setError(true);
+        setErrorMessage('No player found with this mobile number. Click "Register New Player" to continue.');
+        setTimeout(() => setError(false), 5000);
+      }
+    } catch (error) {
+      console.error('Error searching player:', error);
+      setError(true);
+      setErrorMessage('Error searching for player. Please try again.');
+      setTimeout(() => setError(false), 3000);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleQuickJoin = async () => {
+    if (!foundPlayer) return;
+
+    setSubmitting(true);
+    setIsSubmitting(true);
+
+    try {
+      const registrationData = {
+        name: foundPlayer.name,
+        mobile: foundPlayer.mobile,
+        dateOfBirth: foundPlayer.dateOfBirth,
+        bloodGroup: foundPlayer.bloodGroup,
+        place: foundPlayer.place,
+        position: foundPlayer.position,
+        photo: foundPlayer.photo || '',
+        registeredAt: new Date().toISOString(),
+      };
+
+      await addTournamentRegistration(id, registrationData);
+
+      setSuccess(true);
+      setSuccessMessage(`🎉 ${foundPlayer.name} successfully registered for ${tournament.name}!`);
+
+      setTimeout(() => {
+        navigate(`/tournament-registrations/${id}`);
+      }, 2000);
+    } catch (error) {
+      console.error('Error registering player:', error);
+      setError(true);
+      if (error.message && error.message.includes('already registered')) {
+        setErrorMessage(`${foundPlayer.name} is already registered for this tournament.`);
+      } else {
+        setErrorMessage('Failed to register. Please try again.');
+      }
+      setTimeout(() => setError(false), 4000);
+    } finally {
+      setSubmitting(false);
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleShowRegisterForm = () => {
+    setShowSearch(false);
+    setShowRegisterForm(true);
+    // Pre-fill mobile if searched
+    if (searchMobile.trim()) {
+      setFormData(prev => ({ ...prev, mobile: searchMobile.trim() }));
+    }
+  };
+
+  const handleBackToSearch = () => {
+    setShowSearch(true);
+    setShowRegisterForm(false);
+    setFoundPlayer(null);
+    setSearchMobile('');
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -300,6 +395,90 @@ const TournamentRegister = () => {
         <div className="public-player-form">
           <h2>Register for {tournament.name}</h2>
 
+          {/* Search Player Section */}
+          {showSearch && !showRegisterForm && (
+            <div className="search-player-section">
+              <div className="search-header">
+                <h3>🔍 Search Existing Player</h3>
+                <p>Enter your mobile number to check if you're already registered in our system</p>
+              </div>
+
+              <div className="search-box-container">
+                <input
+                  type="tel"
+                  placeholder="Enter 10-digit mobile number"
+                  value={searchMobile}
+                  onChange={(e) => setSearchMobile(e.target.value.replace(/[^0-9]/g, '').slice(0, 10))}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearchPlayer()}
+                  maxLength="10"
+                  className="search-mobile-input"
+                  disabled={searching}
+                />
+                <button
+                  onClick={handleSearchPlayer}
+                  disabled={searching || searchMobile.length !== 10}
+                  className="btn-search-player"
+                >
+                  {searching ? '🔍 Searching...' : '🔍 Search Player'}
+                </button>
+              </div>
+
+              {/* Found Player Card */}
+              {foundPlayer && (
+                <div className="found-player-card">
+                  <div className="found-player-header">
+                    <h4>✅ Player Found!</h4>
+                  </div>
+                  <div className="found-player-details">
+                    {foundPlayer.photo && (
+                      <div className="found-player-photo">
+                        <img src={foundPlayer.photo} alt={foundPlayer.name} />
+                      </div>
+                    )}
+                    <div className="found-player-info">
+                      <p><strong>Name:</strong> {foundPlayer.name}</p>
+                      <p><strong>Mobile:</strong> {foundPlayer.mobile}</p>
+                      <p><strong>Position:</strong> {foundPlayer.position}</p>
+                      <p><strong>Place:</strong> {foundPlayer.place}</p>
+                      <p><strong>Blood Group:</strong> {foundPlayer.bloodGroup}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleQuickJoin}
+                    disabled={submitting}
+                    className="btn-quick-join"
+                  >
+                    {submitting ? '⏳ Joining Tournament...' : '✅ Join This Tournament'}
+                  </button>
+                </div>
+              )}
+
+              <div className="register-new-section">
+                <div className="divider">
+                  <span>OR</span>
+                </div>
+                <p>Not registered in our system yet?</p>
+                <button
+                  onClick={handleShowRegisterForm}
+                  className="btn-register-new"
+                >
+                  📝 Register as New Player
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Full Registration Form */}
+          {showRegisterForm && !showSearch && (
+            <div className="full-registration-section">
+              <button onClick={handleBackToSearch} className="btn-back-to-search">
+                ← Back to Search
+              </button>
+              <div className="form-header">
+                <h3>New Player Registration</h3>
+                <p>Fill in the details below to register for the tournament</p>
+              </div>
+
           {success && (
             <div className="modal-overlay" onClick={() => setSuccess(false)}>
               <div className="success-modal" onClick={(e) => e.stopPropagation()}>
@@ -424,6 +603,7 @@ const TournamentRegister = () => {
               {submitting ? '⏳ Processing... Please wait' : '✓ Register for Tournament'}
             </button>
           </form>
+          )}
         </div>
       </div>
     </div>
