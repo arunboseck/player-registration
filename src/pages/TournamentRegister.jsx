@@ -468,17 +468,7 @@ const TournamentRegister = () => {
             </div>
           )}
 
-          {/* Full Registration Form */}
-          {showRegisterForm && !showSearch && (
-            <div className="full-registration-section">
-              <button onClick={handleBackToSearch} className="btn-back-to-search">
-                ← Back to Search
-              </button>
-              <div className="form-header">
-                <h3>New Player Registration</h3>
-                <p>Fill in the details below to register for the tournament</p>
-              </div>
-
+          {/* Success Modal - Outside conditional sections */}
           {success && (
             <div className="modal-overlay" onClick={() => setSuccess(false)}>
               <div className="success-modal" onClick={(e) => e.stopPropagation()}>
@@ -508,101 +498,113 @@ const TournamentRegister = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Full Name *</label>
-                <input type="text" name="name" value={formData.name} onChange={handleChange} required />
+          {/* Full Registration Form */}
+          {showRegisterForm && !showSearch && (
+            <div className="full-registration-section">
+              <button onClick={handleBackToSearch} className="btn-back-to-search">
+                ← Back to Search
+              </button>
+              <div className="form-header">
+                <h3>New Player Registration</h3>
+                <p>Fill in the details below to register for the tournament</p>
               </div>
-              <div className="form-group">
-                <label>Mobile Number *</label>
-                <input type="tel" name="mobile" value={formData.mobile} onChange={handleChange} required />
-              </div>
-            </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>Date of Birth (DD/MM/YYYY) *</label>
-                <div className="dob-input-container">
-                  <input
-                    ref={dayRef}
-                    type="text"
-                    placeholder="DD"
-                    value={dob.day}
-                    onChange={(e) => handleDobChange('day', e.target.value)}
-                    onKeyDown={(e) => handleDobKeyDown('day', e)}
-                    maxLength={2}
-                    className="dob-input"
-                    required
-                  />
-                  <span className="dob-separator">/</span>
-                  <input
-                    ref={monthRef}
-                    type="text"
-                    placeholder="MM"
-                    value={dob.month}
-                    onChange={(e) => handleDobChange('month', e.target.value)}
-                    onKeyDown={(e) => handleDobKeyDown('month', e)}
-                    maxLength={2}
-                    className="dob-input"
-                    required
-                  />
-                  <span className="dob-separator">/</span>
-                  <input
-                    ref={yearRef}
-                    type="text"
-                    placeholder="YYYY"
-                    value={dob.year}
-                    onChange={(e) => handleDobChange('year', e.target.value)}
-                    onKeyDown={(e) => handleDobKeyDown('year', e)}
-                    maxLength={4}
-                    className="dob-input dob-input-year"
-                    required
-                  />
+              <form onSubmit={handleSubmit}>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" name="name" value={formData.name} onChange={handleChange} required />
+                  </div>
+                  <div className="form-group">
+                    <label>Mobile Number *</label>
+                    <input type="tel" name="mobile" value={formData.mobile} onChange={handleChange} required />
+                  </div>
                 </div>
-              </div>
-              <div className="form-group">
-                <label>Blood Group *</label>
-                <select name="bloodGroup" value={formData.bloodGroup} onChange={handleChange} required>
-                  <option value="">Select Blood Group</option>
-                  {BLOOD_GROUPS.map(bg => <option key={bg} value={bg}>{bg}</option>)}
-                </select>
-              </div>
-            </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>Place *</label>
-                <input type="text" name="place" value={formData.place} onChange={handleChange} required />
-              </div>
-              <div className="form-group">
-                <label>Position *</label>
-                <select name="position" value={formData.position} onChange={handleChange} required>
-                  <option value="">Select Position</option>
-                  {POSITIONS.map(pos => <option key={pos} value={pos}>{pos}</option>)}
-                </select>
-              </div>
-            </div>
-
-            <div className="form-group" style={{marginBottom: '1.25rem'}}>
-              <label>Player Photo *</label>
-              <input type="file" accept="image/*" onChange={handlePhotoChange} required />
-              {formData.photo && (
-                <div className="photo-preview">
-                  <img src={formData.photo} alt="Preview" />
-                  <span className="photo-uploaded">✓ Photo uploaded</span>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Date of Birth (DD/MM/YYYY) *</label>
+                    <div className="dob-input-container">
+                      <input
+                        ref={dayRef}
+                        type="text"
+                        placeholder="DD"
+                        value={dob.day}
+                        onChange={(e) => handleDobChange('day', e.target.value)}
+                        onKeyDown={(e) => handleDobKeyDown('day', e)}
+                        maxLength={2}
+                        className="dob-input"
+                        required
+                      />
+                      <span className="dob-separator">/</span>
+                      <input
+                        ref={monthRef}
+                        type="text"
+                        placeholder="MM"
+                        value={dob.month}
+                        onChange={(e) => handleDobChange('month', e.target.value)}
+                        onKeyDown={(e) => handleDobKeyDown('month', e)}
+                        maxLength={2}
+                        className="dob-input"
+                        required
+                      />
+                      <span className="dob-separator">/</span>
+                      <input
+                        ref={yearRef}
+                        type="text"
+                        placeholder="YYYY"
+                        value={dob.year}
+                        onChange={(e) => handleDobChange('year', e.target.value)}
+                        onKeyDown={(e) => handleDobKeyDown('year', e)}
+                        maxLength={4}
+                        className="dob-input dob-input-year"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Blood Group *</label>
+                    <select name="bloodGroup" value={formData.bloodGroup} onChange={handleChange} required>
+                      <option value="">Select Blood Group</option>
+                      {BLOOD_GROUPS.map(bg => <option key={bg} value={bg}>{bg}</option>)}
+                    </select>
+                  </div>
                 </div>
-              )}
-            </div>
 
-            <button type="submit" className="submit-button" disabled={submitting} style={{
-              opacity: submitting ? 0.6 : 1,
-              cursor: submitting ? 'not-allowed' : 'pointer',
-              pointerEvents: submitting ? 'none' : 'auto'
-            }}>
-              {submitting ? '⏳ Processing... Please wait' : '✓ Register for Tournament'}
-            </button>
-          </form>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Place *</label>
+                    <input type="text" name="place" value={formData.place} onChange={handleChange} required />
+                  </div>
+                  <div className="form-group">
+                    <label>Position *</label>
+                    <select name="position" value={formData.position} onChange={handleChange} required>
+                      <option value="">Select Position</option>
+                      {POSITIONS.map(pos => <option key={pos} value={pos}>{pos}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group" style={{marginBottom: '1.25rem'}}>
+                  <label>Player Photo *</label>
+                  <input type="file" accept="image/*" onChange={handlePhotoChange} required />
+                  {formData.photo && (
+                    <div className="photo-preview">
+                      <img src={formData.photo} alt="Preview" />
+                      <span className="photo-uploaded">✓ Photo uploaded</span>
+                    </div>
+                  )}
+                </div>
+
+                <button type="submit" className="submit-button" disabled={submitting} style={{
+                  opacity: submitting ? 0.6 : 1,
+                  cursor: submitting ? 'not-allowed' : 'pointer',
+                  pointerEvents: submitting ? 'none' : 'auto'
+                }}>
+                  {submitting ? '⏳ Processing... Please wait' : '✓ Register for Tournament'}
+                </button>
+              </form>
+            </div>
           )}
         </div>
       </div>
