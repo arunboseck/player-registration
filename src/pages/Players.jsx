@@ -212,6 +212,7 @@ const Players = () => {
   };
 
   const handleSearch = (term) => {
+    // Update search term immediately (no lag in input field)
     setSearchTerm(term);
 
     // Clear existing debounce timer
@@ -226,11 +227,13 @@ const Players = () => {
       return;
     }
 
-    // Show searching indicator immediately
-    setSearching(true);
+    // Only show searching indicator after user has stopped typing for a moment
+    // This prevents the "loading" flash on every keystroke
 
-    // Debounce search - wait 300ms after user stops typing
+    // Debounce search - wait 500ms after user stops typing
     const timer = setTimeout(async () => {
+      setSearching(true); // Show loading only when actually searching
+
       try {
         // ✅ OPTIMIZED: Use indexed Firebase query instead of downloading all players
         console.log(`🔍 Optimized search for: "${term}"`);
@@ -249,7 +252,7 @@ const Players = () => {
       } finally {
         setSearching(false);
       }
-    }, 300); // 300ms debounce delay
+    }, 500); // Increased to 500ms for better UX (waits for user to finish typing)
 
     setSearchDebounceTimer(timer);
   };
@@ -305,10 +308,9 @@ const Players = () => {
           <div className="search-box">
             <input
               type="text"
-              placeholder="🚀 Fast search by name or mobile..."
+              placeholder="Type to search by name or mobile number..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              disabled={searching}
             />
             {searching && <span className="search-loading">🔍 Searching...</span>}
           </div>
