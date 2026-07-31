@@ -36,7 +36,7 @@ const Players = () => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (openDropdownId && !event.target.closest('.card-menu')) {
+      if (openDropdownId && !event.target.closest('.player-card-menu')) {
         setOpenDropdownId(null);
       }
     };
@@ -328,44 +328,44 @@ const Players = () => {
             {currentPlayers.map((player) => (
               <div key={player.id} className="player-card">
                 {/* 3-Dot Menu */}
-                <div className="card-menu">
+                <div className="player-card-menu">
                   <button
-                    className="btn-card-menu"
+                    className="player-menu-btn"
                     onClick={() => toggleDropdown(player.id)}
                     title="More options"
                   >
                     ⋮
                   </button>
                   {openDropdownId === player.id && (
-                    <div className="card-dropdown">
+                    <div className="player-menu-dropdown">
                       <button
-                        className="dropdown-item"
+                        className="player-menu-item"
                         onClick={() => {
                           handleEdit(player.id);
                           setOpenDropdownId(null);
                         }}
                       >
-                        <span className="dropdown-icon">✏️</span>
+                        <span className="player-menu-icon">✏️</span>
                         Edit Player
                       </button>
                       <button
-                        className="dropdown-item"
+                        className="player-menu-item"
                         onClick={() => {
                           handleAssignToTournament(player);
                           setOpenDropdownId(null);
                         }}
                       >
-                        <span className="dropdown-icon">🏆</span>
+                        <span className="player-menu-icon">🏆</span>
                         Assign to Tournament
                       </button>
                       <button
-                        className="dropdown-item dropdown-item-danger"
+                        className="player-menu-item player-menu-item-danger"
                         onClick={() => {
                           handleDelete(player.id);
                           setOpenDropdownId(null);
                         }}
                       >
-                        <span className="dropdown-icon">🗑️</span>
+                        <span className="player-menu-icon">🗑️</span>
                         Delete Player
                       </button>
                     </div>
