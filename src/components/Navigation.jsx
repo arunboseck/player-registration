@@ -33,7 +33,7 @@ const Navigation = () => {
         <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>
         <div className="sidebar-content">
           <div className="sidebar-header">
-            <h2>🏏 Cricket App</h2>
+            <h2>🏏 Player Management System</h2>
             <button className="sidebar-close-btn" onClick={() => setSidebarOpen(false)}>✕</button>
           </div>
           <div className="sidebar-body">
