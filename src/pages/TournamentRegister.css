@@ -1541,3 +1541,254 @@
     width: 100%;
   }
 }
+
+/* ==================== ELEGANT LIGHTBOX MODALS ==================== */
+
+/* Overlay */
+.message-lightbox-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  animation: overlayFadeIn 0.3s ease-out;
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+
+/* Lightbox Container */
+.message-lightbox {
+  background: white;
+  border-radius: 24px;
+  padding: 3rem 2.5rem;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  position: relative;
+  animation: lightboxSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-origin: center;
+}
+
+@keyframes lightboxSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Icon Circle */
+.lightbox-icon {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: iconBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.2s backwards;
+}
+
+@keyframes iconBounce {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.success-icon-circle {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+}
+
+.error-icon-circle {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
+}
+
+.lightbox-icon svg {
+  width: 56px;
+  height: 56px;
+  color: white;
+}
+
+/* Text Content */
+.lightbox-title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: textSlideIn 0.5s ease-out 0.3s backwards;
+}
+
+.lightbox-message {
+  font-size: 1.1rem;
+  color: #4b5563;
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+  font-weight: 500;
+  animation: textSlideIn 0.5s ease-out 0.4s backwards;
+}
+
+.lightbox-submessage {
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+  animation: textSlideIn 0.5s ease-out 0.5s backwards;
+}
+
+@keyframes textSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Buttons */
+.lightbox-button {
+  width: 100%;
+  padding: 1.25rem 2rem;
+  border: none;
+  border-radius: 14px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  animation: buttonSlideIn 0.5s ease-out 0.6s backwards;
+  letter-spacing: 0.3px;
+}
+
+@keyframes buttonSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.success-button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.success-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+.success-button:active {
+  transform: translateY(-1px);
+}
+
+.error-button {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.error-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+}
+
+.error-button:active {
+  transform: translateY(-1px);
+}
+
+/* Mobile Responsive for Lightbox */
+@media (max-width: 768px) {
+  .message-lightbox {
+    padding: 2.5rem 2rem;
+    margin: 1rem;
+  }
+
+  .lightbox-icon {
+    width: 80px;
+    height: 80px;
+  }
+
+  .lightbox-icon svg {
+    width: 44px;
+    height: 44px;
+  }
+
+  .lightbox-title {
+    font-size: 1.5rem;
+  }
+
+  .lightbox-message {
+    font-size: 1rem;
+  }
+
+  .lightbox-submessage {
+    font-size: 0.9rem;
+  }
+
+  .lightbox-button {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .message-lightbox {
+    padding: 2rem 1.5rem;
+    border-radius: 20px;
+  }
+
+  .lightbox-icon {
+    width: 70px;
+    height: 70px;
+  }
+
+  .lightbox-icon svg {
+    width: 38px;
+    height: 38px;
+  }
+
+  .lightbox-title {
+    font-size: 1.25rem;
+  }
+
+  .lightbox-message {
+    font-size: 0.95rem;
+  }
+}
