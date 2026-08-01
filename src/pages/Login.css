@@ -72,7 +72,11 @@
 }
 
 .login-box h1 {
-  color: white;
+  color: white !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: white !important;
+  background-clip: unset !important;
   margin-bottom: 0.5rem;
   text-align: center;
   font-size: 2rem;
