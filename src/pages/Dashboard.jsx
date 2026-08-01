@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getPlayers, getTournaments } from '../utils/firebaseStorage';
+import { getPlayers, getTournaments } from '../utils/storage';
 import Navigation from '../components/Navigation';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './Dashboard.css';
@@ -108,24 +108,6 @@ const Dashboard = () => {
                   <div className="stat-label">Create New Tournament</div>
                   <div className="stat-subtitle">Click to add a tournament</div>
                 </div>
-              </div>
-            </div>
-
-            <div className="quick-actions">
-              <h3>Quick Actions</h3>
-              <div className="action-buttons">
-                <button onClick={() => navigate('/register-player')} className="action-btn primary">
-                  Register Player
-                </button>
-                <button onClick={() => navigate('/players')} className="action-btn secondary">
-                  View Players
-                </button>
-                <button onClick={() => navigate('/add-tournament')} className="action-btn success">
-                  Create Tournament
-                </button>
-                <button onClick={() => navigate('/tournaments')} className="action-btn info">
-                  View Tournaments
-                </button>
               </div>
             </div>
           </>
