@@ -1547,7 +1547,8 @@
 /* Cache-busting version: 2024-08-01-v2 */
 
 /* Overlay - MUST cover entire viewport */
-.message-lightbox-overlay {
+.message-lightbox-overlay,
+.modal-overlay-v2 {
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;

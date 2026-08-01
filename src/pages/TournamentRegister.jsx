@@ -676,7 +676,7 @@ const TournamentRegister = () => {
 
       {/* Success Modal - Rendered via Portal to #modal-root */}
       {success && createPortal(
-        <div className="message-lightbox-overlay" onClick={() => setSuccess(false)}>
+        <div className="message-lightbox-overlay modal-overlay-v2" onClick={() => setSuccess(false)}>
           <div className="message-lightbox success-lightbox" onClick={(e) => e.stopPropagation()}>
             <div className="lightbox-icon success-icon-circle">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -699,7 +699,7 @@ const TournamentRegister = () => {
 
       {/* Error Modal - Rendered via Portal to #modal-root */}
       {error && createPortal(
-        <div className="message-lightbox-overlay" onClick={() => setError(false)}>
+        <div className="message-lightbox-overlay modal-overlay-v2" onClick={() => setError(false)}>
           <div className="message-lightbox error-lightbox" onClick={(e) => e.stopPropagation()}>
             <div className="lightbox-icon error-icon-circle">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
