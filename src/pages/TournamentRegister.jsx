@@ -680,28 +680,32 @@ const TournamentRegister = () => {
       {/* Already Registered Modal - Rendered DIRECTLY to document.body */}
       {alreadyRegistered && alreadyRegisteredPlayer && ReactDOM.createPortal(
         <div className="message-lightbox-overlay modal-overlay-v2" onClick={() => setAlreadyRegistered(false)}>
-          <div className="message-lightbox error-lightbox" onClick={(e) => e.stopPropagation()}>
-            <div className="lightbox-icon error-icon-circle">
+          <div className="message-lightbox warning-lightbox" onClick={(e) => e.stopPropagation()}>
+            <div className="lightbox-icon warning-icon-circle">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                 <path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
               </svg>
             </div>
             <h3 className="lightbox-title">Already Registered! ✅</h3>
-            <div style={{textAlign: 'center', marginBottom: '1rem'}}>
+
+            {/* Player Photo & Details */}
+            <div className="lightbox-player-profile">
               {alreadyRegisteredPlayer.photo && (
-                <img src={alreadyRegisteredPlayer.photo} alt={alreadyRegisteredPlayer.name}
-                  style={{width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', margin: '0 auto 1rem'}} />
+                <div className="lightbox-photo-container">
+                  <img src={alreadyRegisteredPlayer.photo} alt={alreadyRegisteredPlayer.name} className="lightbox-player-photo" />
+                </div>
               )}
-              <p style={{fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.5rem'}}>{alreadyRegisteredPlayer.name}</p>
-              <p style={{fontSize: '1.1rem', color: '#666'}}>{alreadyRegisteredPlayer.mobile}</p>
+              <p className="lightbox-player-name">{alreadyRegisteredPlayer.name}</p>
+              <p className="lightbox-player-mobile">{alreadyRegisteredPlayer.mobile}</p>
             </div>
+
             <p className="lightbox-message">
               You have already registered for <strong>{alreadyRegisteredPlayer.tournamentName}</strong>!
             </p>
             <p className="lightbox-submessage">
               We look forward to seeing you at the tournament. Good luck! 🏆
             </p>
-            <button className="lightbox-button error-button" onClick={() => {
+            <button className="lightbox-button warning-button" onClick={() => {
               setAlreadyRegistered(false);
               setSearchMobile('');
               setAlreadyRegisteredPlayer(null);
