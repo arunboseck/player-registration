@@ -1542,9 +1542,11 @@
   }
 }
 
-/* ==================== ELEGANT LIGHTBOX MODALS ==================== */
+/* ==================== ELEGANT LIGHTBOX MODALS v2.0 ==================== */
+/* CRITICAL: This renders via Portal to #modal-root (sibling of #root) */
+/* Cache-busting version: 2024-08-01-v2 */
 
-/* Overlay */
+/* Overlay - MUST cover entire viewport */
 .message-lightbox-overlay {
   position: fixed !important;
   top: 0 !important;
