@@ -21,8 +21,10 @@ import './App.css';
 function Layout({ children }) {
   const location = useLocation();
 
-  // Don't show navigation on login page
-  const showNavigation = location.pathname !== '/';
+  // Don't show navigation on login page and tournament registration page
+  const isLoginPage = location.pathname === '/';
+  const isTournamentRegisterPage = location.pathname.startsWith('/tournament-register/');
+  const showNavigation = !isLoginPage && !isTournamentRegisterPage;
 
   return (
     <>
