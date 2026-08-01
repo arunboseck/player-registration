@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
+import ReactDOM from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getTournamentById, addTournamentRegistration, uploadPhotoToStorage, getPlayerByMobile, addPlayer } from '../utils/firebaseStorage';
 import { ref as dbRef, get } from 'firebase/database';
@@ -674,8 +674,8 @@ const TournamentRegister = () => {
         </div>
       </div>
 
-      {/* Success Modal - Rendered via Portal to #modal-root */}
-      {success && createPortal(
+      {/* Success Modal - Rendered DIRECTLY to document.body */}
+      {success && ReactDOM.createPortal(
         <div className="message-lightbox-overlay modal-overlay-v2" onClick={() => setSuccess(false)}>
           <div className="message-lightbox success-lightbox" onClick={(e) => e.stopPropagation()}>
             <div className="lightbox-icon success-icon-circle">
@@ -694,11 +694,11 @@ const TournamentRegister = () => {
             </button>
           </div>
         </div>,
-        document.getElementById('modal-root')
+        document.body
       )}
 
-      {/* Error Modal - Rendered via Portal to #modal-root */}
-      {error && createPortal(
+      {/* Error Modal - Rendered DIRECTLY to document.body */}
+      {error && ReactDOM.createPortal(
         <div className="message-lightbox-overlay modal-overlay-v2" onClick={() => setError(false)}>
           <div className="message-lightbox error-lightbox" onClick={(e) => e.stopPropagation()}>
             <div className="lightbox-icon error-icon-circle">
@@ -713,7 +713,7 @@ const TournamentRegister = () => {
             </button>
           </div>
         </div>,
-        document.getElementById('modal-root')
+        document.body
       )}
     </div>
   );
