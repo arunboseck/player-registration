@@ -1783,6 +1783,14 @@
   border: 5px solid #f3f4f6;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
   animation: iconBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.25s backwards;
+  background-color: #f9fafb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-photo-placeholder {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
 }
 
 .lightbox-player-photo {
