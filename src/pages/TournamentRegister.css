@@ -90,14 +90,18 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin: 0 0 1.25rem 0;
-  padding: 0; /* Explicitly remove any padding */
+  margin: 0 auto 1.25rem auto !important; /* Center with auto margins */
+  padding: 0 !important; /* Force remove any padding */
   font-size: 2.5rem;
   font-weight: 800;
   letter-spacing: -1px;
   line-height: 1.2;
-  text-align: center;
+  text-align: center !important;
   width: 100%;
+  display: block;
+  position: relative;
+  left: 0;
+  right: 0;
 }
 
 .public-header p {
