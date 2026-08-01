@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTournamentById, getTournamentRegistrations, deleteRegistration, updateRegistration, syncTournamentPhotosWithPlayers } from '../utils/firebaseStorage';
+import { getTournamentById, getTournamentRegistrations, deleteRegistration, updateRegistration, syncTournamentPhotosWithPlayers, uploadPhotoToStorage, getPlayerByMobile, updatePlayer } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -87,6 +87,8 @@ const TournamentRegistrations = () => {
       dateOfBirth: registration.dateOfBirth,
       bloodGroup: registration.bloodGroup || '',
       position: registration.position,
+      photo: registration.photo || null,
+      newPhoto: null, // For new uploaded photo
     });
     setEditModal({ show: true, registration });
   };
@@ -102,6 +104,20 @@ const TournamentRegistrations = () => {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditFormData(prev => ({
+          ...prev,
+          newPhoto: reader.result // base64
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSaveEdit = async () => {
@@ -127,9 +143,46 @@ const TournamentRegistrations = () => {
 
     setSaving(true);
     try {
-      const result = await updateRegistration(id, editModal.registration.id, editFormData);
+      let photoURL = editFormData.photo; // Keep existing photo by default
+
+      // If new photo uploaded, upload to Cloudinary
+      if (editFormData.newPhoto) {
+        console.log('📤 Uploading new photo to Cloudinary...');
+        const tempId = `edit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        photoURL = await uploadPhotoToStorage(editFormData.newPhoto, tempId);
+        console.log('✅ Photo uploaded to Cloudinary:', photoURL);
+      }
+
+      // Prepare updated data
+      const updatedData = {
+        name: editFormData.name,
+        mobile: editFormData.mobile,
+        place: editFormData.place,
+        dateOfBirth: editFormData.dateOfBirth,
+        bloodGroup: editFormData.bloodGroup,
+        position: editFormData.position,
+        photo: photoURL
+      };
+
+      // Update tournament registration
+      const result = await updateRegistration(id, editModal.registration.id, updatedData);
 
       if (result.success) {
+        // Also update player in global players list (by mobile number)
+        console.log('🔄 Updating player in global list...');
+        try {
+          const player = await getPlayerByMobile(editFormData.mobile.trim());
+          if (player && player.id) {
+            await updatePlayer(player.id, updatedData);
+            console.log('✅ Player updated in global list');
+          } else {
+            console.log('⚠️ Player not found in global list, skipping update');
+          }
+        } catch (playerError) {
+          console.error('Error updating player:', playerError);
+          // Don't fail the whole operation if player update fails
+        }
+
         alert('Registration updated successfully!');
         await loadData(); // Reload data
         handleCancelEdit();
@@ -722,6 +775,64 @@ const TournamentRegistrations = () => {
                         </option>
                       ))}
                     </select>
+                  </div>
+                </div>
+
+                {/* Player Photo */}
+                <div className="form-group">
+                  <label htmlFor="edit-photo">Player Photo</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
+                    {/* Current Photo Preview */}
+                    {(editFormData.newPhoto || editFormData.photo) && (
+                      <div style={{
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: '50%',
+                        overflow: 'hidden',
+                        border: '3px solid #667eea',
+                        flexShrink: 0
+                      }}>
+                        <img
+                          src={editFormData.newPhoto || editFormData.photo}
+                          alt="Player"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      </div>
+                    )}
+
+                    {/* Upload Button */}
+                    <div style={{ flex: 1 }}>
+                      <input
+                        type="file"
+                        id="edit-photo"
+                        accept="image/*"
+                        onChange={handlePhotoChange}
+                        style={{ display: 'none' }}
+                      />
+                      <label
+                        htmlFor="edit-photo"
+                        style={{
+                          display: 'inline-block',
+                          padding: '0.75rem 1.5rem',
+                          backgroundColor: '#667eea',
+                          color: 'white',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '0.9rem',
+                          fontWeight: '600',
+                          transition: 'all 0.3s ease'
+                        }}
+                        onMouseEnter={(e) => e.target.style.backgroundColor = '#5568d3'}
+                        onMouseLeave={(e) => e.target.style.backgroundColor = '#667eea'}
+                      >
+                        📷 {editFormData.newPhoto ? 'Change Photo' : (editFormData.photo ? 'Update Photo' : 'Upload Photo')}
+                      </label>
+                      {editFormData.newPhoto && (
+                        <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#22c55e' }}>
+                          ✅ New photo selected
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </form>
