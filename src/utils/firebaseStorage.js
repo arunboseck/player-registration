@@ -477,19 +477,24 @@ export const updatePlayer = async (id, updatedData) => {
       let photoURL = existingPlayer.photo; // Keep existing by default
 
       if (updatedData.photo && updatedData.photo.startsWith('data:image/')) {
-        // New base64 photo - upload to Storage
-        console.log('📸 Updating photo - uploading to Storage...');
+        // New base64 photo - upload to Cloudinary
+        console.log('📸 Updating photo - uploading to Cloudinary...');
 
-        // Delete old photo if it exists in Storage
+        // Delete old photo if it exists in Firebase Storage (legacy photos)
         if (existingPlayer.photo && existingPlayer.photo.includes('firebasestorage.googleapis.com')) {
           await deletePhotoFromStorage(existingPlayer.photo);
         }
 
-        // Upload new photo
+        // Upload new photo to Cloudinary
         photoURL = await uploadPhotoToStorage(updatedData.photo, id);
-        console.log('✅ Photo updated in Storage');
-      } else if (updatedData.photo && updatedData.photo.includes('firebasestorage.googleapis.com')) {
-        // Already a storage URL
+        console.log('✅ Photo updated in Cloudinary:', photoURL);
+      } else if (updatedData.photo && (
+        updatedData.photo.includes('firebasestorage.googleapis.com') ||
+        updatedData.photo.includes('cloudinary.com') ||
+        updatedData.photo.startsWith('http')
+      )) {
+        // Already a storage URL (Firebase Storage, Cloudinary, or any HTTP URL)
+        console.log('✅ Using existing photo URL:', updatedData.photo.substring(0, 50) + '...');
         photoURL = updatedData.photo;
       } else if (updatedData.photo === null || updatedData.photo === '') {
         // Photo removed
@@ -505,6 +510,7 @@ export const updatePlayer = async (id, updatedData) => {
         photo: photoURL
       };
 
+      console.log('💾 Updating player with photo:', photoURL ? photoURL.substring(0, 50) + '...' : 'null');
       await set(playerRef, updatedPlayer);
       return updatedPlayer;
     }
