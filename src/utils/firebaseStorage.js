@@ -437,11 +437,16 @@ export const addPlayer = async (player) => {
     // Handle photo upload to Storage if base64 photo exists
     let photoURL = null;
     if (player.photo && player.photo.startsWith('data:image/')) {
-      console.log('📸 Converting base64 photo to Storage URL...');
+      console.log('📸 Converting base64 photo to Cloudinary URL...');
       photoURL = await uploadPhotoToStorage(player.photo, playerId);
-      console.log('✅ Photo uploaded to Storage, saving URL instead of base64');
-    } else if (player.photo && player.photo.includes('firebasestorage.googleapis.com')) {
-      // Already a storage URL, keep it
+      console.log('✅ Photo uploaded to Cloudinary, saving URL instead of base64');
+    } else if (player.photo && (player.photo.includes('firebasestorage.googleapis.com') || player.photo.includes('cloudinary.com'))) {
+      // Already a storage URL (Firebase or Cloudinary), keep it
+      console.log('✅ Photo URL already exists:', player.photo.substring(0, 50) + '...');
+      photoURL = player.photo;
+    } else if (player.photo && player.photo.startsWith('http')) {
+      // Any other HTTP URL, keep it
+      console.log('✅ Using provided photo URL:', player.photo.substring(0, 50) + '...');
       photoURL = player.photo;
     }
 
@@ -452,6 +457,7 @@ export const addPlayer = async (player) => {
       createdAt: new Date().toISOString()
     };
 
+    console.log('💾 Saving player to Firebase with photo:', photoURL ? photoURL.substring(0, 50) + '...' : 'null');
     await set(newPlayerRef, newPlayer);
     return newPlayer;
   } catch (error) {
