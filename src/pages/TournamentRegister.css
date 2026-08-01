@@ -1375,7 +1375,48 @@
 }
 
 /* Mobile Responsive */
+@media (max-width: 1024px) {
+  .public-register-content {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    max-height: none;
+  }
+
+  .public-header {
+    padding: 2rem 1.5rem;
+  }
+
+  .public-header h1 {
+    font-size: 2rem;
+  }
+}
+
 @media (max-width: 768px) {
+  .public-register-container {
+    padding: 1rem;
+  }
+
+  .public-register-content {
+    gap: 1rem;
+  }
+
+  .public-header {
+    padding: 1.5rem 1rem;
+  }
+
+  .public-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .public-header p {
+    font-size: 0.9rem;
+  }
+
+  .public-player-form {
+    padding: 1.5rem;
+    max-height: none;
+  }
+
   .search-box-container {
     flex-direction: column;
   }
@@ -1399,5 +1440,99 @@
 
   .btn-quick-join {
     font-size: 1.1rem;
+  }
+
+  .form-header h3 {
+    font-size: 1.5rem;
+  }
+
+  .form-header p {
+    font-size: 0.9rem;
+  }
+
+  /* Form fields */
+  .form-group label {
+    font-size: 0.9rem;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 0.95rem;
+  }
+
+  /* Date of birth inputs */
+  .dob-inputs {
+    gap: 0.5rem;
+  }
+
+  .dob-inputs input,
+  .dob-inputs select {
+    font-size: 0.9rem;
+  }
+
+  /* Buttons */
+  .btn-submit-player,
+  .btn-register-new,
+  .btn-quick-join {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .btn-back-to-search {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .public-register-container {
+    padding: 0.5rem;
+  }
+
+  .public-header {
+    padding: 1.25rem 1rem;
+    border-radius: 16px;
+  }
+
+  .public-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .public-header p {
+    font-size: 0.85rem;
+  }
+
+  .public-player-form {
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+
+  .search-header h3 {
+    font-size: 1.25rem;
+  }
+
+  .form-header h3 {
+    font-size: 1.25rem;
+  }
+
+  /* Mobile-optimized photo upload */
+  .photo-preview-container {
+    max-width: 200px;
+  }
+
+  .player-photo-preview {
+    width: 160px;
+    height: 160px;
+  }
+
+  /* Adjust grid for smaller screens */
+  .dob-inputs {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .dob-inputs .form-group {
+    width: 100%;
   }
 }

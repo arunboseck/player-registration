@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTournamentById, addTournamentRegistration, uploadPhotoToStorage, getPlayerByMobile } from '../utils/firebaseStorage';
+import { getTournamentById, addTournamentRegistration, uploadPhotoToStorage, getPlayerByMobile, addPlayer } from '../utils/firebaseStorage';
 import { ref as dbRef, get } from 'firebase/database';
 import { database } from '../firebase/config';
 import Navigation from '../components/Navigation';
@@ -311,7 +311,28 @@ const TournamentRegister = () => {
         }
       }
 
-      // Add tournament registration with Cloudinary URL
+      // Step 1: Add player to main players list (with Cloudinary URL)
+      console.log('📝 Adding player to main players list...');
+      const playerData = {
+        name: formData.name,
+        mobile: formData.mobile,
+        dateOfBirth: formData.dateOfBirth,
+        bloodGroup: formData.bloodGroup,
+        place: formData.place,
+        position: formData.position,
+        photo: photoURL // Cloudinary URL
+      };
+
+      try {
+        await addPlayer(playerData);
+        console.log('✅ Player added to main list successfully');
+      } catch (playerError) {
+        console.error('❌ Error adding player to main list:', playerError);
+        // Continue anyway - they might already exist
+      }
+
+      // Step 2: Add tournament registration with Cloudinary URL
+      console.log('🏆 Registering player for tournament...');
       const registrationData = {
         ...formData,
         photo: photoURL
