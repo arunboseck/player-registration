@@ -861,9 +861,10 @@
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 1rem;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .tournament-item::before {
@@ -889,23 +890,38 @@
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%);
 }
 
+.tournament-item-info {
+  flex: 1;
+  min-width: 0;
+  overflow: visible;
+}
+
 .tournament-item-info h4 {
   margin: 0 0 0.5rem 0;
   color: #1f2937;
   font-size: 1.15rem;
   font-weight: 700;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.4;
 }
 
 .tournament-location {
   color: #6b7280;
   font-size: 0.9rem;
   margin: 0.25rem 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.5;
 }
 
 .tournament-dates {
   color: #6b7280;
   font-size: 0.9rem;
   margin: 0.25rem 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.5;
 }
 
 .tournament-item-arrow {
@@ -913,6 +929,8 @@
   color: #667eea;
   font-weight: bold;
   transition: all 0.3s ease;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
 }
 
 .tournament-item:hover .tournament-item-arrow {
