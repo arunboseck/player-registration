@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getTournamentById, addTournamentRegistration, uploadPhotoToStorage, getPlayerByMobile, addPlayer } from '../utils/firebaseStorage';
 import { ref as dbRef, get } from 'firebase/database';
@@ -673,8 +674,8 @@ const TournamentRegister = () => {
         </div>
       </div>
 
-      {/* Success Modal - Elegant Lightbox (Outside all containers) */}
-      {success && (
+      {/* Success Modal - Rendered via Portal to document.body */}
+      {success && createPortal(
         <div className="message-lightbox-overlay" onClick={() => setSuccess(false)}>
           <div className="message-lightbox success-lightbox" onClick={(e) => e.stopPropagation()}>
             <div className="lightbox-icon success-icon-circle">
@@ -692,11 +693,12 @@ const TournamentRegister = () => {
               Register Another Player
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* Error Modal - Elegant Lightbox (Outside all containers) */}
-      {error && (
+      {/* Error Modal - Rendered via Portal to document.body */}
+      {error && createPortal(
         <div className="message-lightbox-overlay" onClick={() => setError(false)}>
           <div className="message-lightbox error-lightbox" onClick={(e) => e.stopPropagation()}>
             <div className="lightbox-icon error-icon-circle">
@@ -710,7 +712,8 @@ const TournamentRegister = () => {
               Try Again
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
