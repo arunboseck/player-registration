@@ -476,6 +476,11 @@
   color: white;
 }
 
+.status-past {
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+  color: white;
+}
+
 .description-cell {
   max-width: 300px;
   overflow: hidden;

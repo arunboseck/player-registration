@@ -55,12 +55,48 @@ const Tournaments = () => {
     navigate('/');
   };
 
+  // Calculate actual status based on dates
+  const getActualStatus = (tournament) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day
+
+    const startDate = new Date(tournament.startDate);
+    startDate.setHours(0, 0, 0, 0);
+
+    const endDate = new Date(tournament.endDate);
+    endDate.setHours(23, 59, 59, 999); // End of day
+
+    // If manually set to Cancelled, keep it
+    if (tournament.status === 'Cancelled') {
+      return 'Cancelled';
+    }
+
+    // If end date has passed, it's PAST
+    if (today > endDate) {
+      return 'PAST';
+    }
+
+    // If today is between start and end, it's Ongoing
+    if (today >= startDate && today <= endDate) {
+      return 'Ongoing';
+    }
+
+    // If start date is in the future, it's Upcoming
+    if (today < startDate) {
+      return 'Upcoming';
+    }
+
+    // Default to stored status
+    return tournament.status || 'Upcoming';
+  };
+
   const getStatusClass = (status) => {
     const statusMap = {
       'Upcoming': 'status-upcoming',
       'Ongoing': 'status-ongoing',
       'Completed': 'status-completed',
-      'Cancelled': 'status-cancelled'
+      'Cancelled': 'status-cancelled',
+      'PAST': 'status-past'
     };
     return statusMap[status] || 'status-upcoming';
   };
@@ -123,7 +159,9 @@ const Tournaments = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentTournaments.map((tournament, index) => (
+                  {currentTournaments.map((tournament, index) => {
+                    const actualStatus = getActualStatus(tournament);
+                    return (
                   <tr key={tournament.id}>
                     <td>{indexOfFirstItem + index + 1}</td>
                     <td><strong>{tournament.name}</strong></td>
@@ -131,8 +169,8 @@ const Tournaments = () => {
                     <td>{new Date(tournament.startDate).toLocaleDateString()}</td>
                     <td>{new Date(tournament.endDate).toLocaleDateString()}</td>
                     <td>
-                      <span className={`status-badge ${getStatusClass(tournament.status)}`}>
-                        {tournament.status}
+                      <span className={`status-badge ${getStatusClass(actualStatus)}`}>
+                        {actualStatus}
                       </span>
                     </td>
                     <td>
@@ -184,7 +222,8 @@ const Tournaments = () => {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
