@@ -1594,6 +1594,11 @@
   z-index: 1000000 !important;
 }
 
+/* Warning lightbox - override padding to 30px */
+.message-lightbox.warning-lightbox {
+  padding: 30px !important;
+}
+
 @keyframes lightboxSlideIn {
   from {
     opacity: 0;
