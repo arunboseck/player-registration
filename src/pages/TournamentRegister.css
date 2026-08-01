@@ -4,8 +4,7 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 2rem;
   position: relative;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -656,8 +655,7 @@
     padding: 1rem;
     height: auto;
     min-height: 100vh;
-    overflow-y: auto;
-    align-items: center;
+    align-items: flex-start;
     padding-top: 2rem;
     padding-bottom: 2rem;
   }
