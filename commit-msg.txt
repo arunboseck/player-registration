@@ -1,0 +1,9 @@
+Update navbar-brand h1 CSS styles
+
+Updated .navbar-brand h1 across Dashboard.css, Players.css, and RegisterPlayer.css
+to use white color, proper padding, and prevent gradient effects.
+
+Key changes:
+- color: #fff
+- padding-left: 50px !important
+- -webkit-text-fill-color: inherit
