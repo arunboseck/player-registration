@@ -885,7 +885,6 @@
 
 .tournament-item:hover {
   border-color: #667eea;
-  transform: translateX(8px);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%);
 }
@@ -934,7 +933,7 @@
 }
 
 .tournament-item:hover .tournament-item-arrow {
-  transform: translateX(5px);
+  color: #5568d3;
 }
 
 .no-tournaments {
