@@ -674,7 +674,7 @@ const TournamentRegister = () => {
         </div>
       </div>
 
-      {/* Success Modal - Rendered via Portal to document.body */}
+      {/* Success Modal - Rendered via Portal to #modal-root */}
       {success && createPortal(
         <div className="message-lightbox-overlay" onClick={() => setSuccess(false)}>
           <div className="message-lightbox success-lightbox" onClick={(e) => e.stopPropagation()}>
@@ -694,10 +694,10 @@ const TournamentRegister = () => {
             </button>
           </div>
         </div>,
-        document.body
+        document.getElementById('modal-root')
       )}
 
-      {/* Error Modal - Rendered via Portal to document.body */}
+      {/* Error Modal - Rendered via Portal to #modal-root */}
       {error && createPortal(
         <div className="message-lightbox-overlay" onClick={() => setError(false)}>
           <div className="message-lightbox error-lightbox" onClick={(e) => e.stopPropagation()}>
@@ -713,7 +713,7 @@ const TournamentRegister = () => {
             </button>
           </div>
         </div>,
-        document.body
+        document.getElementById('modal-root')
       )}
     </div>
   );
