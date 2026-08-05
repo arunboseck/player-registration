@@ -803,6 +803,124 @@ export const deleteRegistration = async (tournamentId, registrationId) => {
 };
 
 /**
+ * Sync tournament registrations to main player module
+ * Adds any missing players from tournament registrations to the main players collection
+ * Matches by mobile number to avoid duplicates
+ */
+export const syncTournamentPlayersToMainModule = async (tournamentId) => {
+  try {
+    console.log('🔄 Starting player sync to main module...');
+    const startTime = Date.now();
+
+    // Get all registrations for this tournament
+    const registrationsRef = dbRef(database, `tournament_registrations/${tournamentId}`);
+    const regsSnapshot = await get(registrationsRef);
+
+    if (!regsSnapshot.exists()) {
+      return {
+        success: true,
+        message: 'No registrations found for this tournament',
+        added: 0,
+        skipped: 0,
+        failed: 0,
+        details: []
+      };
+    }
+
+    const registrationsObj = regsSnapshot.val();
+    const registrationIds = Object.keys(registrationsObj);
+
+    let added = 0;
+    let skipped = 0;
+    let failed = 0;
+    const details = [];
+
+    console.log(`📊 Found ${registrationIds.length} registrations to check`);
+
+    // Process each registration
+    for (let i = 0; i < registrationIds.length; i++) {
+      const regId = registrationIds[i];
+      const registration = registrationsObj[regId];
+
+      try {
+        // Check if player already exists in main module by mobile number
+        const existingPlayer = await getPlayerByMobile(registration.mobile);
+
+        if (existingPlayer) {
+          // Player already exists, skip
+          skipped++;
+          details.push({
+            name: registration.name,
+            mobile: registration.mobile,
+            status: 'skipped',
+            reason: 'Already exists in player module'
+          });
+          console.log(`⏭️  [${i + 1}/${registrationIds.length}] Skipped: ${registration.name} (already exists)`);
+        } else {
+          // Player doesn't exist, add to main module
+          console.log(`➕ [${i + 1}/${registrationIds.length}] Adding ${registration.name} to player module...`);
+
+          const playerData = {
+            name: registration.name,
+            mobile: registration.mobile,
+            dateOfBirth: registration.dateOfBirth,
+            bloodGroup: registration.bloodGroup || '',
+            place: registration.place,
+            position: registration.position,
+            photo: registration.photo || ''
+          };
+
+          await addPlayer(playerData);
+          added++;
+          details.push({
+            name: registration.name,
+            mobile: registration.mobile,
+            status: 'added',
+            reason: 'New player added to module'
+          });
+          console.log(`✅ [${i + 1}/${registrationIds.length}] Added: ${registration.name}`);
+        }
+
+      } catch (error) {
+        console.error(`❌ Failed to process ${registration.name}:`, error.message);
+        failed++;
+        details.push({
+          name: registration.name,
+          mobile: registration.mobile,
+          status: 'failed',
+          reason: error.message
+        });
+      }
+    }
+
+    const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+
+    const result = {
+      success: true,
+      total: registrationIds.length,
+      added,
+      skipped,
+      failed,
+      duration: `${duration}s`,
+      details
+    };
+
+    console.log('✅ Sync complete:', result);
+    return result;
+
+  } catch (error) {
+    console.error('❌ Error syncing players to main module:', error);
+    return {
+      success: false,
+      error: error.message,
+      added: 0,
+      skipped: 0,
+      failed: 0
+    };
+  }
+};
+
+/**
  * Sync tournament registration photos with players collection
  * Replaces base64 photos in tournament registrations with Cloudinary URLs from players collection
  * Matches by mobile number

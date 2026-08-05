@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTournamentById, getTournamentRegistrations, deleteRegistration, updateRegistration, syncTournamentPhotosWithPlayers, uploadPhotoToStorage, getPlayerByMobile, updatePlayer } from '../utils/firebaseStorage';
+import { getTournamentById, getTournamentRegistrations, deleteRegistration, updateRegistration, syncTournamentPhotosWithPlayers, syncTournamentPlayersToMainModule, uploadPhotoToStorage, getPlayerByMobile, updatePlayer } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -30,6 +30,8 @@ const TournamentRegistrations = () => {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState(null);
+  const [syncingPlayers, setSyncingPlayers] = useState(false);
+  const [playerSyncResult, setPlayerSyncResult] = useState(null);
   const [photoModal, setPhotoModal] = useState({ show: false, photo: null, name: '' });
 
   useEffect(() => {
@@ -194,6 +196,34 @@ const TournamentRegistrations = () => {
       alert('Error updating registration');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSyncPlayersToModule = async () => {
+    setSyncingPlayers(true);
+    setPlayerSyncResult(null);
+
+    try {
+      const result = await syncTournamentPlayersToMainModule(id);
+      setPlayerSyncResult(result);
+
+      // Auto-hide success message after 5 seconds
+      if (result.success && result.added === 0) {
+        setTimeout(() => {
+          setPlayerSyncResult(null);
+        }, 5000);
+      }
+    } catch (error) {
+      console.error('Error syncing players:', error);
+      setPlayerSyncResult({
+        success: false,
+        error: error.message,
+        added: 0,
+        skipped: 0,
+        failed: 0
+      });
+    } finally {
+      setSyncingPlayers(false);
     }
   };
 
@@ -473,6 +503,23 @@ const TournamentRegistrations = () => {
           </div>
           <div className="header-actions">
             <button
+              onClick={handleSyncPlayersToModule}
+              className="btn-download btn-sync-players"
+              disabled={syncingPlayers}
+              title="Add missing players to main player module"
+            >
+              {syncingPlayers ? (
+                <>
+                  <span className="btn-spinner"></span>
+                  Syncing Players...
+                </>
+              ) : (
+                <>
+                  👥 Sync to Player Module
+                </>
+              )}
+            </button>
+            <button
               onClick={handleSyncPhotos}
               className="btn-download btn-sync"
               disabled={syncing}
@@ -503,6 +550,64 @@ const TournamentRegistrations = () => {
             </span>
           </div>
         </div>
+
+        {/* Player Sync Result Display */}
+        {playerSyncResult && (
+          <div className={`sync-result player-sync-result ${playerSyncResult.success ? 'sync-success' : 'sync-error'}`}>
+            <div className="sync-result-header">
+              <h4>
+                {playerSyncResult.success ?
+                  (playerSyncResult.added > 0 ? '✅ Player Sync Complete!' : 'ℹ️ All Players Already Exist')
+                  : '❌ Sync Failed'}
+              </h4>
+              <button onClick={() => setPlayerSyncResult(null)} className="btn-close-sync">×</button>
+            </div>
+            {playerSyncResult.success ? (
+              <div className="sync-result-body">
+                <div className="sync-stats">
+                  <div className="stat-item stat-success">
+                    <div className="stat-icon">✅</div>
+                    <div className="stat-content">
+                      <div className="stat-number">{playerSyncResult.added}</div>
+                      <div className="stat-label">New Players Added</div>
+                    </div>
+                  </div>
+                  <div className="stat-item stat-info">
+                    <div className="stat-icon">ℹ️</div>
+                    <div className="stat-content">
+                      <div className="stat-number">{playerSyncResult.skipped}</div>
+                      <div className="stat-label">Already Exist</div>
+                    </div>
+                  </div>
+                  {playerSyncResult.failed > 0 && (
+                    <div className="stat-item stat-error">
+                      <div className="stat-icon">❌</div>
+                      <div className="stat-content">
+                        <div className="stat-number">{playerSyncResult.failed}</div>
+                        <div className="stat-label">Failed</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="sync-summary">
+                  <p><strong>Total Processed:</strong> {playerSyncResult.total} players</p>
+                  <p><strong>Duration:</strong> {playerSyncResult.duration}</p>
+                </div>
+                {playerSyncResult.added > 0 && (
+                  <div className="sync-success-message">
+                    <span className="success-icon">🎉</span>
+                    <span>Successfully added {playerSyncResult.added} new player{playerSyncResult.added > 1 ? 's' : ''} to the main player module!</span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="sync-result-body sync-error-body">
+                <div className="error-icon">⚠️</div>
+                <p className="error-message">{playerSyncResult.error}</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Sync Result Display */}
         {syncResult && (
