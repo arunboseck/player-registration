@@ -314,6 +314,7 @@ const TournamentRegister = () => {
       }
 
       // Step 1: Add player to main players list (with Cloudinary URL)
+      // addPlayer now handles duplicate checking internally
       console.log('📝 Adding player to main players list...');
       const playerData = {
         name: formData.name,
@@ -325,13 +326,8 @@ const TournamentRegister = () => {
         photo: photoURL // Cloudinary URL
       };
 
-      try {
-        await addPlayer(playerData);
-        console.log('✅ Player added to main list successfully');
-      } catch (playerError) {
-        console.error('❌ Error adding player to main list:', playerError);
-        // Continue anyway - they might already exist
-      }
+      await addPlayer(playerData);
+      console.log('✅ Player check/add complete');
 
       // Step 2: Add tournament registration with Cloudinary URL
       console.log('🏆 Registering player for tournament...');

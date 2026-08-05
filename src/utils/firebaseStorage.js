@@ -430,6 +430,14 @@ export const searchPlayers = async (searchTerm) => {
 };
 export const addPlayer = async (player) => {
   try {
+    // Check if player already exists by mobile number to prevent duplicates
+    const existingPlayer = await getPlayerByMobile(player.mobile);
+
+    if (existingPlayer) {
+      console.log('⏭️  Player already exists in main module:', existingPlayer.name);
+      return existingPlayer; // Return existing player instead of creating duplicate
+    }
+
     const playersRef = dbRef(database, 'players');
     const newPlayerRef = push(playersRef);
     const playerId = newPlayerRef.key;
@@ -457,8 +465,9 @@ export const addPlayer = async (player) => {
       createdAt: new Date().toISOString()
     };
 
-    console.log('💾 Saving player to Firebase with photo:', photoURL ? photoURL.substring(0, 50) + '...' : 'null');
+    console.log('💾 Saving new player to Firebase with photo:', photoURL ? photoURL.substring(0, 50) + '...' : 'null');
     await set(newPlayerRef, newPlayer);
+    console.log('✅ New player added to main module:', newPlayer.name);
     return newPlayer;
   } catch (error) {
     console.error('Error adding player:', error);
@@ -657,28 +666,20 @@ export const addTournamentRegistration = async (tournamentId, playerData) => {
 
     // Unique key check above is sufficient - removed redundant query for performance
 
-    // Check if player exists in Players module
-    const existingPlayer = await getPlayerByMobile(playerData.mobile);
+    // Safety check: Ensure player exists in Players module
+    // addPlayer now handles duplicate checking internally, so we can call it safely
+    const newPlayer = {
+      name: playerData.name,
+      mobile: playerData.mobile,
+      dateOfBirth: playerData.dateOfBirth,
+      bloodGroup: playerData.bloodGroup,
+      place: playerData.place,
+      position: playerData.position,
+      photo: playerData.photo
+    };
 
-    let playerMessage = '';
-
-    if (!existingPlayer) {
-      // Player doesn't exist in Players module - add them
-      const newPlayer = {
-        name: playerData.name,
-        mobile: playerData.mobile,
-        dateOfBirth: playerData.dateOfBirth,
-        bloodGroup: playerData.bloodGroup,
-        place: playerData.place,
-        position: playerData.position,
-        photo: playerData.photo
-      };
-
-      await addPlayer(newPlayer);
-      playerMessage = ' Player has been added to the system.';
-    } else {
-      playerMessage = ' Player already exists in the system.';
-    }
+    const addedPlayer = await addPlayer(newPlayer);
+    const playerMessage = addedPlayer.createdAt ? ' Player has been added to the system.' : ' Player already exists in the system.';
 
     // Add tournament registration
     const registrationsRef = dbRef(database, `tournament_registrations/${tournamentId}`);
