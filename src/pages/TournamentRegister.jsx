@@ -441,8 +441,115 @@ const TournamentRegister = () => {
           <p style={{marginTop: '1rem'}}>{tournament.description}</p>
         </div>
 
-        <div className="public-player-form">
-          <h2>Register for {tournament.name}</h2>
+        {/* Main Layout with Organizer Sidebar and Registration Form */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '300px 1fr',
+          gap: '2rem',
+          marginTop: '2rem',
+          alignItems: 'start'
+        }}>
+          {/* Organizer Details Sidebar - Left */}
+          {tournament.organizerName && (
+            <div style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              borderRadius: '16px',
+              padding: '2rem',
+              color: 'white',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+              position: 'sticky',
+              top: '2rem'
+            }}>
+              <h3 style={{
+                fontSize: '1.3rem',
+                marginBottom: '1.5rem',
+                fontWeight: '600',
+                textAlign: 'center',
+                borderBottom: '2px solid rgba(255,255,255,0.3)',
+                paddingBottom: '1rem'
+              }}>
+                Tournament Organizer
+              </h3>
+
+              {tournament.organizerPhoto && (
+                <div style={{
+                  textAlign: 'center',
+                  marginBottom: '1.5rem'
+                }}>
+                  <img
+                    src={tournament.organizerPhoto}
+                    alt={tournament.organizerName}
+                    style={{
+                      width: '120px',
+                      height: '120px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '4px solid rgba(255,255,255,0.9)',
+                      boxShadow: '0 5px 20px rgba(0,0,0,0.2)'
+                    }}
+                  />
+                </div>
+              )}
+
+              <div style={{
+                background: 'rgba(255,255,255,0.15)',
+                borderRadius: '12px',
+                padding: '1.25rem',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <div style={{ marginBottom: '1rem' }}>
+                  <div style={{
+                    fontSize: '0.85rem',
+                    opacity: '0.9',
+                    marginBottom: '0.4rem',
+                    fontWeight: '500'
+                  }}>
+                    Name
+                  </div>
+                  <div style={{
+                    fontSize: '1.1rem',
+                    fontWeight: '600'
+                  }}>
+                    {tournament.organizerName}
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{
+                    fontSize: '0.85rem',
+                    opacity: '0.9',
+                    marginBottom: '0.4rem',
+                    fontWeight: '500'
+                  }}>
+                    Contact
+                  </div>
+                  <div style={{
+                    fontSize: '1.1rem',
+                    fontWeight: '600',
+                    letterSpacing: '0.5px'
+                  }}>
+                    📞 {tournament.organizerMobile}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{
+                marginTop: '1.5rem',
+                padding: '1rem',
+                background: 'rgba(255,255,255,0.1)',
+                borderRadius: '8px',
+                fontSize: '0.85rem',
+                lineHeight: '1.5',
+                textAlign: 'center'
+              }}>
+                For queries, contact the organizer
+              </div>
+            </div>
+          )}
+
+          {/* Registration Form - Right */}
+          <div className="public-player-form">
+            <h2>Register for {tournament.name}</h2>
 
           {/* Search Player Section */}
           {showSearch && !showRegisterForm && (
@@ -627,6 +734,7 @@ const TournamentRegister = () => {
               </form>
             </div>
           )}
+          </div>
         </div>
       </div>
 
