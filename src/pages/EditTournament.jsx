@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getTournamentById, updateTournament } from '../utils/firebaseStorage';
+import { getTournamentById, updateTournament, uploadPhotoToStorage } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import Navigation from '../components/Navigation';
 import './RegisterPlayer.css';
@@ -18,15 +18,23 @@ const EditTournament = () => {
     endDate: '',
     status: 'Upcoming',
     description: '',
+    organizerName: '',
+    organizerMobile: '',
+    organizerPhoto: '',
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const loadTournament = async () => {
       const tournament = await getTournamentById(id);
       if (tournament) {
         setFormData(tournament);
+        if (tournament.organizerPhoto) {
+          setPhotoPreview(tournament.organizerPhoto);
+        }
         setLoading(false);
       } else {
         alert('Tournament not found!');
