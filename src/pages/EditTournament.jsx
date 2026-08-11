@@ -44,6 +44,26 @@ const EditTournament = () => {
     }
   };
 
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5000000) { // 5MB limit
+        setErrors((prev) => ({ ...prev, organizerPhoto: 'Photo size should be less than 5MB' }));
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({ ...prev, organizerPhoto: reader.result }));
+        setPhotoPreview(reader.result);
+        if (errors.organizerPhoto) {
+          setErrors((prev) => ({ ...prev, organizerPhoto: '' }));
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'Tournament name is required';
