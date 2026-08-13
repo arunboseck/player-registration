@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getTournaments, deleteTournament } from '../utils/firebaseStorage';
+import { getTournaments, deleteTournament, getTournamentRegistrations } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
 import { useModal } from '../hooks/useModal';
@@ -15,6 +15,7 @@ const Tournaments = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10); // 10 tournaments per page
+  const [registrationCounts, setRegistrationCounts] = useState({});
   const { modalState, hideModal, showConfirm, showSuccess } = useModal();
 
   useEffect(() => {
@@ -25,6 +26,17 @@ const Tournaments = () => {
     setLoading(true);
     const allTournaments = await getTournaments();
     setTournaments(allTournaments);
+
+    // Load registration counts for all tournaments
+    const counts = {};
+    await Promise.all(
+      allTournaments.map(async (tournament) => {
+        const registrations = await getTournamentRegistrations(tournament.id);
+        counts[tournament.id] = registrations.length;
+      })
+    );
+    setRegistrationCounts(counts);
+
     setLoading(false);
   };
 
@@ -154,6 +166,7 @@ const Tournaments = () => {
                     <th>Location</th>
                     <th>Start Date</th>
                     <th>End Date</th>
+                    <th>Players</th>
                     <th>Status</th>
                     <th>Actions</th>
                   </tr>
@@ -168,6 +181,11 @@ const Tournaments = () => {
                     <td>{tournament.location}</td>
                     <td>{new Date(tournament.startDate).toLocaleDateString()}</td>
                     <td>{new Date(tournament.endDate).toLocaleDateString()}</td>
+                    <td>
+                      <span className="player-count-badge">
+                        {registrationCounts[tournament.id] || 0}
+                      </span>
+                    </td>
                     <td>
                       <span className={`status-badge ${getStatusClass(actualStatus)}`}>
                         {actualStatus}
