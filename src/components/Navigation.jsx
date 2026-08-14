@@ -19,17 +19,12 @@ const Navigation = () => {
     navigate('/');
   };
 
-  const handleSidebarOpen = () => {
-    console.log('Opening sidebar');
-    setSidebarOpen(true);
-  };
-
   return (
     <>
       {!sidebarOpen && (
         <button
           className="hamburger-menu-btn"
-          onClick={handleSidebarOpen}
+          onClick={() => setSidebarOpen(true)}
         >
           <div className="hamburger-icon">
             <span></span>

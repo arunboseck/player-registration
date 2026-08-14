@@ -4,7 +4,6 @@ import { getTournaments, deleteTournament, getTournamentRegistrations } from '..
 import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
 import { useModal } from '../hooks/useModal';
-import Navigation from '../components/Navigation';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './Players.css';
 
@@ -121,7 +120,6 @@ const Tournaments = () => {
 
   return (
     <div className="players-container">
-      <Navigation />
       <nav className="navbar">
         <div className="navbar-brand">
           <h1>Cricket Player Management</h1>

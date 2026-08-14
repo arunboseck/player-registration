@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getPlayers, updatePlayer } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
-import Navigation from '../components/Navigation';
 import './RegisterPlayer.css';
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -164,7 +163,6 @@ const EditPlayer = () => {
 
   return (
     <div className="register-container">
-      <Navigation />
       <nav className="navbar">
         <div className="navbar-brand">
           <h1>Cricket Player Management</h1>
