@@ -404,6 +404,19 @@
   50% { opacity: 0.6; }
 }
 
+/* Pagination Info */
+.pagination-info {
+  margin-bottom: 1.5rem;
+  padding: 0;
+}
+
+.pagination-info p {
+  color: #6b7280;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin: 0;
+}
+
 .table-container {
   background: white;
   border-radius: 20px;
