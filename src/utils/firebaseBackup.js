@@ -1,5 +1,6 @@
 import { ref as dbRef, get, set } from 'firebase/database';
-import { database } from '../firebase/config';
+import { ref as storageRef, uploadBytes, listAll, getDownloadURL, deleteObject, getMetadata } from 'firebase/storage';
+import { database, storage } from '../firebase/config';
 import { getPlayers, getTournaments, getTournamentRegistrations } from './firebaseStorage';
 
 /**
@@ -99,6 +100,154 @@ export const downloadBackup = (backup, filename = null) => {
   URL.revokeObjectURL(url);
 
   console.log('📥 Backup downloaded:', finalFilename);
+};
+
+/**
+ * Save backup to Firebase Storage
+ */
+export const saveBackupToStorage = async (backup) => {
+  try {
+    console.log('💾 Saving backup to Firebase Storage...');
+
+    const filename = `cricket_db_backup_${backup.timestamp}.json`;
+    const backupRef = storageRef(storage, `backups/${filename}`);
+
+    const dataStr = JSON.stringify(backup, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+
+    // Upload with metadata
+    const metadata = {
+      contentType: 'application/json',
+      customMetadata: {
+        totalPlayers: backup.metadata.totalPlayers.toString(),
+        totalTournaments: backup.metadata.totalTournaments.toString(),
+        totalRegistrations: backup.metadata.totalRegistrations.toString(),
+        exportedAt: backup.exported_at,
+        timestamp: backup.timestamp
+      }
+    };
+
+    await uploadBytes(backupRef, dataBlob, metadata);
+
+    console.log('✅ Backup saved to Firebase Storage:', filename);
+    return { success: true, filename };
+  } catch (error) {
+    console.error('❌ Error saving backup to storage:', error);
+    throw new Error('Failed to save backup to Firebase Storage: ' + error.message);
+  }
+};
+
+/**
+ * List all backups from Firebase Storage
+ */
+export const listBackupsFromStorage = async () => {
+  try {
+    console.log('📋 Fetching backup list from Firebase Storage...');
+
+    const backupsRef = storageRef(storage, 'backups/');
+    const result = await listAll(backupsRef);
+
+    const backups = await Promise.all(
+      result.items.map(async (itemRef) => {
+        const metadata = await getMetadata(itemRef);
+        const url = await getDownloadURL(itemRef);
+
+        return {
+          name: itemRef.name,
+          fullPath: itemRef.fullPath,
+          downloadUrl: url,
+          size: metadata.size,
+          created: metadata.timeCreated,
+          updated: metadata.updated,
+          totalPlayers: metadata.customMetadata?.totalPlayers || 'N/A',
+          totalTournaments: metadata.customMetadata?.totalTournaments || 'N/A',
+          totalRegistrations: metadata.customMetadata?.totalRegistrations || 'N/A',
+          exportedAt: metadata.customMetadata?.exportedAt || metadata.timeCreated,
+          timestamp: metadata.customMetadata?.timestamp || itemRef.name.replace('cricket_db_backup_', '').replace('.json', '')
+        };
+      })
+    );
+
+    // Sort by created date (newest first)
+    backups.sort((a, b) => new Date(b.created) - new Date(a.created));
+
+    console.log(`✅ Found ${backups.length} backups in Firebase Storage`);
+    return backups;
+  } catch (error) {
+    console.error('❌ Error listing backups:', error);
+    throw new Error('Failed to list backups from Firebase Storage: ' + error.message);
+  }
+};
+
+/**
+ * Delete a backup from Firebase Storage
+ */
+export const deleteBackupFromStorage = async (filename) => {
+  try {
+    console.log('🗑️ Deleting backup from Firebase Storage:', filename);
+
+    const backupRef = storageRef(storage, `backups/${filename}`);
+    await deleteObject(backupRef);
+
+    console.log('✅ Backup deleted:', filename);
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Error deleting backup:', error);
+    throw new Error('Failed to delete backup: ' + error.message);
+  }
+};
+
+/**
+ * Download a backup from Firebase Storage URL
+ */
+export const downloadBackupFromStorage = async (url, filename) => {
+  try {
+    console.log('📥 Downloading backup from Firebase Storage...');
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    const dataStr = JSON.stringify(data, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+
+    const downloadUrl = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(downloadUrl);
+
+    console.log('✅ Backup downloaded:', filename);
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Error downloading backup:', error);
+    throw new Error('Failed to download backup: ' + error.message);
+  }
+};
+
+/**
+ * Load a backup from Firebase Storage for restore
+ */
+export const loadBackupFromStorage = async (url) => {
+  try {
+    console.log('📤 Loading backup from Firebase Storage...');
+
+    const response = await fetch(url);
+    const backup = await response.json();
+
+    const validation = validateBackup(backup);
+    if (!validation.valid) {
+      throw new Error('Invalid backup file: ' + validation.errors.join(', '));
+    }
+
+    console.log('✅ Backup loaded successfully');
+    return backup;
+  } catch (error) {
+    console.error('❌ Error loading backup:', error);
+    throw new Error('Failed to load backup: ' + error.message);
+  }
 };
 
 /**

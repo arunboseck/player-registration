@@ -2,7 +2,18 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getPlayers, getTournaments, getTournamentRegistrations } from '../utils/firebaseStorage';
-import { exportDatabase, downloadBackup, validateBackup, getBackupStats, importDatabase } from '../utils/firebaseBackup';
+import {
+  exportDatabase,
+  downloadBackup,
+  validateBackup,
+  getBackupStats,
+  importDatabase,
+  saveBackupToStorage,
+  listBackupsFromStorage,
+  deleteBackupFromStorage,
+  downloadBackupFromStorage,
+  loadBackupFromStorage
+} from '../utils/firebaseBackup';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Modal from '../components/Modal';
 import { useModal } from '../hooks/useModal';
@@ -18,6 +29,9 @@ const Settings = () => {
   const [importing, setImporting] = useState(false);
   const [backupPreview, setBackupPreview] = useState(null);
   const [uploadedBackup, setUploadedBackup] = useState(null);
+  const [backupList, setBackupList] = useState([]);
+  const [loadingBackups, setLoadingBackups] = useState(false);
+  const [deletingBackup, setDeletingBackup] = useState(null);
   const { modalState, hideModal, showSuccess, showError, showConfirm } = useModal();
 
   const handleLogout = async () => {
@@ -29,6 +43,7 @@ const Settings = () => {
 
   useEffect(() => {
     loadDatabaseStats();
+    loadBackupList();
   }, []);
 
   const loadDatabaseStats = async () => {
@@ -55,23 +70,34 @@ const Settings = () => {
     }
   };
 
+  const loadBackupList = async () => {
+    try {
+      setLoadingBackups(true);
+      const backups = await listBackupsFromStorage();
+      setBackupList(backups);
+    } catch (error) {
+      console.error('Error loading backup list:', error);
+      // Don't show error modal, just log it
+    } finally {
+      setLoadingBackups(false);
+    }
+  };
+
   const handleExportDatabase = async () => {
     try {
       setExporting(true);
       const backup = await exportDatabase();
-      downloadBackup(backup);
-      
-      // Store backup info in localStorage
-      const backupHistory = JSON.parse(localStorage.getItem('backupHistory') || '[]');
-      backupHistory.unshift({
-        timestamp: backup.timestamp,
-        exported_at: backup.exported_at,
-        stats: backup.metadata
-      });
-      // Keep only last 10 backups in history
-      localStorage.setItem('backupHistory', JSON.stringify(backupHistory.slice(0, 10)));
 
-      showSuccess('Database Exported Successfully!', `Backup downloaded with ${backup.metadata.totalPlayers} players, ${backup.metadata.totalTournaments} tournaments, and ${backup.metadata.totalRegistrations} registrations.`);
+      // Save to Firebase Storage
+      await saveBackupToStorage(backup);
+
+      // Also download to user's device
+      downloadBackup(backup);
+
+      // Refresh backup list
+      await loadBackupList();
+
+      showSuccess('Database Exported Successfully!', `Backup saved to Firebase Storage and downloaded. ${backup.metadata.totalPlayers} players, ${backup.metadata.totalTournaments} tournaments, ${backup.metadata.totalRegistrations} registrations.`);
     } catch (error) {
       console.error('Export error:', error);
       showError('Export Failed', error.message);
@@ -127,6 +153,7 @@ const Settings = () => {
 
       // Create auto-backup before restore
       const currentBackup = await exportDatabase();
+      await saveBackupToStorage(currentBackup);
       downloadBackup(currentBackup, `auto_backup_before_restore_${new Date().toISOString().slice(0, 10)}.json`);
 
       // Perform restore
@@ -134,8 +161,9 @@ const Settings = () => {
 
       showSuccess('Database Restored Successfully!', `Imported ${result.imported.players} players, ${result.imported.tournaments} tournaments, and ${result.imported.registrations} registrations in ${result.duration}.`);
 
-      // Reload stats
+      // Reload stats and backup list
       loadDatabaseStats();
+      loadBackupList();
       setUploadedBackup(null);
       setBackupPreview(null);
     } catch (error) {
@@ -143,6 +171,73 @@ const Settings = () => {
       showError('Restore Failed', error.message);
     } finally {
       setImporting(false);
+    }
+  };
+
+  const handleDownloadFromStorage = async (backup) => {
+    try {
+      await downloadBackupFromStorage(backup.downloadUrl, backup.name);
+      showSuccess('Backup Downloaded', `Downloaded ${backup.name} to your device.`);
+    } catch (error) {
+      console.error('Download error:', error);
+      showError('Download Failed', error.message);
+    }
+  };
+
+  const handleDeleteBackup = async (backup) => {
+    const confirmed = await showConfirm(
+      'Delete Backup?',
+      `Are you sure you want to delete "${backup.name}"? This action cannot be undone.`
+    );
+
+    if (confirmed) {
+      try {
+        setDeletingBackup(backup.name);
+        await deleteBackupFromStorage(backup.name);
+        await loadBackupList();
+        showSuccess('Backup Deleted', `Successfully deleted ${backup.name}`);
+      } catch (error) {
+        console.error('Delete error:', error);
+        showError('Delete Failed', error.message);
+      } finally {
+        setDeletingBackup(null);
+      }
+    }
+  };
+
+  const handleRestoreFromStorage = async (backup) => {
+    const confirmed = await showConfirm(
+      'Restore from Backup?',
+      `This will restore the database from "${backup.name}" (${backup.totalPlayers} players, ${backup.totalTournaments} tournaments, ${backup.totalRegistrations} registrations). An auto-backup will be created first. Continue?`
+    );
+
+    if (confirmed) {
+      try {
+        setImporting(true);
+        hideModal();
+
+        // Load backup from storage
+        const backupData = await loadBackupFromStorage(backup.downloadUrl);
+
+        // Create auto-backup before restore
+        const currentBackup = await exportDatabase();
+        await saveBackupToStorage(currentBackup);
+        downloadBackup(currentBackup, `auto_backup_before_restore_${new Date().toISOString().slice(0, 10)}.json`);
+
+        // Perform restore
+        const result = await importDatabase(backupData, { mode: 'merge' });
+
+        showSuccess('Database Restored Successfully!', `Imported ${result.imported.players} players, ${result.imported.tournaments} tournaments, and ${result.imported.registrations} registrations in ${result.duration}.`);
+
+        // Reload stats and backup list
+        loadDatabaseStats();
+        loadBackupList();
+      } catch (error) {
+        console.error('Restore error:', error);
+        showError('Restore Failed', error.message);
+      } finally {
+        setImporting(false);
+      }
     }
   };
 
@@ -312,6 +407,85 @@ const Settings = () => {
           </div>
         </div>
 
+        {/* Backup History Section */}
+        <div className="settings-section">
+          <h2 className="section-title">📋 Backup History</h2>
+          {loadingBackups ? (
+            <div className="backup-list-loading">
+              <LoadingSpinner />
+              <p>Loading backups...</p>
+            </div>
+          ) : backupList.length === 0 ? (
+            <div className="no-backups">
+              <p>📦 No backups found in Firebase Storage</p>
+              <p className="no-backups-hint">Create your first backup using the "Export Database" button above</p>
+            </div>
+          ) : (
+            <div className="backup-list">
+              {backupList.map((backup) => (
+                <div key={backup.name} className="backup-item">
+                  <div className="backup-item-header">
+                    <div className="backup-item-icon">💾</div>
+                    <div className="backup-item-info">
+                      <h3 className="backup-item-name">{backup.name}</h3>
+                      <p className="backup-item-date">
+                        Created: {new Date(backup.created).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="backup-item-stats">
+                    <div className="backup-stat">
+                      <span className="backup-stat-icon">👥</span>
+                      <span className="backup-stat-value">{backup.totalPlayers}</span>
+                      <span className="backup-stat-label">Players</span>
+                    </div>
+                    <div className="backup-stat">
+                      <span className="backup-stat-icon">🏆</span>
+                      <span className="backup-stat-value">{backup.totalTournaments}</span>
+                      <span className="backup-stat-label">Tournaments</span>
+                    </div>
+                    <div className="backup-stat">
+                      <span className="backup-stat-icon">📝</span>
+                      <span className="backup-stat-value">{backup.totalRegistrations}</span>
+                      <span className="backup-stat-label">Registrations</span>
+                    </div>
+                    <div className="backup-stat">
+                      <span className="backup-stat-icon">💿</span>
+                      <span className="backup-stat-value">{(backup.size / 1024).toFixed(1)}</span>
+                      <span className="backup-stat-label">KB</span>
+                    </div>
+                  </div>
+                  <div className="backup-item-actions">
+                    <button
+                      className="btn-backup-action btn-download-backup"
+                      onClick={() => handleDownloadFromStorage(backup)}
+                      title="Download to your device"
+                    >
+                      📥 Download
+                    </button>
+                    <button
+                      className="btn-backup-action btn-restore-backup"
+                      onClick={() => handleRestoreFromStorage(backup)}
+                      disabled={importing}
+                      title="Restore this backup"
+                    >
+                      {importing ? '⏳ Restoring...' : '♻️ Restore'}
+                    </button>
+                    <button
+                      className="btn-backup-action btn-delete-backup"
+                      onClick={() => handleDeleteBackup(backup)}
+                      disabled={deletingBackup === backup.name}
+                      title="Delete this backup"
+                    >
+                      {deletingBackup === backup.name ? '⏳ Deleting...' : '🗑️ Delete'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Warning Notice */}
         <div className="settings-section">
           <div className="warning-notice">
@@ -319,10 +493,11 @@ const Settings = () => {
             <div className="warning-content">
               <h3>Important Notes</h3>
               <ul>
-                <li>Always create a backup before making major changes to your database</li>
-                <li>Backup files contain all your data including photos (as URLs)</li>
+                <li>Backups are automatically saved to Firebase Storage when you export</li>
+                <li>All backups are stored in your Firebase project and persist across sessions</li>
                 <li>An automatic backup is created before every restore operation</li>
-                <li>Store your backup files in a safe location</li>
+                <li>You can download any backup from the list to your device</li>
+                <li>Deleted backups cannot be recovered - use with caution</li>
               </ul>
             </div>
           </div>
