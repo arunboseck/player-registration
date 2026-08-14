@@ -19,18 +19,25 @@ const Navigation = () => {
     navigate('/');
   };
 
+  const handleSidebarOpen = () => {
+    console.log('Opening sidebar');
+    setSidebarOpen(true);
+  };
+
   return (
     <>
-      <button
-        className={'hamburger-menu-btn' + (sidebarOpen ? ' hamburger-hidden' : '')}
-        onClick={() => setSidebarOpen(true)}
-      >
-        <div className="hamburger-icon">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-      </button>
+      {!sidebarOpen && (
+        <button
+          className="hamburger-menu-btn"
+          onClick={handleSidebarOpen}
+        >
+          <div className="hamburger-icon">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </button>
+      )}
 
       <div className={'sidebar-menu' + (sidebarOpen ? ' sidebar-open' : '')}>
         <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>
