@@ -21,7 +21,10 @@ const Navigation = () => {
 
   return (
     <>
-      <button className="hamburger-menu-btn" onClick={() => setSidebarOpen(true)}>
+      <button
+        className={'hamburger-menu-btn' + (sidebarOpen ? ' hamburger-hidden' : '')}
+        onClick={() => setSidebarOpen(true)}
+      >
         <div className="hamburger-icon">
           <span></span>
           <span></span>

@@ -3,7 +3,7 @@
   position: fixed;
   top: 20px;
   left: 20px;
-  z-index: 10000;
+  z-index: 9998;
   background: rgba(99, 102, 241, 0.9);
   border: none;
   width: 50px;
@@ -21,6 +21,13 @@
   background: rgba(99, 102, 241, 1);
   transform: scale(1.05);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Hide hamburger when sidebar is open */
+.hamburger-menu-btn.hamburger-hidden {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
 }
 
 .hamburger-icon {
