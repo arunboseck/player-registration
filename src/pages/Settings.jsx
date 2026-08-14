@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { getPlayers, getTournaments, getTournamentRegistrations } from '../utils/firebaseStorage';
 import { exportDatabase, downloadBackup, validateBackup, getBackupStats, importDatabase } from '../utils/firebaseBackup';
-import Navigation from '../components/Navigation';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Modal from '../components/Modal';
 import { useModal } from '../hooks/useModal';
 import './Settings.css';
+import './Players.css';
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [dbStats, setDbStats] = useState(null);
   const [exporting, setExporting] = useState(false);
@@ -17,6 +19,13 @@ const Settings = () => {
   const [backupPreview, setBackupPreview] = useState(null);
   const [uploadedBackup, setUploadedBackup] = useState(null);
   const { modalState, hideModal, showSuccess, showError, showConfirm } = useModal();
+
+  const handleLogout = async () => {
+    if (window.confirm('Are you sure you want to logout?')) {
+      await logout();
+      navigate('/');
+    }
+  };
 
   useEffect(() => {
     loadDatabaseStats();
@@ -139,21 +148,48 @@ const Settings = () => {
 
   if (loading) {
     return (
-      <LoadingSpinner
-        message="Loading Settings"
-        subMessage="Please wait while we load database statistics..."
-      />
+      <div className="players-container">
+        <nav className="navbar">
+          <div className="navbar-brand">
+            <h1>Cricket Player Management</h1>
+          </div>
+          <div className="navbar-actions">
+            <button onClick={() => navigate('/dashboard')} className="btn-nav">
+              Dashboard
+            </button>
+            <button onClick={handleLogout} className="btn-logout">
+              Logout
+            </button>
+          </div>
+        </nav>
+        <div className="players-content">
+          <LoadingSpinner />
+          <p>Loading settings...</p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="page-container">
-      <Navigation />
-      
-      <div className="content-wrapper">
-        <div className="page-header">
-          <h1>⚙️ Settings</h1>
-          <p className="page-subtitle">Manage database backups and system settings</p>
+    <div className="players-container">
+      <nav className="navbar">
+        <div className="navbar-brand">
+          <h1>Cricket Player Management</h1>
+        </div>
+        <div className="navbar-actions">
+          <button onClick={() => navigate('/dashboard')} className="btn-nav">
+            Dashboard
+          </button>
+          <button onClick={handleLogout} className="btn-logout">
+            Logout
+          </button>
+        </div>
+      </nav>
+
+      <div className="players-content">
+        <div className="players-header">
+          <h2>⚙️ Settings</h2>
+          <p className="header-subtitle">Manage database backups and system settings</p>
         </div>
 
         {/* Database Statistics */}

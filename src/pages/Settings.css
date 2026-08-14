@@ -1,5 +1,13 @@
 /* Settings Page Styles */
 
+.header-subtitle {
+  font-size: 0.95rem;
+  color: #6b7280;
+  font-weight: 400;
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+}
+
 .settings-section {
   background: white;
   border-radius: 16px;
