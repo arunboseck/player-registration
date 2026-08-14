@@ -8,6 +8,17 @@
   margin-bottom: 0;
 }
 
+.server-status-warning {
+  margin-top: 1rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-left: 4px solid #f59e0b;
+  border-radius: 8px;
+  color: #92400e;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
 .settings-section {
   background: white;
   border-radius: 16px;

@@ -7,13 +7,16 @@ import {
   downloadBackup,
   validateBackup,
   getBackupStats,
-  importDatabase,
-  saveBackupToStorage,
-  listBackupsFromStorage,
-  deleteBackupFromStorage,
-  downloadBackupFromStorage,
-  loadBackupFromStorage
+  importDatabase
 } from '../utils/firebaseBackup';
+import {
+  saveBackupToServer,
+  listBackupsFromServer,
+  downloadBackupFromServer,
+  loadBackupFromServer,
+  deleteBackupFromServer,
+  checkServerHealth
+} from '../utils/backupApi';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Modal from '../components/Modal';
 import { useModal } from '../hooks/useModal';
@@ -32,6 +35,7 @@ const Settings = () => {
   const [backupList, setBackupList] = useState([]);
   const [loadingBackups, setLoadingBackups] = useState(false);
   const [deletingBackup, setDeletingBackup] = useState(null);
+  const [serverOnline, setServerOnline] = useState(true);
   const { modalState, hideModal, showSuccess, showError, showConfirm } = useModal();
 
   const handleLogout = async () => {
@@ -43,8 +47,17 @@ const Settings = () => {
 
   useEffect(() => {
     loadDatabaseStats();
+    checkServer();
     loadBackupList();
   }, []);
+
+  const checkServer = async () => {
+    const isOnline = await checkServerHealth();
+    setServerOnline(isOnline);
+    if (!isOnline) {
+      console.warn('⚠️ Backup server is offline. Please start the backend server.');
+    }
+  };
 
   const loadDatabaseStats = async () => {
     try {
@@ -73,11 +86,12 @@ const Settings = () => {
   const loadBackupList = async () => {
     try {
       setLoadingBackups(true);
-      const backups = await listBackupsFromStorage();
+      const backups = await listBackupsFromServer();
       setBackupList(backups);
     } catch (error) {
       console.error('Error loading backup list:', error);
       // Don't show error modal, just log it
+      setBackupList([]);
     } finally {
       setLoadingBackups(false);
     }
@@ -88,8 +102,8 @@ const Settings = () => {
       setExporting(true);
       const backup = await exportDatabase();
 
-      // Save to Firebase Storage
-      await saveBackupToStorage(backup);
+      // Save to backend server
+      await saveBackupToServer(backup);
 
       // Also download to user's device
       downloadBackup(backup);
@@ -97,7 +111,7 @@ const Settings = () => {
       // Refresh backup list
       await loadBackupList();
 
-      showSuccess('Database Exported Successfully!', `Backup saved to Firebase Storage and downloaded. ${backup.metadata.totalPlayers} players, ${backup.metadata.totalTournaments} tournaments, ${backup.metadata.totalRegistrations} registrations.`);
+      showSuccess('Database Exported Successfully!', `Backup saved to server and downloaded to your device. ${backup.metadata.totalPlayers} players, ${backup.metadata.totalTournaments} tournaments, ${backup.metadata.totalRegistrations} registrations.`);
     } catch (error) {
       console.error('Export error:', error);
       showError('Export Failed', error.message);
@@ -153,7 +167,7 @@ const Settings = () => {
 
       // Create auto-backup before restore
       const currentBackup = await exportDatabase();
-      await saveBackupToStorage(currentBackup);
+      await saveBackupToServer(currentBackup);
       downloadBackup(currentBackup, `auto_backup_before_restore_${new Date().toISOString().slice(0, 10)}.json`);
 
       // Perform restore
@@ -174,9 +188,9 @@ const Settings = () => {
     }
   };
 
-  const handleDownloadFromStorage = async (backup) => {
+  const handleDownloadFromServer = async (backup) => {
     try {
-      await downloadBackupFromStorage(backup.downloadUrl, backup.name);
+      await downloadBackupFromServer(backup.name);
       showSuccess('Backup Downloaded', `Downloaded ${backup.name} to your device.`);
     } catch (error) {
       console.error('Download error:', error);
@@ -193,7 +207,7 @@ const Settings = () => {
     if (confirmed) {
       try {
         setDeletingBackup(backup.name);
-        await deleteBackupFromStorage(backup.name);
+        await deleteBackupFromServer(backup.name);
         await loadBackupList();
         showSuccess('Backup Deleted', `Successfully deleted ${backup.name}`);
       } catch (error) {
@@ -205,7 +219,7 @@ const Settings = () => {
     }
   };
 
-  const handleRestoreFromStorage = async (backup) => {
+  const handleRestoreFromServer = async (backup) => {
     const confirmed = await showConfirm(
       'Restore from Backup?',
       `This will restore the database from "${backup.name}" (${backup.totalPlayers} players, ${backup.totalTournaments} tournaments, ${backup.totalRegistrations} registrations). An auto-backup will be created first. Continue?`
@@ -216,12 +230,12 @@ const Settings = () => {
         setImporting(true);
         hideModal();
 
-        // Load backup from storage
-        const backupData = await loadBackupFromStorage(backup.downloadUrl);
+        // Load backup from server
+        const backupData = await loadBackupFromServer(backup.name);
 
         // Create auto-backup before restore
         const currentBackup = await exportDatabase();
-        await saveBackupToStorage(currentBackup);
+        await saveBackupToServer(currentBackup);
         downloadBackup(currentBackup, `auto_backup_before_restore_${new Date().toISOString().slice(0, 10)}.json`);
 
         // Perform restore
@@ -285,6 +299,11 @@ const Settings = () => {
         <div className="players-header">
           <h2>⚙️ Settings</h2>
           <p className="header-subtitle">Manage database backups and system settings</p>
+          {!serverOnline && (
+            <div className="server-status-warning">
+              ⚠️ Backup server is offline. Please start the backend server to manage backups.
+            </div>
+          )}
         </div>
 
         {/* Database Statistics */}
@@ -458,14 +477,14 @@ const Settings = () => {
                   <div className="backup-item-actions">
                     <button
                       className="btn-backup-action btn-download-backup"
-                      onClick={() => handleDownloadFromStorage(backup)}
+                      onClick={() => handleDownloadFromServer(backup)}
                       title="Download to your device"
                     >
                       📥 Download
                     </button>
                     <button
                       className="btn-backup-action btn-restore-backup"
-                      onClick={() => handleRestoreFromStorage(backup)}
+                      onClick={() => handleRestoreFromServer(backup)}
                       disabled={importing}
                       title="Restore this backup"
                     >
@@ -493,11 +512,12 @@ const Settings = () => {
             <div className="warning-content">
               <h3>Important Notes</h3>
               <ul>
-                <li>Backups are automatically saved to Firebase Storage when you export</li>
-                <li>All backups are stored in your Firebase project and persist across sessions</li>
+                <li>Backups are automatically saved to the backend server when you export</li>
+                <li>All backups are stored in the server's backups folder</li>
                 <li>An automatic backup is created before every restore operation</li>
                 <li>You can download any backup from the list to your device</li>
                 <li>Deleted backups cannot be recovered - use with caution</li>
+                <li>Make sure the backend server is running to manage backups</li>
               </ul>
             </div>
           </div>
