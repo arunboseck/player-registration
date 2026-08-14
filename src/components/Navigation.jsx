@@ -56,6 +56,9 @@ const Navigation = () => {
                 <button className="sidebar-menu-item sidebar-menu-item-indigo" onClick={() => handleNavigation('/dashboard')}>
                   <span>Dashboard</span>
                 </button>
+                <button className="sidebar-menu-item sidebar-menu-item-orange" onClick={() => handleNavigation('/settings')}>
+                  <span>⚙️ Settings</span>
+                </button>
                 <div className="sidebar-divider"></div>
                 <button className="sidebar-menu-item sidebar-menu-item-logout" onClick={handleLogout}>
                   <span>Logout</span>

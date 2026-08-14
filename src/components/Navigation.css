@@ -221,6 +221,17 @@
   }
 }
 
+/* Orange Settings Button */
+.sidebar-menu-item-orange {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+}
+
+.sidebar-menu-item-orange:hover {
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
 /* Logout Button */
 .sidebar-menu-item-logout {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);

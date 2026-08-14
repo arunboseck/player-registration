@@ -15,6 +15,7 @@ import TournamentRegister from './pages/TournamentRegister';
 import TournamentRegistrations from './pages/TournamentRegistrations';
 import CleanupDuplicates from './pages/CleanupDuplicates';
 import MigratePhotos from './pages/MigratePhotos';
+import Settings from './pages/Settings';
 import './App.css';
 
 // Layout component that conditionally shows navigation
@@ -120,6 +121,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <MigratePhotos />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
                 </ProtectedRoute>
               }
             />
