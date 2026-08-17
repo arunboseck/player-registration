@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getTournamentById, updateTournament } from '../utils/firebaseStorage';
+import { getTournamentById, updateTournament, uploadPhotoToStorage } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import './RegisterPlayer.css';
 
@@ -20,6 +20,8 @@ const EditTournament = () => {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
+  const [posterPreview, setPosterPreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const loadTournament = async () => {
@@ -43,6 +45,26 @@ const EditTournament = () => {
     }
   };
 
+  const handlePosterChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5000000) { // 5MB limit
+        setErrors((prev) => ({ ...prev, tournamentPoster: 'Poster size should be less than 5MB' }));
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({ ...prev, tournamentPoster: reader.result }));
+        setPosterPreview(reader.result);
+        if (errors.tournamentPoster) {
+          setErrors((prev) => ({ ...prev, tournamentPoster: '' }));
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'Tournament name is required';
@@ -60,12 +82,29 @@ const EditTournament = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
+      setUploading(true);
       try {
-        await updateTournament(id, formData);
+        // Upload tournament poster to Cloudinary if it's a new file
+        let tournamentPosterURL = formData.tournamentPoster;
+        if (formData.tournamentPoster && formData.tournamentPoster.startsWith('data:image/')) {
+          console.log('📤 Uploading tournament poster to Cloudinary...');
+          const tempId = `poster_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          tournamentPosterURL = await uploadPhotoToStorage(formData.tournamentPoster, tempId);
+          console.log('✅ Tournament poster uploaded successfully');
+        }
+
+        const updatedData = {
+          ...formData,
+          tournamentPoster: tournamentPosterURL
+        };
+
+        await updateTournament(id, updatedData);
         alert('Tournament updated successfully!');
         navigate('/tournaments');
       } catch (error) {
         alert('Error updating tournament. Please try again.');
+      } finally {
+        setUploading(false);
       }
     }
   };
@@ -77,14 +116,15 @@ const EditTournament = () => {
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
         minHeight: '100vh',
         fontSize: '1.2rem',
         color: '#667eea'
       }}>
+      <Navigation />
         Loading...
       </div>
     );
@@ -150,9 +190,40 @@ const EditTournament = () => {
               {errors.description && <span className="error-message">{errors.description}</span>}
             </div>
 
+            <div className="form-group">
+              <label>Tournament Poster (Optional)</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePosterChange}
+                style={{ padding: '0.5rem' }}
+              />
+              {errors.tournamentPoster && <span className="error-message">{errors.tournamentPoster}</span>}
+              {(posterPreview || formData.tournamentPoster) && (
+                <div style={{ marginTop: '1rem' }}>
+                  <img
+                    src={posterPreview || formData.tournamentPoster}
+                    alt="Tournament Poster Preview"
+                    style={{
+                      maxWidth: '300px',
+                      maxHeight: '400px',
+                      borderRadius: '8px',
+                      border: '2px solid #e5e7eb',
+                      objectFit: 'contain'
+                    }}
+                  />
+                  <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#10b981' }}>
+                    ✓ {posterPreview ? 'New poster uploaded' : 'Current poster'}
+                  </p>
+                </div>
+              )}
+            </div>
+
             <div className="form-actions">
               <button type="button" onClick={() => navigate('/tournaments')} className="btn-secondary">Cancel</button>
-              <button type="submit" className="btn-primary">Update Tournament</button>
+              <button type="submit" className="btn-primary" disabled={uploading}>
+                {uploading ? '⏳ Updating...' : 'Update Tournament'}
+              </button>
             </div>
           </form>
         </div>

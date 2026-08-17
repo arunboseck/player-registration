@@ -19,9 +19,11 @@ const AddTournament = () => {
     organizerName: '',
     organizerMobile: '',
     organizerPhoto: '',
+    tournamentPoster: '',
   });
   const [errors, setErrors] = useState({});
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [posterPreview, setPosterPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
 
   const handleChange = (e) => {
@@ -46,6 +48,26 @@ const AddTournament = () => {
         setPhotoPreview(reader.result);
         if (errors.organizerPhoto) {
           setErrors((prev) => ({ ...prev, organizerPhoto: '' }));
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handlePosterChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5000000) { // 5MB limit
+        setErrors((prev) => ({ ...prev, tournamentPoster: 'Poster size should be less than 5MB' }));
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({ ...prev, tournamentPoster: reader.result }));
+        setPosterPreview(reader.result);
+        if (errors.tournamentPoster) {
+          setErrors((prev) => ({ ...prev, tournamentPoster: '' }));
         }
       };
       reader.readAsDataURL(file);
@@ -90,10 +112,20 @@ const AddTournament = () => {
           console.log('✅ Organizer photo uploaded successfully');
         }
 
-        // Create tournament with organizer photo URL
+        // Upload tournament poster to Cloudinary
+        let tournamentPosterURL = formData.tournamentPoster;
+        if (formData.tournamentPoster && formData.tournamentPoster.startsWith('data:image/')) {
+          console.log('📤 Uploading tournament poster to Cloudinary...');
+          const tempId = `poster_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          tournamentPosterURL = await uploadPhotoToStorage(formData.tournamentPoster, tempId);
+          console.log('✅ Tournament poster uploaded successfully');
+        }
+
+        // Create tournament with organizer photo URL and poster URL
         const tournamentData = {
           ...formData,
-          organizerPhoto: organizerPhotoURL
+          organizerPhoto: organizerPhotoURL,
+          tournamentPoster: tournamentPosterURL
         };
 
         await addTournament(tournamentData);
@@ -171,6 +203,35 @@ const AddTournament = () => {
               <label>Description *</label>
               <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Enter tournament description" rows="4" />
               {errors.description && <span className="error-message">{errors.description}</span>}
+            </div>
+
+            <div className="form-group">
+              <label>Tournament Poster (Optional)</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePosterChange}
+                style={{ padding: '0.5rem' }}
+              />
+              {errors.tournamentPoster && <span className="error-message">{errors.tournamentPoster}</span>}
+              {posterPreview && (
+                <div style={{ marginTop: '1rem' }}>
+                  <img
+                    src={posterPreview}
+                    alt="Tournament Poster Preview"
+                    style={{
+                      maxWidth: '300px',
+                      maxHeight: '400px',
+                      borderRadius: '8px',
+                      border: '2px solid #e5e7eb',
+                      objectFit: 'contain'
+                    }}
+                  />
+                  <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#10b981' }}>
+                    ✓ Poster uploaded successfully
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="form-section-divider">

@@ -457,42 +457,63 @@ const TournamentRegister = () => {
             position: 'sticky',
             top: '2rem'
           }}>
-            {/* Tournament Poster Card */}
-            <div style={{
-              background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-              borderRadius: '16px',
-              padding: '2rem',
-              color: 'white',
-              boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
-              textAlign: 'center'
-            }}>
+            {/* Tournament Poster */}
+            {tournament.tournamentPoster ? (
               <div style={{
-                fontSize: '2rem',
-                fontWeight: '700',
-                marginBottom: '1rem',
-                lineHeight: '1.2'
+                borderRadius: '16px',
+                overflow: 'hidden',
+                boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+                background: '#fff'
               }}>
-                🏏 {tournament.name}
+                <img
+                  src={tournament.tournamentPoster}
+                  alt={tournament.name}
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    display: 'block',
+                    objectFit: 'cover'
+                  }}
+                />
               </div>
+            ) : (
+              /* Fallback: Show tournament details if no poster */
               <div style={{
-                fontSize: '1.1rem',
-                fontWeight: '500',
-                marginBottom: '0.75rem',
-                opacity: '0.95'
+                background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                borderRadius: '16px',
+                padding: '2rem',
+                color: 'white',
+                boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+                textAlign: 'center'
               }}>
-                📍 {tournament.location}
+                <div style={{
+                  fontSize: '2rem',
+                  fontWeight: '700',
+                  marginBottom: '1rem',
+                  lineHeight: '1.2'
+                }}>
+                  🏏 {tournament.name}
+                </div>
+                <div style={{
+                  fontSize: '1.1rem',
+                  fontWeight: '500',
+                  marginBottom: '0.75rem',
+                  opacity: '0.95'
+                }}>
+                  📍 {tournament.location}
+                </div>
+                <div style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  borderRadius: '8px',
+                  padding: '0.75rem',
+                  fontSize: '0.95rem',
+                  fontWeight: '500',
+                  backdropFilter: 'blur(10px)'
+                }}>
+                  📅 {new Date(tournament.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - {new Date(tournament.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </div>
               </div>
-              <div style={{
-                background: 'rgba(255,255,255,0.2)',
-                borderRadius: '8px',
-                padding: '0.75rem',
-                fontSize: '0.95rem',
-                fontWeight: '500',
-                backdropFilter: 'blur(10px)'
-              }}>
-                📅 {new Date(tournament.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - {new Date(tournament.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-              </div>
-            </div>
+            )}
 
             {/* Organizer Details Card */}
             {tournament.organizerName && (
