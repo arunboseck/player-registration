@@ -17,10 +17,15 @@ const EditTournament = () => {
     endDate: '',
     status: 'Upcoming',
     description: '',
+    tournamentPoster: '',
+    organizerName: '',
+    organizerMobile: '',
+    organizerPhoto: '',
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
   const [posterPreview, setPosterPreview] = useState(null);
+  const [organizerPhotoPreview, setOrganizerPhotoPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -65,6 +70,26 @@ const EditTournament = () => {
     }
   };
 
+  const handleOrganizerPhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5000000) { // 5MB limit
+        setErrors((prev) => ({ ...prev, organizerPhoto: 'Photo size should be less than 5MB' }));
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({ ...prev, organizerPhoto: reader.result }));
+        setOrganizerPhotoPreview(reader.result);
+        if (errors.organizerPhoto) {
+          setErrors((prev) => ({ ...prev, organizerPhoto: '' }));
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'Tournament name is required';
@@ -75,6 +100,16 @@ const EditTournament = () => {
       newErrors.endDate = 'End date must be after start date';
     }
     if (!formData.description.trim()) newErrors.description = 'Description is required';
+
+    // Organizer details validation
+    if (!formData.organizerName.trim()) newErrors.organizerName = 'Organizer name is required';
+    if (!formData.organizerMobile.trim()) {
+      newErrors.organizerMobile = 'Organizer mobile number is required';
+    } else if (!/^[0-9]{10}$/.test(formData.organizerMobile.trim())) {
+      newErrors.organizerMobile = 'Please enter a valid 10-digit mobile number';
+    }
+    if (!formData.organizerPhoto) newErrors.organizerPhoto = 'Organizer photo is required';
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -93,15 +128,26 @@ const EditTournament = () => {
           console.log('✅ Tournament poster uploaded successfully');
         }
 
+        // Upload organizer photo to Cloudinary if it's a new file
+        let organizerPhotoURL = formData.organizerPhoto;
+        if (formData.organizerPhoto && formData.organizerPhoto.startsWith('data:image/')) {
+          console.log('📤 Uploading organizer photo to Cloudinary...');
+          const tempId = `organizer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          organizerPhotoURL = await uploadPhotoToStorage(formData.organizerPhoto, tempId);
+          console.log('✅ Organizer photo uploaded successfully');
+        }
+
         const updatedData = {
           ...formData,
-          tournamentPoster: tournamentPosterURL
+          tournamentPoster: tournamentPosterURL,
+          organizerPhoto: organizerPhotoURL
         };
 
         await updateTournament(id, updatedData);
         alert('Tournament updated successfully!');
         navigate('/tournaments');
       } catch (error) {
+        console.error('Error updating tournament:', error);
         alert('Error updating tournament. Please try again.');
       } finally {
         setUploading(false);
@@ -116,15 +162,14 @@ const EditTournament = () => {
 
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         minHeight: '100vh',
         fontSize: '1.2rem',
         color: '#667eea'
       }}>
-      <Navigation />
         Loading...
       </div>
     );
@@ -214,6 +259,65 @@ const EditTournament = () => {
                   />
                   <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#10b981' }}>
                     ✓ {posterPreview ? 'New poster uploaded' : 'Current poster'}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="form-section-divider">
+              <h3>Organizer Details</h3>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Organizer Name *</label>
+                <input
+                  type="text"
+                  name="organizerName"
+                  value={formData.organizerName || ''}
+                  onChange={handleChange}
+                  placeholder="Enter organizer name"
+                />
+                {errors.organizerName && <span className="error-message">{errors.organizerName}</span>}
+              </div>
+              <div className="form-group">
+                <label>Organizer Mobile *</label>
+                <input
+                  type="tel"
+                  name="organizerMobile"
+                  value={formData.organizerMobile || ''}
+                  onChange={handleChange}
+                  placeholder="Enter 10-digit mobile number"
+                  maxLength="10"
+                />
+                {errors.organizerMobile && <span className="error-message">{errors.organizerMobile}</span>}
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Organizer Photo *</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleOrganizerPhotoChange}
+                style={{ padding: '0.5rem' }}
+              />
+              {errors.organizerPhoto && <span className="error-message">{errors.organizerPhoto}</span>}
+              {(organizerPhotoPreview || formData.organizerPhoto) && (
+                <div style={{ marginTop: '1rem' }}>
+                  <img
+                    src={organizerPhotoPreview || formData.organizerPhoto}
+                    alt="Organizer Photo Preview"
+                    style={{
+                      width: '120px',
+                      height: '120px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '3px solid #e5e7eb'
+                    }}
+                  />
+                  <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#10b981' }}>
+                    ✓ {organizerPhotoPreview ? 'New photo uploaded' : 'Current photo'}
                   </p>
                 </div>
               )}
