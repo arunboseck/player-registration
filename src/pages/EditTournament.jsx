@@ -123,7 +123,7 @@ const EditTournament = () => {
       setUploading(true);
       try {
         // Upload tournament poster if it's a new file
-        let tournamentPosterURL = formData.tournamentPoster;
+        let tournamentPosterURL = formData.tournamentPoster || "";
         if (formData.tournamentPoster && formData.tournamentPoster.startsWith('data:image/')) {
           console.log('📤 Uploading tournament poster...');
           const tempId = `poster_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -140,7 +140,7 @@ const EditTournament = () => {
 
         const updatedData = {
           ...formData,
-          tournamentPoster: tournamentPosterURL,
+          tournamentPoster: tournamentPosterURL || "",
           organizerPhoto: organizerPhotoURL
         };
 
