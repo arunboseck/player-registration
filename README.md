@@ -188,3 +188,4 @@ This project is open source and available under the MIT License.
 - Export player data to CSV/PDF
 - Player statistics and analytics
 - Team formation features
+# EditTournament is fully functional with auction date and organizer fields
