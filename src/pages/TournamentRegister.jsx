@@ -433,17 +433,22 @@ const TournamentRegister = () => {
 
   return (
     <div className="public-register-container">
-      <div className="public-register-content">
+      <div className="public-register-content" style={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        padding: '2rem 0'
+      }}>
         {/* Tournament Poster Header */}
         {tournament.tournamentPoster ? (
           <div style={{
             width: '100%',
             maxWidth: '1200px',
-            margin: '0 auto',
+            margin: '0 auto 2rem',
             borderRadius: '20px',
             overflow: 'hidden',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
-            marginBottom: '2rem'
+            boxShadow: '0 10px 40px rgba(0,0,0,0.15)'
           }}>
             <img
               src={tournament.tournamentPoster}
@@ -457,7 +462,7 @@ const TournamentRegister = () => {
             />
           </div>
         ) : (
-          <div className="public-header">
+          <div className="public-header" style={{ marginBottom: '2rem' }}>
             <h1>{tournament.name}</h1>
             <p><strong>{tournament.location}</strong></p>
             <p>{new Date(tournament.startDate).toLocaleDateString()} - {new Date(tournament.endDate).toLocaleDateString()}</p>
@@ -469,11 +474,9 @@ const TournamentRegister = () => {
         {tournament.auctionDate && new Date(tournament.auctionDate) <= new Date() ? (
           <div style={{
             maxWidth: '650px',
-            margin: '2rem auto',
+            margin: '0 auto',
             padding: '1rem',
-            animation: 'fadeInScale 0.6s ease-out',
-            maxHeight: 'calc(100vh - 4rem)',
-            overflowY: 'auto'
+            animation: 'fadeInScale 0.6s ease-out'
           }}>
             <style>{`
               @keyframes fadeInScale {
@@ -657,8 +660,8 @@ const TournamentRegister = () => {
           display: 'grid',
           gridTemplateColumns: '300px 1fr',
           gap: '2rem',
-          marginTop: '2rem',
-          alignItems: 'start'
+          alignItems: 'start',
+          flex: 1
         }}>
           {/* Organizer Details Sidebar - Left */}
           {tournament.organizerName && (
