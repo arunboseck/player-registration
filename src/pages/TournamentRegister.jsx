@@ -465,7 +465,192 @@ const TournamentRegister = () => {
           </div>
         )}
 
-        {/* Main Layout with Organizer Sidebar and Registration Form */}
+        {/* Check if auction date has passed - Show only closed message */}
+        {tournament.auctionDate && new Date(tournament.auctionDate) <= new Date() ? (
+          <div style={{
+            maxWidth: '700px',
+            margin: '3rem auto',
+            padding: '0',
+            animation: 'fadeInScale 0.6s ease-out'
+          }}>
+            <style>{`
+              @keyframes fadeInScale {
+                from {
+                  opacity: 0;
+                  transform: scale(0.9) translateY(20px);
+                }
+                to {
+                  opacity: 1;
+                  transform: scale(1) translateY(0);
+                }
+              }
+              @keyframes float {
+                0%, 100% { transform: translateY(0px); }
+                50% { transform: translateY(-10px); }
+              }
+              .closed-icon {
+                animation: float 3s ease-in-out infinite;
+              }
+            `}</style>
+
+            {/* Main Closed Message Card */}
+            <div style={{
+              padding: '3.5rem 2.5rem',
+              background: 'linear-gradient(135deg, #f59e0b 0%, #dc2626 100%)',
+              borderRadius: '24px',
+              boxShadow: '0 20px 60px rgba(220, 38, 38, 0.3)',
+              textAlign: 'center',
+              color: 'white',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              {/* Animated Background Pattern */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(255,255,255,0.1) 0%, transparent 50%)',
+                pointerEvents: 'none'
+              }}></div>
+
+              {/* Content */}
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                <div className="closed-icon" style={{
+                  fontSize: '5rem',
+                  marginBottom: '1.5rem',
+                  filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))'
+                }}>
+                  🚫
+                </div>
+
+                <h2 style={{
+                  fontSize: '2.5rem',
+                  fontWeight: '800',
+                  marginBottom: '1rem',
+                  color: 'white',
+                  letterSpacing: '-0.5px',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                }}>
+                  Registration Closed
+                </h2>
+
+                <p style={{
+                  fontSize: '1.15rem',
+                  marginBottom: '2rem',
+                  opacity: '0.95',
+                  lineHeight: '1.6'
+                }}>
+                  The auction has started! Player registration for this tournament is now closed.
+                </p>
+
+                <div style={{
+                  background: 'rgba(255,255,255,0.15)',
+                  borderRadius: '16px',
+                  padding: '1.25rem',
+                  marginBottom: '2rem',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255,255,255,0.2)'
+                }}>
+                  <div style={{ fontSize: '0.85rem', opacity: '0.9', marginBottom: '0.5rem', fontWeight: '500' }}>
+                    Auction Date
+                  </div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: '700' }}>
+                    {new Date(tournament.auctionDate).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </div>
+                </div>
+
+                {/* Organizer Details Section */}
+                <div style={{
+                  background: 'rgba(255,255,255,0.95)',
+                  borderRadius: '16px',
+                  padding: '2rem',
+                  color: '#1f2937',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                }}>
+                  <div style={{
+                    fontSize: '0.9rem',
+                    fontWeight: '600',
+                    color: '#6b7280',
+                    marginBottom: '1.25rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px'
+                  }}>
+                    Contact Organizer
+                  </div>
+
+                  {tournament.organizerPhoto && (
+                    <div style={{
+                      width: '80px',
+                      height: '80px',
+                      borderRadius: '50%',
+                      margin: '0 auto 1rem',
+                      overflow: 'hidden',
+                      border: '3px solid #f59e0b',
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                    }}>
+                      <img
+                        src={tournament.organizerPhoto}
+                        alt={tournament.organizerName}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {tournament.organizerName && (
+                    <div style={{
+                      fontSize: '1.3rem',
+                      fontWeight: '700',
+                      color: '#111827',
+                      marginBottom: '0.5rem'
+                    }}>
+                      {tournament.organizerName}
+                    </div>
+                  )}
+
+                  {tournament.organizerMobile && (
+                    <a href={`tel:${tournament.organizerMobile}`} style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.75rem 1.5rem',
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                      color: 'white',
+                      borderRadius: '12px',
+                      fontSize: '1.05rem',
+                      fontWeight: '600',
+                      textDecoration: 'none',
+                      marginTop: '1rem',
+                      boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                      transition: 'all 0.3s ease',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+                    }}>
+                      📞 {tournament.organizerMobile}
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
         <div style={{
           display: 'grid',
           gridTemplateColumns: '300px 1fr',
@@ -576,46 +761,6 @@ const TournamentRegister = () => {
 
           {/* Registration Form - Right */}
           <div className="public-player-form">
-            {/* Check if auction date has passed */}
-            {tournament.auctionDate && new Date(tournament.auctionDate) <= new Date() ? (
-              <div style={{
-                padding: '3rem 2rem',
-                background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-                borderRadius: '20px',
-                boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
-                textAlign: 'center',
-                color: 'white'
-              }}>
-                <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎯</div>
-                <h2 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '1rem', color: 'white' }}>
-                  Registration Closed
-                </h2>
-                <p style={{ fontSize: '1.2rem', marginBottom: '1.5rem', opacity: '0.95' }}>
-                  The auction has started! Player registration for this tournament is now closed.
-                </p>
-                <div style={{
-                  background: 'rgba(255,255,255,0.2)',
-                  borderRadius: '12px',
-                  padding: '1rem',
-                  fontSize: '1rem',
-                  fontWeight: '500',
-                  backdropFilter: 'blur(10px)'
-                }}>
-                  Auction Date: {new Date(tournament.auctionDate).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </div>
-                {tournament.organizerMobile && (
-                  <p style={{ marginTop: '2rem', fontSize: '1rem', opacity: '0.9' }}>
-                    For queries, contact organizer: 📞 {tournament.organizerMobile}
-                  </p>
-                )}
-              </div>
-            ) : (
-              <>
             <h2>Register for {tournament.name}</h2>
 
           {/* Search Player Section */}
@@ -801,10 +946,9 @@ const TournamentRegister = () => {
               </form>
             </div>
           )}
-          </>
-          )}
           </div>
         </div>
+        )}
       </div>
 
       {/* Success Modal - Rendered DIRECTLY to document.body */}
