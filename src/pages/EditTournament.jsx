@@ -17,6 +17,7 @@ const EditTournament = () => {
     endDate: '',
     status: 'Upcoming',
     description: '',
+    auctionDate: '',
     tournamentPoster: '',
     organizerName: '',
     organizerMobile: '',
@@ -219,6 +220,14 @@ const EditTournament = () => {
             </div>
 
             <div className="form-row">
+              <div className="form-group">
+                <label>Auction Date *</label>
+                <input type="date" name="auctionDate" value={formData.auctionDate || ''} onChange={handleChange} />
+                {errors.auctionDate && <span className="error-message">{errors.auctionDate}</span>}
+                <small style={{display: 'block', marginTop: '0.5rem', color: '#6b7280', fontSize: '0.85rem'}}>
+                  Registration will be disabled once auction date is reached
+                </small>
+              </div>
               <div className="form-group">
                 <label>Status *</label>
                 <select name="status" value={formData.status} onChange={handleChange}>

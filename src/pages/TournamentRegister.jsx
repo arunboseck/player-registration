@@ -465,6 +465,66 @@ const TournamentRegister = () => {
           </div>
         )}
 
+        {/* Check if auction date has passed */}
+        {tournament.auctionDate && new Date(tournament.auctionDate) <= new Date() ? (
+          <div style={{
+            maxWidth: '800px',
+            margin: '2rem auto',
+            padding: '3rem 2rem',
+            background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+            borderRadius: '20px',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+            textAlign: 'center',
+            color: 'white'
+          }}>
+            <div style={{
+              fontSize: '4rem',
+              marginBottom: '1rem'
+            }}>
+              🎯
+            </div>
+            <h2 style={{
+              fontSize: '2rem',
+              fontWeight: '700',
+              marginBottom: '1rem',
+              color: 'white'
+            }}>
+              Registration Closed
+            </h2>
+            <p style={{
+              fontSize: '1.2rem',
+              marginBottom: '1.5rem',
+              opacity: '0.95'
+            }}>
+              The auction has started! Player registration for this tournament is now closed.
+            </p>
+            <div style={{
+              background: 'rgba(255,255,255,0.2)',
+              borderRadius: '12px',
+              padding: '1rem',
+              fontSize: '1rem',
+              fontWeight: '500',
+              backdropFilter: 'blur(10px)'
+            }}>
+              Auction Date: {new Date(tournament.auctionDate).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </div>
+            {tournament.organizerMobile && (
+              <p style={{
+                marginTop: '2rem',
+                fontSize: '1rem',
+                opacity: '0.9'
+              }}>
+                For queries, contact organizer: 📞 {tournament.organizerMobile}
+              </p>
+            )}
+          </div>
+        ) : (
+          <>
         {/* Main Layout with Organizer Sidebar and Registration Form */}
         <div style={{
           display: 'grid',
@@ -860,6 +920,8 @@ const TournamentRegister = () => {
         </div>,
         document.body
       )}
+        </>
+        )}
     </div>
   );
 };
