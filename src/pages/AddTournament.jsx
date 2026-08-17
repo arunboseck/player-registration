@@ -14,6 +14,7 @@ const AddTournament = () => {
     location: '',
     startDate: '',
     endDate: '',
+    auctionDate: '',
     status: 'Upcoming',
     description: '',
     organizerName: '',
@@ -82,6 +83,10 @@ const AddTournament = () => {
     if (!formData.endDate) newErrors.endDate = 'End date is required';
     if (formData.startDate && formData.endDate && new Date(formData.endDate) < new Date(formData.startDate)) {
       newErrors.endDate = 'End date must be after start date';
+    }
+    if (!formData.auctionDate) newErrors.auctionDate = 'Auction date is required';
+    if (formData.auctionDate && formData.startDate && new Date(formData.auctionDate) > new Date(formData.startDate)) {
+      newErrors.auctionDate = 'Auction date must be before or on the start date';
     }
     if (!formData.description.trim()) newErrors.description = 'Description is required';
 
@@ -189,6 +194,14 @@ const AddTournament = () => {
             </div>
 
             <div className="form-row">
+              <div className="form-group">
+                <label>Auction Date *</label>
+                <input type="date" name="auctionDate" value={formData.auctionDate} onChange={handleChange} />
+                {errors.auctionDate && <span className="error-message">{errors.auctionDate}</span>}
+                <small style={{display: 'block', marginTop: '0.5rem', color: '#6b7280', fontSize: '0.85rem'}}>
+                  Registration will be disabled once auction date is reached
+                </small>
+              </div>
               <div className="form-group">
                 <label>Status *</label>
                 <select name="status" value={formData.status} onChange={handleChange}>
