@@ -434,12 +434,36 @@ const TournamentRegister = () => {
   return (
     <div className="public-register-container">
       <div className="public-register-content">
-        <div className="public-header">
-          <h1>{tournament.name}</h1>
-          <p><strong>{tournament.location}</strong></p>
-          <p>{new Date(tournament.startDate).toLocaleDateString()} - {new Date(tournament.endDate).toLocaleDateString()}</p>
-          <p style={{marginTop: '1rem'}}>{tournament.description}</p>
-        </div>
+        {/* Tournament Poster Header */}
+        {tournament.tournamentPoster ? (
+          <div style={{
+            width: '100%',
+            maxWidth: '1200px',
+            margin: '0 auto',
+            borderRadius: '20px',
+            overflow: 'hidden',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+            marginBottom: '2rem'
+          }}>
+            <img
+              src={tournament.tournamentPoster}
+              alt={tournament.name}
+              style={{
+                width: '100%',
+                height: 'auto',
+                display: 'block',
+                objectFit: 'cover'
+              }}
+            />
+          </div>
+        ) : (
+          <div className="public-header">
+            <h1>{tournament.name}</h1>
+            <p><strong>{tournament.location}</strong></p>
+            <p>{new Date(tournament.startDate).toLocaleDateString()} - {new Date(tournament.endDate).toLocaleDateString()}</p>
+            <p style={{marginTop: '1rem'}}>{tournament.description}</p>
+          </div>
+        )}
 
         {/* Main Layout with Organizer Sidebar and Registration Form */}
         <div style={{
@@ -449,37 +473,12 @@ const TournamentRegister = () => {
           marginTop: '2rem',
           alignItems: 'start'
         }}>
-          {/* Tournament Poster & Organizer Details Sidebar - Left */}
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1.5rem',
-            position: 'sticky',
-            top: '2rem'
-          }}>
-            {/* Tournament Poster */}
-            {tournament.tournamentPoster && (
-              <div style={{
-                borderRadius: '16px',
-                overflow: 'hidden',
-                boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
-                background: '#fff'
-              }}>
-                <img
-                  src={tournament.tournamentPoster}
-                  alt={tournament.name}
-                  style={{
-                    width: '100%',
-                    height: 'auto',
-                    display: 'block',
-                    objectFit: 'cover'
-                  }}
-                />
-              </div>
-            )}
-
-            {/* Organizer Details Card */}
-            {tournament.organizerName && (
+          {/* Organizer Details Sidebar - Left */}
+          {tournament.organizerName && (
+            <div style={{
+              position: 'sticky',
+              top: '2rem'
+            }}>
               <div style={{
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 borderRadius: '16px',
@@ -572,8 +571,8 @@ const TournamentRegister = () => {
                   For queries, contact the organizer
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Registration Form - Right */}
           <div className="public-player-form">
