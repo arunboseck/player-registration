@@ -468,10 +468,12 @@ const TournamentRegister = () => {
         {/* Check if auction date has passed - Show only closed message */}
         {tournament.auctionDate && new Date(tournament.auctionDate) <= new Date() ? (
           <div style={{
-            maxWidth: '700px',
-            margin: '3rem auto',
-            padding: '0',
-            animation: 'fadeInScale 0.6s ease-out'
+            maxWidth: '650px',
+            margin: '2rem auto',
+            padding: '1rem',
+            animation: 'fadeInScale 0.6s ease-out',
+            maxHeight: 'calc(100vh - 4rem)',
+            overflowY: 'auto'
           }}>
             <style>{`
               @keyframes fadeInScale {
@@ -495,7 +497,7 @@ const TournamentRegister = () => {
 
             {/* Main Closed Message Card */}
             <div style={{
-              padding: '3.5rem 2.5rem',
+              padding: '2.5rem 2rem',
               background: 'linear-gradient(135deg, #f59e0b 0%, #dc2626 100%)',
               borderRadius: '24px',
               boxShadow: '0 20px 60px rgba(220, 38, 38, 0.3)',
@@ -518,15 +520,15 @@ const TournamentRegister = () => {
               {/* Content */}
               <div style={{ position: 'relative', zIndex: 1 }}>
                 <div className="closed-icon" style={{
-                  fontSize: '5rem',
-                  marginBottom: '1.5rem',
+                  fontSize: '4rem',
+                  marginBottom: '1rem',
                   filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))'
                 }}>
                   🚫
                 </div>
 
                 <h2 style={{
-                  fontSize: '2.5rem',
+                  fontSize: '2rem',
                   fontWeight: '800',
                   marginBottom: '1rem',
                   color: 'white',
@@ -537,26 +539,26 @@ const TournamentRegister = () => {
                 </h2>
 
                 <p style={{
-                  fontSize: '1.15rem',
-                  marginBottom: '2rem',
+                  fontSize: '1.05rem',
+                  marginBottom: '1.5rem',
                   opacity: '0.95',
-                  lineHeight: '1.6'
+                  lineHeight: '1.5'
                 }}>
                   The auction has started! Player registration for this tournament is now closed.
                 </p>
 
                 <div style={{
                   background: 'rgba(255,255,255,0.15)',
-                  borderRadius: '16px',
-                  padding: '1.25rem',
-                  marginBottom: '2rem',
+                  borderRadius: '12px',
+                  padding: '1rem',
+                  marginBottom: '1.5rem',
                   backdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255,255,255,0.2)'
                 }}>
-                  <div style={{ fontSize: '0.85rem', opacity: '0.9', marginBottom: '0.5rem', fontWeight: '500' }}>
+                  <div style={{ fontSize: '0.8rem', opacity: '0.9', marginBottom: '0.4rem', fontWeight: '500' }}>
                     Auction Date
                   </div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: '700' }}>
+                  <div style={{ fontSize: '1rem', fontWeight: '700' }}>
                     {new Date(tournament.auctionDate).toLocaleDateString('en-US', {
                       weekday: 'long',
                       year: 'numeric',
@@ -569,16 +571,16 @@ const TournamentRegister = () => {
                 {/* Organizer Details Section */}
                 <div style={{
                   background: 'rgba(255,255,255,0.95)',
-                  borderRadius: '16px',
-                  padding: '2rem',
+                  borderRadius: '12px',
+                  padding: '1.5rem',
                   color: '#1f2937',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                 }}>
                   <div style={{
-                    fontSize: '0.9rem',
+                    fontSize: '0.85rem',
                     fontWeight: '600',
                     color: '#6b7280',
-                    marginBottom: '1.25rem',
+                    marginBottom: '1rem',
                     textTransform: 'uppercase',
                     letterSpacing: '1px'
                   }}>
@@ -587,10 +589,10 @@ const TournamentRegister = () => {
 
                   {tournament.organizerPhoto && (
                     <div style={{
-                      width: '80px',
-                      height: '80px',
+                      width: '70px',
+                      height: '70px',
                       borderRadius: '50%',
-                      margin: '0 auto 1rem',
+                      margin: '0 auto 0.75rem',
                       overflow: 'hidden',
                       border: '3px solid #f59e0b',
                       boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
@@ -609,10 +611,10 @@ const TournamentRegister = () => {
 
                   {tournament.organizerName && (
                     <div style={{
-                      fontSize: '1.3rem',
+                      fontSize: '1.15rem',
                       fontWeight: '700',
                       color: '#111827',
-                      marginBottom: '0.5rem'
+                      marginBottom: '0.75rem'
                     }}>
                       {tournament.organizerName}
                     </div>
@@ -623,14 +625,14 @@ const TournamentRegister = () => {
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '0.5rem',
-                      padding: '0.75rem 1.5rem',
+                      padding: '0.65rem 1.25rem',
                       background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                       color: 'white',
-                      borderRadius: '12px',
-                      fontSize: '1.05rem',
+                      borderRadius: '10px',
+                      fontSize: '1rem',
                       fontWeight: '600',
                       textDecoration: 'none',
-                      marginTop: '1rem',
+                      marginTop: '0.5rem',
                       boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
                       transition: 'all 0.3s ease',
                       cursor: 'pointer'
