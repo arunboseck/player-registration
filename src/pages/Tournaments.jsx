@@ -24,12 +24,20 @@ const Tournaments = () => {
   const loadTournaments = async () => {
     setLoading(true);
     const allTournaments = await getTournaments();
-    setTournaments(allTournaments);
+
+    // Sort tournaments by creation date (newest first)
+    const sortedTournaments = allTournaments.sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+      const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+      return dateB - dateA; // Descending order (newest first)
+    });
+
+    setTournaments(sortedTournaments);
 
     // Load registration counts for all tournaments
     const counts = {};
     await Promise.all(
-      allTournaments.map(async (tournament) => {
+      sortedTournaments.map(async (tournament) => {
         const registrations = await getTournamentRegistrations(tournament.id);
         counts[tournament.id] = registrations.length;
       })
