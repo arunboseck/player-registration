@@ -458,7 +458,7 @@ const TournamentRegister = () => {
             top: '2rem'
           }}>
             {/* Tournament Poster */}
-            {tournament.tournamentPoster ? (
+            {tournament.tournamentPoster && (
               <div style={{
                 borderRadius: '16px',
                 overflow: 'hidden',
@@ -475,43 +475,6 @@ const TournamentRegister = () => {
                     objectFit: 'cover'
                   }}
                 />
-              </div>
-            ) : (
-              /* Fallback: Show tournament details if no poster */
-              <div style={{
-                background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                borderRadius: '16px',
-                padding: '2rem',
-                color: 'white',
-                boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
-                textAlign: 'center'
-              }}>
-                <div style={{
-                  fontSize: '2rem',
-                  fontWeight: '700',
-                  marginBottom: '1rem',
-                  lineHeight: '1.2'
-                }}>
-                  🏏 {tournament.name}
-                </div>
-                <div style={{
-                  fontSize: '1.1rem',
-                  fontWeight: '500',
-                  marginBottom: '0.75rem',
-                  opacity: '0.95'
-                }}>
-                  📍 {tournament.location}
-                </div>
-                <div style={{
-                  background: 'rgba(255,255,255,0.2)',
-                  borderRadius: '8px',
-                  padding: '0.75rem',
-                  fontSize: '0.95rem',
-                  fontWeight: '500',
-                  backdropFilter: 'blur(10px)'
-                }}>
-                  📅 {new Date(tournament.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - {new Date(tournament.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                </div>
               </div>
             )}
 
