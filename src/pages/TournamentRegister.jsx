@@ -733,7 +733,7 @@ const TournamentRegister = () => {
             </div>
           </div>
         ) : (
-        <div style={{
+        <div className="tournament-register-layout" style={{
           display: 'grid',
           gridTemplateColumns: '300px 1fr',
           gap: '2rem',
