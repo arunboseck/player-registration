@@ -582,70 +582,152 @@ const TournamentRegister = () => {
                     textTransform: 'uppercase',
                     letterSpacing: '1px'
                   }}>
-                    Contact Organizer
+                    Contact Organizer{(tournament.organizers && tournament.organizers.length > 1) ? 's' : ''}
                   </div>
 
-                  {tournament.organizerPhoto && (
+                  {/* Display multiple organizers or fallback to single organizer */}
+                  {tournament.organizers && tournament.organizers.length > 0 ? (
                     <div style={{
-                      width: '70px',
-                      height: '70px',
-                      borderRadius: '50%',
-                      margin: '0 auto 0.75rem',
-                      overflow: 'hidden',
-                      border: '3px solid #f59e0b',
-                      boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '1.25rem'
                     }}>
-                      <img
-                        src={tournament.organizerPhoto}
-                        alt={tournament.organizerName}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover'
+                      {tournament.organizers.map((organizer, index) => (
+                        <div key={index} style={{
+                          textAlign: 'center',
+                          paddingBottom: tournament.organizers.length > 1 && index < tournament.organizers.length - 1 ? '1.25rem' : '0',
+                          borderBottom: tournament.organizers.length > 1 && index < tournament.organizers.length - 1 ? '1px solid #e5e7eb' : 'none'
+                        }}>
+                          {organizer.photo && (
+                            <div style={{
+                              width: '70px',
+                              height: '70px',
+                              borderRadius: '50%',
+                              margin: '0 auto 0.75rem',
+                              overflow: 'hidden',
+                              border: '3px solid #f59e0b',
+                              boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                            }}>
+                              <img
+                                src={organizer.photo}
+                                alt={organizer.name}
+                                style={{
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'cover'
+                                }}
+                              />
+                            </div>
+                          )}
+
+                          {organizer.name && (
+                            <div style={{
+                              fontSize: '1.15rem',
+                              fontWeight: '700',
+                              color: '#111827',
+                              marginBottom: '0.75rem'
+                            }}>
+                              {organizer.name}
+                            </div>
+                          )}
+
+                          {organizer.mobile && (
+                            <a href={`tel:${organizer.mobile}`} style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              padding: '0.65rem 1.25rem',
+                              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                              color: 'white',
+                              borderRadius: '10px',
+                              fontSize: '1rem',
+                              fontWeight: '600',
+                              textDecoration: 'none',
+                              marginTop: '0.5rem',
+                              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                              transition: 'all 0.3s ease',
+                              cursor: 'pointer'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = 'translateY(-2px)';
+                              e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = 'translateY(0)';
+                              e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+                            }}>
+                              📞 {organizer.mobile}
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : tournament.organizerName || tournament.organizerMobile || tournament.organizerPhoto ? (
+                    // Backward compatibility: Display old single organizer format
+                    <div style={{ textAlign: 'center' }}>
+                      {tournament.organizerPhoto && (
+                        <div style={{
+                          width: '70px',
+                          height: '70px',
+                          borderRadius: '50%',
+                          margin: '0 auto 0.75rem',
+                          overflow: 'hidden',
+                          border: '3px solid #f59e0b',
+                          boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                        }}>
+                          <img
+                            src={tournament.organizerPhoto}
+                            alt={tournament.organizerName}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover'
+                            }}
+                          />
+                        </div>
+                      )}
+
+                      {tournament.organizerName && (
+                        <div style={{
+                          fontSize: '1.15rem',
+                          fontWeight: '700',
+                          color: '#111827',
+                          marginBottom: '0.75rem'
+                        }}>
+                          {tournament.organizerName}
+                        </div>
+                      )}
+
+                      {tournament.organizerMobile && (
+                        <a href={`tel:${tournament.organizerMobile}`} style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          padding: '0.65rem 1.25rem',
+                          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                          color: 'white',
+                          borderRadius: '10px',
+                          fontSize: '1rem',
+                          fontWeight: '600',
+                          textDecoration: 'none',
+                          marginTop: '0.5rem',
+                          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                          transition: 'all 0.3s ease',
+                          cursor: 'pointer'
                         }}
-                      />
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+                        }}>
+                          📞 {tournament.organizerMobile}
+                        </a>
+                      )}
                     </div>
-                  )}
-
-                  {tournament.organizerName && (
-                    <div style={{
-                      fontSize: '1.15rem',
-                      fontWeight: '700',
-                      color: '#111827',
-                      marginBottom: '0.75rem'
-                    }}>
-                      {tournament.organizerName}
-                    </div>
-                  )}
-
-                  {tournament.organizerMobile && (
-                    <a href={`tel:${tournament.organizerMobile}`} style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      padding: '0.65rem 1.25rem',
-                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                      color: 'white',
-                      borderRadius: '10px',
-                      fontSize: '1rem',
-                      fontWeight: '600',
-                      textDecoration: 'none',
-                      marginTop: '0.5rem',
-                      boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
-                      transition: 'all 0.3s ease',
-                      cursor: 'pointer'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
-                    }}>
-                      📞 {tournament.organizerMobile}
-                    </a>
-                  )}
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -659,7 +741,7 @@ const TournamentRegister = () => {
           alignItems: 'start'
         }}>
           {/* Organizer Details Sidebar - Left */}
-          {tournament.organizerName && (
+          {((tournament.organizers && tournament.organizers.length > 0) || tournament.organizerName) && (
             <div style={{
               position: 'sticky',
               top: '2rem'
@@ -679,70 +761,165 @@ const TournamentRegister = () => {
                   borderBottom: '2px solid rgba(255,255,255,0.3)',
                   paddingBottom: '0.75rem'
                 }}>
-                  Tournament Organizer
+                  Tournament Organizer{(tournament.organizers && tournament.organizers.length > 1) ? 's' : ''}
                 </h3>
 
-                {tournament.organizerPhoto && (
+                {/* Display multiple organizers or fallback to single organizer */}
+                {tournament.organizers && tournament.organizers.length > 0 ? (
                   <div style={{
-                    textAlign: 'center',
-                    marginBottom: '1.25rem'
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1.25rem'
                   }}>
-                    <img
-                      src={tournament.organizerPhoto}
-                      alt={tournament.organizerName}
-                      style={{
-                        width: '100px',
-                        height: '100px',
-                        borderRadius: '50%',
-                        objectFit: 'cover',
-                        border: '4px solid rgba(255,255,255,0.9)',
-                        boxShadow: '0 5px 20px rgba(0,0,0,0.2)'
-                      }}
-                    />
+                    {tournament.organizers.map((organizer, index) => (
+                      <div key={index}>
+                        {organizer.photo && (
+                          <div style={{
+                            textAlign: 'center',
+                            marginBottom: '1rem'
+                          }}>
+                            <img
+                              src={organizer.photo}
+                              alt={organizer.name}
+                              style={{
+                                width: '100px',
+                                height: '100px',
+                                borderRadius: '50%',
+                                objectFit: 'cover',
+                                border: '4px solid rgba(255,255,255,0.9)',
+                                boxShadow: '0 5px 20px rgba(0,0,0,0.2)'
+                              }}
+                            />
+                          </div>
+                        )}
+
+                        <div style={{
+                          background: 'rgba(255,255,255,0.15)',
+                          borderRadius: '12px',
+                          padding: '1.1rem',
+                          backdropFilter: 'blur(10px)',
+                          marginBottom: tournament.organizers.length > 1 && index < tournament.organizers.length - 1 ? '0.5rem' : '0'
+                        }}>
+                          {organizer.name && (
+                            <div style={{ marginBottom: '0.9rem' }}>
+                              <div style={{
+                                fontSize: '0.8rem',
+                                opacity: '0.9',
+                                marginBottom: '0.35rem',
+                                fontWeight: '500'
+                              }}>
+                                Name
+                              </div>
+                              <div style={{
+                                fontSize: '1.05rem',
+                                fontWeight: '600'
+                              }}>
+                                {organizer.name}
+                              </div>
+                            </div>
+                          )}
+
+                          {organizer.mobile && (
+                            <div>
+                              <div style={{
+                                fontSize: '0.8rem',
+                                opacity: '0.9',
+                                marginBottom: '0.35rem',
+                                fontWeight: '500'
+                              }}>
+                                Contact
+                              </div>
+                              <div style={{
+                                fontSize: '1.05rem',
+                                fontWeight: '600',
+                                letterSpacing: '0.5px'
+                              }}>
+                                📞 {organizer.mobile}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {tournament.organizers.length > 1 && index < tournament.organizers.length - 1 && (
+                          <div style={{
+                            height: '1px',
+                            background: 'rgba(255,255,255,0.2)',
+                            margin: '0.75rem 0'
+                          }} />
+                        )}
+                      </div>
+                    ))}
                   </div>
+                ) : (
+                  // Backward compatibility: Display old single organizer format
+                  <>
+                    {tournament.organizerPhoto && (
+                      <div style={{
+                        textAlign: 'center',
+                        marginBottom: '1.25rem'
+                      }}>
+                        <img
+                          src={tournament.organizerPhoto}
+                          alt={tournament.organizerName}
+                          style={{
+                            width: '100px',
+                            height: '100px',
+                            borderRadius: '50%',
+                            objectFit: 'cover',
+                            border: '4px solid rgba(255,255,255,0.9)',
+                            boxShadow: '0 5px 20px rgba(0,0,0,0.2)'
+                          }}
+                        />
+                      </div>
+                    )}
+
+                    <div style={{
+                      background: 'rgba(255,255,255,0.15)',
+                      borderRadius: '12px',
+                      padding: '1.1rem',
+                      backdropFilter: 'blur(10px)'
+                    }}>
+                      {tournament.organizerName && (
+                        <div style={{ marginBottom: '0.9rem' }}>
+                          <div style={{
+                            fontSize: '0.8rem',
+                            opacity: '0.9',
+                            marginBottom: '0.35rem',
+                            fontWeight: '500'
+                          }}>
+                            Name
+                          </div>
+                          <div style={{
+                            fontSize: '1.05rem',
+                            fontWeight: '600'
+                          }}>
+                            {tournament.organizerName}
+                          </div>
+                        </div>
+                      )}
+
+                      {tournament.organizerMobile && (
+                        <div>
+                          <div style={{
+                            fontSize: '0.8rem',
+                            opacity: '0.9',
+                            marginBottom: '0.35rem',
+                            fontWeight: '500'
+                          }}>
+                            Contact
+                          </div>
+                          <div style={{
+                            fontSize: '1.05rem',
+                            fontWeight: '600',
+                            letterSpacing: '0.5px'
+                          }}>
+                            📞 {tournament.organizerMobile}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </>
                 )}
-
-                <div style={{
-                  background: 'rgba(255,255,255,0.15)',
-                  borderRadius: '12px',
-                  padding: '1.1rem',
-                  backdropFilter: 'blur(10px)'
-                }}>
-                  <div style={{ marginBottom: '0.9rem' }}>
-                    <div style={{
-                      fontSize: '0.8rem',
-                      opacity: '0.9',
-                      marginBottom: '0.35rem',
-                      fontWeight: '500'
-                    }}>
-                      Name
-                    </div>
-                    <div style={{
-                      fontSize: '1.05rem',
-                      fontWeight: '600'
-                    }}>
-                      {tournament.organizerName}
-                    </div>
-                  </div>
-
-                  <div>
-                    <div style={{
-                      fontSize: '0.8rem',
-                      opacity: '0.9',
-                      marginBottom: '0.35rem',
-                      fontWeight: '500'
-                    }}>
-                      Contact
-                    </div>
-                    <div style={{
-                      fontSize: '1.05rem',
-                      fontWeight: '600',
-                      letterSpacing: '0.5px'
-                    }}>
-                      📞 {tournament.organizerMobile}
-                    </div>
-                  </div>
-                </div>
 
                 <div style={{
                   marginTop: '1.25rem',
@@ -753,7 +930,7 @@ const TournamentRegister = () => {
                   lineHeight: '1.5',
                   textAlign: 'center'
                 }}>
-                  For queries, contact the organizer
+                  For queries, contact the organizer{(tournament.organizers && tournament.organizers.length > 1) ? 's' : ''}
                 </div>
               </div>
             </div>
