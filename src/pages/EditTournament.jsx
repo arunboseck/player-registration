@@ -19,21 +19,43 @@ const EditTournament = () => {
     status: 'Upcoming',
     description: '',
     tournamentPoster: '',
-    organizerName: '',
-    organizerMobile: '',
-    organizerPhoto: '',
   });
+  const [organizers, setOrganizers] = useState([
+    { name: '', mobile: '', photo: '', photoPreview: null }
+  ]);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
   const [posterPreview, setPosterPreview] = useState(null);
-  const [organizerPhotoPreview, setOrganizerPhotoPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const loadTournament = async () => {
       const tournament = await getTournamentById(id);
       if (tournament) {
-        setFormData(tournament);
+        const { organizers: tournamentOrganizers, organizerName, organizerMobile, organizerPhoto, ...tournamentData } = tournament;
+        setFormData(tournamentData);
+
+        // Load existing organizers or convert from old format
+        if (tournamentOrganizers && Array.isArray(tournamentOrganizers) && tournamentOrganizers.length > 0) {
+          setOrganizers(tournamentOrganizers.map(org => ({
+            ...org,
+            photoPreview: org.photo || null
+          })));
+        } else if (organizerName || organizerMobile || organizerPhoto) {
+          // Backward compatibility
+          setOrganizers([{
+            name: organizerName || '',
+            mobile: organizerMobile || '',
+            photo: organizerPhoto || '',
+            photoPreview: organizerPhoto || null
+          }]);
+        }
+
+        // Set poster preview if exists
+        if (tournament.tournamentPoster) {
+          setPosterPreview(tournament.tournamentPoster);
+        }
+
         setLoading(false);
       } else {
         alert('Tournament not found!');
@@ -51,38 +73,73 @@ const EditTournament = () => {
     }
   };
 
-  const handlePosterChange = (e) => {
+  const handleOrganizerChange = (index, field, value) => {
+    const updatedOrganizers = [...organizers];
+    updatedOrganizers[index][field] = value;
+    setOrganizers(updatedOrganizers);
+
+    // Clear error for this field
+    const errorKey = `organizer_${index}_${field}`;
+    if (errors[errorKey]) {
+      setErrors((prev) => ({ ...prev, [errorKey]: '' }));
+    }
+  };
+
+  const handleOrganizerPhotoChange = (index, e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5000000) {
-        setErrors((prev) => ({ ...prev, tournamentPoster: 'Poster size should be less than 5MB' }));
+      if (file.size > 5000000) { // 5MB limit
+        setErrors((prev) => ({ ...prev, [`organizer_${index}_photo`]: 'Photo size should be less than 5MB' }));
         return;
       }
+
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, tournamentPoster: reader.result }));
-        setPosterPreview(reader.result);
-        if (errors.tournamentPoster) {
-          setErrors((prev) => ({ ...prev, tournamentPoster: '' }));
+        const updatedOrganizers = [...organizers];
+        updatedOrganizers[index].photo = reader.result;
+        updatedOrganizers[index].photoPreview = reader.result;
+        setOrganizers(updatedOrganizers);
+
+        if (errors[`organizer_${index}_photo`]) {
+          setErrors((prev) => ({ ...prev, [`organizer_${index}_photo`]: '' }));
         }
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleOrganizerPhotoChange = (e) => {
+  const addOrganizer = () => {
+    setOrganizers([...organizers, { name: '', mobile: '', photo: '', photoPreview: null }]);
+  };
+
+  const removeOrganizer = (index) => {
+    if (organizers.length > 1) {
+      const updatedOrganizers = organizers.filter((_, i) => i !== index);
+      setOrganizers(updatedOrganizers);
+
+      // Remove errors for this organizer
+      const newErrors = { ...errors };
+      delete newErrors[`organizer_${index}_name`];
+      delete newErrors[`organizer_${index}_mobile`];
+      delete newErrors[`organizer_${index}_photo`];
+      setErrors(newErrors);
+    }
+  };
+
+  const handlePosterChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5000000) {
-        setErrors((prev) => ({ ...prev, organizerPhoto: 'Photo size should be less than 5MB' }));
+      if (file.size > 5000000) { // 5MB limit
+        setErrors((prev) => ({ ...prev, tournamentPoster: 'Poster size should be less than 5MB' }));
         return;
       }
+
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, organizerPhoto: reader.result }));
-        setOrganizerPhotoPreview(reader.result);
-        if (errors.organizerPhoto) {
-          setErrors((prev) => ({ ...prev, organizerPhoto: '' }));
+        setFormData((prev) => ({ ...prev, tournamentPoster: reader.result }));
+        setPosterPreview(reader.result);
+        if (errors.tournamentPoster) {
+          setErrors((prev) => ({ ...prev, tournamentPoster: '' }));
         }
       };
       reader.readAsDataURL(file);
@@ -104,14 +161,20 @@ const EditTournament = () => {
     }
     if (!formData.description.trim()) newErrors.description = 'Description is required';
 
-    // Organizer details validation
-    if (!formData.organizerName || !formData.organizerName.trim()) newErrors.organizerName = 'Organizer name is required';
-    if (!formData.organizerMobile || !formData.organizerMobile.trim()) {
-      newErrors.organizerMobile = 'Organizer mobile number is required';
-    } else if (!/^[0-9]{10}$/.test(formData.organizerMobile.trim())) {
-      newErrors.organizerMobile = 'Please enter a valid 10-digit mobile number';
-    }
-    if (!formData.organizerPhoto) newErrors.organizerPhoto = 'Organizer photo is required';
+    // Organizer details validation (at least one organizer required)
+    organizers.forEach((organizer, index) => {
+      if (!organizer.name.trim()) {
+        newErrors[`organizer_${index}_name`] = 'Organizer name is required';
+      }
+      if (!organizer.mobile.trim()) {
+        newErrors[`organizer_${index}_mobile`] = 'Organizer mobile number is required';
+      } else if (!/^[0-9]{10}$/.test(organizer.mobile.trim())) {
+        newErrors[`organizer_${index}_mobile`] = 'Please enter a valid 10-digit mobile number';
+      }
+      if (!organizer.photo) {
+        newErrors[`organizer_${index}_photo`] = 'Organizer photo is required';
+      }
+    });
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -122,34 +185,46 @@ const EditTournament = () => {
     if (validateForm()) {
       setUploading(true);
       try {
-        // Upload tournament poster if it's a new file
-        let tournamentPosterURL = formData.tournamentPoster || "";
+        // Upload all organizer photos to Cloudinary
+        console.log('📤 Uploading organizer photos to Cloudinary...');
+        const uploadedOrganizers = await Promise.all(
+          organizers.map(async (organizer, index) => {
+            let photoURL = organizer.photo;
+            if (organizer.photo && organizer.photo.startsWith('data:image/')) {
+              const tempId = `organizer_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`;
+              photoURL = await uploadPhotoToStorage(organizer.photo, tempId);
+              console.log(`✅ Organizer ${index + 1} photo uploaded successfully`);
+            }
+            return {
+              name: organizer.name,
+              mobile: organizer.mobile,
+              photo: photoURL
+            };
+          })
+        );
+
+        // Upload tournament poster to Cloudinary
+        let tournamentPosterURL = formData.tournamentPoster || '';
         if (formData.tournamentPoster && formData.tournamentPoster.startsWith('data:image/')) {
-          console.log('📤 Uploading tournament poster...');
+          console.log('📤 Uploading tournament poster to Cloudinary...');
           const tempId = `poster_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           tournamentPosterURL = await uploadPhotoToStorage(formData.tournamentPoster, tempId);
+          console.log('✅ Tournament poster uploaded successfully');
         }
 
-        // Upload organizer photo if it's a new file
-        let organizerPhotoURL = formData.organizerPhoto;
-        if (formData.organizerPhoto && formData.organizerPhoto.startsWith('data:image/')) {
-          console.log('📤 Uploading organizer photo...');
-          const tempId = `organizer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-          organizerPhotoURL = await uploadPhotoToStorage(formData.organizerPhoto, tempId);
-        }
-
-        const updatedData = {
+        // Create tournament with organizers array and poster URL
+        const tournamentData = {
           ...formData,
-          tournamentPoster: tournamentPosterURL || "",
-          organizerPhoto: organizerPhotoURL
+          organizers: uploadedOrganizers,
+          tournamentPoster: tournamentPosterURL
         };
 
-        await updateTournament(id, updatedData);
+        await updateTournament(id, tournamentData);
         alert('Tournament updated successfully!');
         navigate('/tournaments');
       } catch (error) {
-        console.error('Error updating tournament:', error);
-        alert('Error updating tournament. Please try again.');
+        console.error('Error creating tournament:', error);
+        alert('Error creating tournament. Please try again.');
       } finally {
         setUploading(false);
       }
@@ -163,15 +238,13 @@ const EditTournament = () => {
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh',
-        fontSize: '1.2rem',
-        color: '#667eea'
-      }}>
-        Loading...
+      <div className="register-container">
+        <div className="register-content">
+          <div style={{ textAlign: 'center', padding: '3rem' }}>
+            <h2>Loading tournament...</h2>
+            <p>Please wait while we fetch the tournament details.</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -180,7 +253,7 @@ const EditTournament = () => {
     <div className="register-container">
       <nav className="navbar">
         <div className="navbar-brand">
-          <h1>🏏 Cricket Player Management</h1>
+          <h1>Cricket Player Management</h1>
         </div>
         <div className="navbar-actions">
           <button onClick={() => navigate('/dashboard')} className="btn-nav">Dashboard</button>
@@ -222,7 +295,7 @@ const EditTournament = () => {
             <div className="form-row">
               <div className="form-group">
                 <label>Auction Date *</label>
-                <input type="date" name="auctionDate" value={formData.auctionDate || ''} onChange={handleChange} />
+                <input type="date" name="auctionDate" value={formData.auctionDate} onChange={handleChange} />
                 {errors.auctionDate && <span className="error-message">{errors.auctionDate}</span>}
                 <small style={{display: 'block', marginTop: '0.5rem', color: '#6b7280', fontSize: '0.85rem'}}>
                   Registration will be disabled once auction date is reached
@@ -246,14 +319,28 @@ const EditTournament = () => {
 
             <div className="form-group">
               <label>Tournament Poster (Optional)</label>
-              <input type="file" accept="image/*" onChange={handlePosterChange} style={{ padding: '0.5rem' }} />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePosterChange}
+                style={{ padding: '0.5rem' }}
+              />
               {errors.tournamentPoster && <span className="error-message">{errors.tournamentPoster}</span>}
-              {(posterPreview || formData.tournamentPoster) && (
+              {posterPreview && (
                 <div style={{ marginTop: '1rem' }}>
-                  <img src={posterPreview || formData.tournamentPoster} alt="Tournament Poster Preview"
-                    style={{ maxWidth: '300px', maxHeight: '400px', borderRadius: '8px', border: '2px solid #e5e7eb', objectFit: 'contain' }} />
+                  <img
+                    src={posterPreview}
+                    alt="Tournament Poster Preview"
+                    style={{
+                      maxWidth: '300px',
+                      maxHeight: '400px',
+                      borderRadius: '8px',
+                      border: '2px solid #e5e7eb',
+                      objectFit: 'contain'
+                    }}
+                  />
                   <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#10b981' }}>
-                    ✓ {posterPreview ? 'New poster uploaded' : 'Current poster'}
+                    ✓ Poster uploaded successfully
                   </p>
                 </div>
               )}
@@ -263,38 +350,150 @@ const EditTournament = () => {
               <h3>Organizer Details</h3>
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>Organizer Name *</label>
-                <input type="text" name="organizerName" value={formData.organizerName || ''} onChange={handleChange} placeholder="Enter organizer name" />
-                {errors.organizerName && <span className="error-message">{errors.organizerName}</span>}
-              </div>
-              <div className="form-group">
-                <label>Organizer Mobile *</label>
-                <input type="tel" name="organizerMobile" value={formData.organizerMobile || ''} onChange={handleChange} placeholder="Enter 10-digit mobile number" maxLength="10" />
-                {errors.organizerMobile && <span className="error-message">{errors.organizerMobile}</span>}
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Organizer Photo *</label>
-              <input type="file" accept="image/*" onChange={handleOrganizerPhotoChange} style={{ padding: '0.5rem' }} />
-              {errors.organizerPhoto && <span className="error-message">{errors.organizerPhoto}</span>}
-              {(organizerPhotoPreview || formData.organizerPhoto) && (
-                <div style={{ marginTop: '1rem' }}>
-                  <img src={organizerPhotoPreview || formData.organizerPhoto} alt="Organizer Photo Preview"
-                    style={{ width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #e5e7eb' }} />
-                  <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#10b981' }}>
-                    ✓ {organizerPhotoPreview ? 'New photo uploaded' : 'Current photo'}
-                  </p>
+            {organizers.map((organizer, index) => (
+              <div key={index} style={{
+                background: '#f9fafb',
+                padding: '1.5rem',
+                borderRadius: '12px',
+                marginBottom: '1.5rem',
+                border: '2px solid #e5e7eb',
+                position: 'relative'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '1rem'
+                }}>
+                  <h4 style={{ margin: 0, color: '#4b5563', fontSize: '1.1rem' }}>
+                    Organizer {index + 1}
+                  </h4>
+                  {organizers.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeOrganizer(index)}
+                      style={{
+                        background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                        color: 'white',
+                        border: 'none',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem',
+                        fontWeight: '600',
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 2px 8px rgba(239, 68, 68, 0.3)'
+                      }}
+                      onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
+                      onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
+                    >
+                      ✕ Remove
+                    </button>
+                  )}
                 </div>
-              )}
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Organizer Name *</label>
+                    <input
+                      type="text"
+                      value={organizer.name}
+                      onChange={(e) => handleOrganizerChange(index, 'name', e.target.value)}
+                      placeholder="Enter organizer name"
+                    />
+                    {errors[`organizer_${index}_name`] && (
+                      <span className="error-message">{errors[`organizer_${index}_name`]}</span>
+                    )}
+                  </div>
+                  <div className="form-group">
+                    <label>Organizer Mobile *</label>
+                    <input
+                      type="tel"
+                      value={organizer.mobile}
+                      onChange={(e) => handleOrganizerChange(index, 'mobile', e.target.value)}
+                      placeholder="Enter 10-digit mobile number"
+                      maxLength="10"
+                    />
+                    {errors[`organizer_${index}_mobile`] && (
+                      <span className="error-message">{errors[`organizer_${index}_mobile`]}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Organizer Photo *</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleOrganizerPhotoChange(index, e)}
+                    style={{ padding: '0.5rem' }}
+                  />
+                  {errors[`organizer_${index}_photo`] && (
+                    <span className="error-message">{errors[`organizer_${index}_photo`]}</span>
+                  )}
+                  {organizer.photoPreview && (
+                    <div style={{ marginTop: '1rem' }}>
+                      <img
+                        src={organizer.photoPreview}
+                        alt={`Organizer ${index + 1} Preview`}
+                        style={{
+                          maxWidth: '150px',
+                          maxHeight: '150px',
+                          borderRadius: '50%',
+                          border: '3px solid #f59e0b',
+                          objectFit: 'cover'
+                        }}
+                      />
+                      <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#10b981' }}>
+                        ✓ Photo uploaded successfully
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            <div style={{ marginBottom: '2rem' }}>
+              <button
+                type="button"
+                onClick={addOrganizer}
+                style={{
+                  background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                  color: 'white',
+                  border: 'none',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)',
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 6px 16px rgba(139, 92, 246, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.3)';
+                }}
+              >
+                <span style={{ fontSize: '1.2rem' }}>+</span>
+                Add Another Organizer
+              </button>
             </div>
 
             <div className="form-actions">
-              <button type="button" onClick={() => navigate('/tournaments')} className="btn-secondary">Cancel</button>
+              <button type="button" onClick={() => navigate('/tournaments')} className="btn-secondary" disabled={uploading}>
+                Cancel
+              </button>
               <button type="submit" className="btn-primary" disabled={uploading}>
-                {uploading ? '⏳ Updating...' : 'Update Tournament'}
+                {uploading ? 'Updating Tournament...' : 'Update Tournament'}
               </button>
             </div>
           </form>
