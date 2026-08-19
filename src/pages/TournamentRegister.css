@@ -1927,3 +1927,11 @@
     padding: 1.5rem !important;
   }
 }
+
+/* Stack organizer name/contact vertically on very small screens */
+@media (max-width: 480px) {
+  /* Force single column for organizer info on small screens */
+  .tournament-register-layout div[style*="display: grid"] {
+    grid-template-columns: 1fr !important;
+  }
+}

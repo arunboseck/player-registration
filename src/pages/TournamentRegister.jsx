@@ -800,44 +800,50 @@ const TournamentRegister = () => {
                           backdropFilter: 'blur(10px)',
                           marginBottom: tournament.organizers.length > 1 && index < tournament.organizers.length - 1 ? '0.5rem' : '0'
                         }}>
-                          {organizer.name && (
-                            <div style={{ marginBottom: '0.9rem' }}>
-                              <div style={{
-                                fontSize: '0.8rem',
-                                opacity: '0.9',
-                                marginBottom: '0.35rem',
-                                fontWeight: '500'
-                              }}>
-                                Name
+                          <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr',
+                            gap: '1rem'
+                          }}>
+                            {organizer.name && (
+                              <div>
+                                <div style={{
+                                  fontSize: '0.8rem',
+                                  opacity: '0.9',
+                                  marginBottom: '0.35rem',
+                                  fontWeight: '500'
+                                }}>
+                                  Name
+                                </div>
+                                <div style={{
+                                  fontSize: '1.05rem',
+                                  fontWeight: '600'
+                                }}>
+                                  {organizer.name}
+                                </div>
                               </div>
-                              <div style={{
-                                fontSize: '1.05rem',
-                                fontWeight: '600'
-                              }}>
-                                {organizer.name}
-                              </div>
-                            </div>
-                          )}
+                            )}
 
-                          {organizer.mobile && (
-                            <div>
-                              <div style={{
-                                fontSize: '0.8rem',
-                                opacity: '0.9',
-                                marginBottom: '0.35rem',
-                                fontWeight: '500'
-                              }}>
-                                Contact
+                            {organizer.mobile && (
+                              <div>
+                                <div style={{
+                                  fontSize: '0.8rem',
+                                  opacity: '0.9',
+                                  marginBottom: '0.35rem',
+                                  fontWeight: '500'
+                                }}>
+                                  Contact
+                                </div>
+                                <div style={{
+                                  fontSize: '1.05rem',
+                                  fontWeight: '600',
+                                  letterSpacing: '0.5px'
+                                }}>
+                                  📞 {organizer.mobile}
+                                </div>
                               </div>
-                              <div style={{
-                                fontSize: '1.05rem',
-                                fontWeight: '600',
-                                letterSpacing: '0.5px'
-                              }}>
-                                📞 {organizer.mobile}
-                              </div>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
 
                         {tournament.organizers.length > 1 && index < tournament.organizers.length - 1 && (
@@ -879,44 +885,50 @@ const TournamentRegister = () => {
                       padding: '1.1rem',
                       backdropFilter: 'blur(10px)'
                     }}>
-                      {tournament.organizerName && (
-                        <div style={{ marginBottom: '0.9rem' }}>
-                          <div style={{
-                            fontSize: '0.8rem',
-                            opacity: '0.9',
-                            marginBottom: '0.35rem',
-                            fontWeight: '500'
-                          }}>
-                            Name
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '1rem'
+                      }}>
+                        {tournament.organizerName && (
+                          <div>
+                            <div style={{
+                              fontSize: '0.8rem',
+                              opacity: '0.9',
+                              marginBottom: '0.35rem',
+                              fontWeight: '500'
+                            }}>
+                              Name
+                            </div>
+                            <div style={{
+                              fontSize: '1.05rem',
+                              fontWeight: '600'
+                            }}>
+                              {tournament.organizerName}
+                            </div>
                           </div>
-                          <div style={{
-                            fontSize: '1.05rem',
-                            fontWeight: '600'
-                          }}>
-                            {tournament.organizerName}
-                          </div>
-                        </div>
-                      )}
+                        )}
 
-                      {tournament.organizerMobile && (
-                        <div>
-                          <div style={{
-                            fontSize: '0.8rem',
-                            opacity: '0.9',
-                            marginBottom: '0.35rem',
-                            fontWeight: '500'
-                          }}>
-                            Contact
+                        {tournament.organizerMobile && (
+                          <div>
+                            <div style={{
+                              fontSize: '0.8rem',
+                              opacity: '0.9',
+                              marginBottom: '0.35rem',
+                              fontWeight: '500'
+                            }}>
+                              Contact
+                            </div>
+                            <div style={{
+                              fontSize: '1.05rem',
+                              fontWeight: '600',
+                              letterSpacing: '0.5px'
+                            }}>
+                              📞 {tournament.organizerMobile}
+                            </div>
                           </div>
-                          <div style={{
-                            fontSize: '1.05rem',
-                            fontWeight: '600',
-                            letterSpacing: '0.5px'
-                          }}>
-                            📞 {tournament.organizerMobile}
-                          </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </>
                 )}
