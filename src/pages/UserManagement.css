@@ -127,23 +127,99 @@
   margin-top: 0;
   margin-bottom: 1.25rem;
   color: #1f2937;
+  font-size: 1.4rem;
+}
+
+.modal-box .form-group {
+  margin-bottom: 1.1rem;
+}
+
+.modal-box .form-group label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.modal-box .form-group input,
+.modal-box .form-group select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #e0e2e7;
+  border-radius: 10px;
+  background: #f9fafb;
+  font-size: 0.95rem;
+  color: #1f2937;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.modal-box .form-group input:focus,
+.modal-box .form-group select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+  background: white;
+}
+
+.modal-box .form-group input:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
 }
 
 .tournament-checklist {
-  max-height: 180px;
+  max-height: 200px;
   overflow-y: auto;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 0.5rem;
+  border-radius: 10px;
+  padding: 0.4rem;
+  background: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-.tournament-checklist-item {
-  display: flex;
+.modal-box .tournament-checklist-item {
+  display: flex !important;
+  flex-direction: row;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem 0.2rem;
+  gap: 0.65rem;
+  padding: 0.6rem 0.7rem;
   font-size: 0.9rem;
+  font-weight: 500;
+  color: #374151;
   cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+  line-height: 1.3;
+}
+
+.tournament-checklist-item:hover {
+  background: #eef1ff;
+}
+
+.tournament-checklist-item input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #667eea;
+  cursor: pointer;
+}
+
+.tournament-checklist-item span {
+  flex: 1;
+}
+
+.tournament-checklist::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tournament-checklist::-webkit-scrollbar-thumb {
+  background: #c7cbe0;
+  border-radius: 10px;
 }
 
 .modal-actions {

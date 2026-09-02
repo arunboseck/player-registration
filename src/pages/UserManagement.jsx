@@ -210,7 +210,7 @@ const UserManagement = () => {
                           checked={form.assignedTournaments.includes(t.id)}
                           onChange={() => toggleTournament(t.id)}
                         />
-                        {t.name}
+                        <span>{t.name}</span>
                       </label>
                     ))}
                   </div>
