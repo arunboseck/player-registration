@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getTournamentById, getTournamentRegistrations, deleteRegistration, updateRegistration, syncTournamentPhotosWithPlayers, syncTournamentPlayersToMainModule, uploadPhotoToStorage, getPlayerByMobile, updatePlayer } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
+import { ROLES } from '../utils/userManagement';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -19,7 +20,8 @@ const POSITIONS = [
 const TournamentRegistrations = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const isOrganizer = user?.role === ROLES.TOURNAMENT_ORGANIZER;
   const [tournament, setTournament] = useState(null);
   const [registrations, setRegistrations] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -502,31 +504,35 @@ const TournamentRegistrations = () => {
             </p>
           </div>
           <div className="header-actions">
-            <button
-              onClick={handleSyncPlayersToModule}
-              className="btn-download btn-sync-players"
-              disabled={syncingPlayers}
-              title="Add missing players to main player module"
-            >
-              {syncingPlayers ? (
-                <>
-                  <span className="btn-spinner"></span>
-                  Syncing Players...
-                </>
-              ) : (
-                <>
-                  👥 Sync to Player Module
-                </>
-              )}
-            </button>
-            <button
-              onClick={handleSyncPhotos}
-              className="btn-download btn-sync"
-              disabled={syncing}
-              title="Replace base64 photos with Cloudinary URLs from Players collection"
-            >
-              {syncing ? '⏳ Syncing...' : '🔄 Sync Photos'}
-            </button>
+            {!isOrganizer && (
+              <>
+                <button
+                  onClick={handleSyncPlayersToModule}
+                  className="btn-download btn-sync-players"
+                  disabled={syncingPlayers}
+                  title="Add missing players to main player module"
+                >
+                  {syncingPlayers ? (
+                    <>
+                      <span className="btn-spinner"></span>
+                      Syncing Players...
+                    </>
+                  ) : (
+                    <>
+                      👥 Sync to Player Module
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={handleSyncPhotos}
+                  className="btn-download btn-sync"
+                  disabled={syncing}
+                  title="Replace base64 photos with Cloudinary URLs from Players collection"
+                >
+                  {syncing ? '⏳ Syncing...' : '🔄 Sync Photos'}
+                </button>
+              </>
+            )}
             <button onClick={handleDownloadPDF} className="btn-download btn-pdf">
               📄 Download PDF
             </button>
