@@ -8,7 +8,7 @@ import {
   createUserAccount,
   updateUserProfile,
   setUserStatus,
-  deleteUserProfile
+  deleteUserCompletely
 } from '../utils/userManagement';
 import Modal from '../components/Modal';
 import { useModal } from '../hooks/useModal';
@@ -113,11 +113,16 @@ const UserManagement = () => {
 
   const handleDelete = async (u) => {
     const confirmed = await showConfirm(
-      `Remove ${u.name}'s access to the system? Their Firebase login will still exist until removed from the Firebase Console.`,
+      `Remove ${u.name} completely? This deletes both their login account and their access permanently. This can't be undone.`,
       'Remove User'
     );
     if (!confirmed) return;
-    await deleteUserProfile(u.uid);
+    const result = await deleteUserCompletely(u.uid);
+    if (result.success && result.warning) {
+      await showError(`${u.name}'s access was removed, but their login account could not be deleted: ${result.warning}`);
+    } else if (!result.success) {
+      await showError(result.error || 'Failed to delete user.');
+    }
     loadData();
   };
 

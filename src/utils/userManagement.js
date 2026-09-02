@@ -109,3 +109,33 @@ export const deleteUserProfile = async (uid) => {
     return { success: false, error: error.message };
   }
 };
+
+// Fully delete a user: removes both the Firebase Auth account and the
+// Realtime Database profile via the backend server (Admin SDK required).
+// Falls back to profile-only deletion if the backend is unavailable, so the
+// user still loses app access even if full cleanup can't happen right now.
+const API_URL = import.meta.env.VITE_BACKUP_API_URL || 'http://localhost:3001';
+
+export const deleteUserCompletely = async (uid) => {
+  try {
+    const response = await fetch(`${API_URL}/api/users/${uid}`, { method: 'DELETE' });
+    const data = await response.json();
+
+    if (data.success) {
+      return { success: true, authDeleted: true };
+    }
+
+    // Backend reachable but couldn't delete Auth account (e.g. not configured) -
+    // still remove the DB profile so app access is revoked immediately.
+    await remove(dbRef(database, `users/${uid}`));
+    return { success: true, authDeleted: false, warning: data.error };
+  } catch (error) {
+    console.error('Error reaching backend to delete user, falling back to profile-only removal:', error);
+    try {
+      await remove(dbRef(database, `users/${uid}`));
+      return { success: true, authDeleted: false, warning: 'Backend server unavailable - login account was not removed.' };
+    } catch (dbError) {
+      return { success: false, error: dbError.message };
+    }
+  }
+};

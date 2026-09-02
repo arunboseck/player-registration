@@ -4,9 +4,41 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
 const fsSync = require('fs');
+const admin = require('firebase-admin');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Initialize Firebase Admin SDK (used for deleting Auth accounts on user removal)
+let firebaseAdminReady = false;
+try {
+  let serviceAccount = null;
+
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    // Preferred: full service account JSON in a single env var
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  } else if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+    // Alternative: individual fields (private key with escaped \n)
+    serviceAccount = {
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+    };
+  }
+
+  if (serviceAccount) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      databaseURL: process.env.FIREBASE_DATABASE_URL
+    });
+    firebaseAdminReady = true;
+    console.log('✅ Firebase Admin SDK initialized');
+  } else {
+    console.warn('⚠️ Firebase Admin SDK not configured (missing FIREBASE_SERVICE_ACCOUNT or FIREBASE_PROJECT_ID/CLIENT_EMAIL/PRIVATE_KEY env vars). /api/users/:uid delete endpoint will be unavailable.');
+  }
+} catch (error) {
+  console.error('❌ Failed to initialize Firebase Admin SDK:', error.message);
+}
 
 // Ensure backups directory exists
 const BACKUPS_DIR = path.join(__dirname, 'backups');
@@ -172,6 +204,37 @@ app.delete('/api/backups/:filename', async (req, res) => {
     });
   } catch (error) {
     console.error('Error deleting backup:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Delete a user's Firebase Auth account AND Realtime DB profile (Admin SDK required)
+app.delete('/api/users/:uid', async (req, res) => {
+  if (!firebaseAdminReady) {
+    return res.status(503).json({
+      success: false,
+      error: 'Firebase Admin SDK not configured on the server. Set FIREBASE_SERVICE_ACCOUNT (or FIREBASE_PROJECT_ID/FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY) and FIREBASE_DATABASE_URL env vars.'
+    });
+  }
+
+  try {
+    const { uid } = req.params;
+
+    // Delete the Auth account first (ignore "user not found" so DB cleanup still happens)
+    try {
+      await admin.auth().deleteUser(uid);
+    } catch (authError) {
+      if (authError.code !== 'auth/user-not-found') {
+        throw authError;
+      }
+    }
+
+    // Remove the profile from Realtime Database
+    await admin.database().ref(`users/${uid}`).remove();
+
+    res.json({ success: true, message: `User ${uid} deleted successfully` });
+  } catch (error) {
+    console.error('Error deleting user:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
