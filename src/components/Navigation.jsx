@@ -44,41 +44,54 @@ const Navigation = () => {
           </div>
           <div className="sidebar-body">
             {user ? (
-              <>
-                <h3 className="sidebar-section-title">Quick Actions</h3>
-                <button className="sidebar-menu-item sidebar-menu-item-purple" onClick={() => handleNavigation('/register-player')}>
-                  <span>Register Player</span>
-                </button>
-                <button className="sidebar-menu-item sidebar-menu-item-indigo" onClick={() => handleNavigation('/players')}>
-                  <span>View Players</span>
-                </button>
-                {user.role === ROLES.SUPER_ADMIN && (
-                  <button className="sidebar-menu-item sidebar-menu-item-green" onClick={() => handleNavigation('/add-tournament')}>
-                    <span>Create Tournament</span>
+              user.role === ROLES.TOURNAMENT_ORGANIZER ? (
+                <>
+                  <h3 className="sidebar-section-title">Quick Actions</h3>
+                  <button className="sidebar-menu-item sidebar-menu-item-blue" onClick={() => handleNavigation('/tournaments')}>
+                    <span>View Tournaments</span>
                   </button>
-                )}
-                <button className="sidebar-menu-item sidebar-menu-item-blue" onClick={() => handleNavigation('/tournaments')}>
-                  <span>View Tournaments</span>
-                </button>
-                <h3 className="sidebar-section-title">Management</h3>
-                <button className="sidebar-menu-item sidebar-menu-item-indigo" onClick={() => handleNavigation('/dashboard')}>
-                  <span>Dashboard</span>
-                </button>
-                {user.role === ROLES.SUPER_ADMIN && (
-                  <>
-                    <button className="sidebar-menu-item sidebar-menu-item-orange" onClick={() => handleNavigation('/users')}>
-                      <span>👥 User Management</span>
+                  <div className="sidebar-divider"></div>
+                  <button className="sidebar-menu-item sidebar-menu-item-logout" onClick={handleLogout}>
+                    <span>Logout</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <h3 className="sidebar-section-title">Quick Actions</h3>
+                  <button className="sidebar-menu-item sidebar-menu-item-purple" onClick={() => handleNavigation('/register-player')}>
+                    <span>Register Player</span>
+                  </button>
+                  <button className="sidebar-menu-item sidebar-menu-item-indigo" onClick={() => handleNavigation('/players')}>
+                    <span>View Players</span>
+                  </button>
+                  {user.role === ROLES.SUPER_ADMIN && (
+                    <button className="sidebar-menu-item sidebar-menu-item-green" onClick={() => handleNavigation('/add-tournament')}>
+                      <span>Create Tournament</span>
                     </button>
-                    <button className="sidebar-menu-item sidebar-menu-item-orange" onClick={() => handleNavigation('/settings')}>
-                      <span>⚙️ Settings</span>
-                    </button>
-                  </>
-                )}
-                <div className="sidebar-divider"></div>
-                <button className="sidebar-menu-item sidebar-menu-item-logout" onClick={handleLogout}>
-                  <span>Logout</span>
-                </button>
-              </>
+                  )}
+                  <button className="sidebar-menu-item sidebar-menu-item-blue" onClick={() => handleNavigation('/tournaments')}>
+                    <span>View Tournaments</span>
+                  </button>
+                  <h3 className="sidebar-section-title">Management</h3>
+                  <button className="sidebar-menu-item sidebar-menu-item-indigo" onClick={() => handleNavigation('/dashboard')}>
+                    <span>Dashboard</span>
+                  </button>
+                  {user.role === ROLES.SUPER_ADMIN && (
+                    <>
+                      <button className="sidebar-menu-item sidebar-menu-item-orange" onClick={() => handleNavigation('/users')}>
+                        <span>👥 User Management</span>
+                      </button>
+                      <button className="sidebar-menu-item sidebar-menu-item-orange" onClick={() => handleNavigation('/settings')}>
+                        <span>⚙️ Settings</span>
+                      </button>
+                    </>
+                  )}
+                  <div className="sidebar-divider"></div>
+                  <button className="sidebar-menu-item sidebar-menu-item-logout" onClick={handleLogout}>
+                    <span>Logout</span>
+                  </button>
+                </>
+              )
             ) : (
               <>
                 <h3 className="sidebar-section-title">Welcome</h3>

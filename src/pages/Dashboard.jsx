@@ -40,7 +40,7 @@ const Dashboard = () => {
           <h1>Cricket Player Management</h1>
         </div>
         <div className="navbar-actions">
-          <span className="welcome-text">Welcome, {user?.username || 'admin@techcorp.com'}</span>
+          <span className="welcome-text">Welcome, {user?.email || user?.name || 'Admin'}</span>
           <button onClick={handleLogout} className="btn-logout">
             Logout
           </button>
