@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { ROLES } from '../utils/userManagement';
 import './Navigation.css';
 
 const Navigation = () => {
@@ -51,9 +52,11 @@ const Navigation = () => {
                 <button className="sidebar-menu-item sidebar-menu-item-indigo" onClick={() => handleNavigation('/players')}>
                   <span>View Players</span>
                 </button>
-                <button className="sidebar-menu-item sidebar-menu-item-green" onClick={() => handleNavigation('/add-tournament')}>
-                  <span>Create Tournament</span>
-                </button>
+                {user.role === ROLES.SUPER_ADMIN && (
+                  <button className="sidebar-menu-item sidebar-menu-item-green" onClick={() => handleNavigation('/add-tournament')}>
+                    <span>Create Tournament</span>
+                  </button>
+                )}
                 <button className="sidebar-menu-item sidebar-menu-item-blue" onClick={() => handleNavigation('/tournaments')}>
                   <span>View Tournaments</span>
                 </button>
@@ -61,9 +64,16 @@ const Navigation = () => {
                 <button className="sidebar-menu-item sidebar-menu-item-indigo" onClick={() => handleNavigation('/dashboard')}>
                   <span>Dashboard</span>
                 </button>
-                <button className="sidebar-menu-item sidebar-menu-item-orange" onClick={() => handleNavigation('/settings')}>
-                  <span>⚙️ Settings</span>
-                </button>
+                {user.role === ROLES.SUPER_ADMIN && (
+                  <>
+                    <button className="sidebar-menu-item sidebar-menu-item-orange" onClick={() => handleNavigation('/users')}>
+                      <span>👥 User Management</span>
+                    </button>
+                    <button className="sidebar-menu-item sidebar-menu-item-orange" onClick={() => handleNavigation('/settings')}>
+                      <span>⚙️ Settings</span>
+                    </button>
+                  </>
+                )}
                 <div className="sidebar-divider"></div>
                 <button className="sidebar-menu-item sidebar-menu-item-logout" onClick={handleLogout}>
                   <span>Logout</span>

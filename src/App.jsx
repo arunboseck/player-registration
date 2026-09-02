@@ -16,6 +16,8 @@ import TournamentRegistrations from './pages/TournamentRegistrations';
 import CleanupDuplicates from './pages/CleanupDuplicates';
 import MigratePhotos from './pages/MigratePhotos';
 import Settings from './pages/Settings';
+import UserManagement from './pages/UserManagement';
+import { ROLES } from './utils/userManagement';
 import './App.css';
 
 // Layout component that conditionally shows navigation
@@ -127,8 +129,16 @@ function App() {
             <Route
               path="/settings"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}>
                   <Settings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/users"
+              element={
+                <ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}>
+                  <UserManagement />
                 </ProtectedRoute>
               }
             />

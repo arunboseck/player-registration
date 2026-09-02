@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getTournaments, deleteTournament, getTournamentRegistrations } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
+import { ROLES } from '../utils/userManagement';
 import Modal from '../components/Modal';
 import { useModal } from '../hooks/useModal';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -9,7 +10,7 @@ import './Players.css';
 
 const Tournaments = () => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -23,7 +24,13 @@ const Tournaments = () => {
 
   const loadTournaments = async () => {
     setLoading(true);
-    const allTournaments = await getTournaments();
+    let allTournaments = await getTournaments();
+
+    // Tournament Organizers only see tournaments assigned to them
+    if (user?.role === ROLES.TOURNAMENT_ORGANIZER) {
+      const assigned = user.assignedTournaments || [];
+      allTournaments = allTournaments.filter((t) => assigned.includes(t.id));
+    }
 
     // Sort tournaments by creation date (newest first)
     const sortedTournaments = allTournaments.sort((a, b) => {

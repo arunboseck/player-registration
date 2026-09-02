@@ -6,17 +6,24 @@ import './Login.css';
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (credentials.username === 'admin' && credentials.password === 'admin123') {
-      login(credentials.username, credentials.password);
+    if (submitting) return;
+    setError('');
+    setSubmitting(true);
+
+    const result = await login(credentials.email.trim(), credentials.password);
+
+    if (result.success) {
       navigate('/dashboard');
     } else {
-      setError('Invalid username or password');
+      setError(result.error || 'Invalid email or password');
     }
+    setSubmitting(false);
   };
 
   return (
@@ -33,12 +40,12 @@ const Login = () => {
         {error && <div className="error-message">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Username</label>
+            <label>Email</label>
             <input
-              type="text"
-              value={credentials.username}
-              onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
-              placeholder="Enter username"
+              type="email"
+              value={credentials.email}
+              onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
+              placeholder="Enter email"
               required
             />
           </div>
@@ -52,7 +59,9 @@ const Login = () => {
               required
             />
           </div>
-          <button type="submit" className="btn-login">Login</button>
+          <button type="submit" className="btn-login" disabled={submitting}>
+            {submitting ? 'Signing in...' : 'Login'}
+          </button>
         </form>
       </div>
     </div>
