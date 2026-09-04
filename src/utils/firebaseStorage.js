@@ -283,27 +283,25 @@ export const getPlayerByMobile = async (mobile) => {
  * Search players by name (optimized with Firebase query)
  * Uses startAt/endAt for prefix matching on indexed field
  */
-export const searchPlayersByName = async (searchTerm, pageSize = 50) => {
+export const searchPlayersByName = async (searchTerm) => {
   try {
     if (!searchTerm || searchTerm.trim().length === 0) {
       return [];
     }
 
     const startTime = Date.now();
-    console.log(`🔍 Searching players with name starting with "${searchTerm}"...`);
+    console.log(`🔍 Searching players with name containing "${searchTerm}"...`);
 
     const playersRef = dbRef(database, "players");
     const normalizedSearch = searchTerm.toLowerCase().trim();
 
-    // Firebase only supports prefix search efficiently
-    // Search by name (case-insensitive requires lowercase field)
-    const nameQuery = query(
-      playersRef,
-      orderByChild("name"),
-      limitToFirst(pageSize)
-    );
-
-    const snapshot = await get(nameQuery);
+    // NOTE: Firebase Realtime Database can only do prefix range queries
+    // (startAt/endAt) efficiently, and those are case-sensitive on the raw
+    // "name" field. Since we need a case-insensitive "contains" match, and
+    // limiting to the first N players sorted by name would silently exclude
+    // any matching player whose name sorts after that cutoff, we fetch the
+    // full players list and filter client-side instead.
+    const snapshot = await get(playersRef);
 
     if (snapshot.exists()) {
       const playersObj = snapshot.val();
@@ -363,10 +361,10 @@ export const searchPlayersByMobile = async (mobile) => {
         return results;
       }
     } else {
-      // For partial match, we need to fetch and filter
-      // This is still faster than getPlayers() if we limit results
-      const limitedQuery = query(playersRef, orderByChild("mobile"), limitToFirst(100));
-      const snapshot = await get(limitedQuery);
+      // For partial match, fetch the full list and filter client-side.
+      // (Limiting to the first N by mobile sort order would silently miss
+      // matches that sort after the cutoff.)
+      const snapshot = await get(playersRef);
 
       if (snapshot.exists()) {
         const playersObj = snapshot.val();
@@ -416,7 +414,7 @@ export const searchPlayers = async (searchTerm) => {
     } else {
       // Name search (indexed with client-side filter)
       console.log(`👤 Name search detected: ${term}`);
-      results = await searchPlayersByName(term, 100);
+      results = await searchPlayersByName(term);
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
