@@ -472,12 +472,18 @@ const TournamentRegistrations = () => {
     }
   };
 
-  // Crops a photo down to a head-and-shoulders square.
-  // Close-up portraits are center-cropped (biased slightly upward, since a
-  // face usually sits above the vertical center of a headshot-style photo).
-  // Long / full-body shots are cropped from the top of the frame instead,
-  // since the head is almost always in the upper portion of the image.
-  const cropToHeadshot = (imageUrl, outputSize = 500) => {
+  // Standard passport/ID-photo proportions (35mm x 45mm => ~0.778 width/height).
+  const PASSPORT_ASPECT = 35 / 45;
+  const PASSPORT_OUTPUT_WIDTH = 413; // ~35mm at ~300dpi
+  const PASSPORT_OUTPUT_HEIGHT = 531; // ~45mm at ~300dpi
+
+  // Crops a photo down to a passport-style head-and-shoulders portrait
+  // (35:45 aspect ratio, not a plain square).
+  // Close-up portraits are center-cropped to that aspect (biased slightly
+  // upward, since a face usually sits above the vertical center of a
+  // headshot-style photo). Long / full-body shots take just the top portion
+  // of the frame instead, since the head is almost always up there.
+  const cropToHeadshot = (imageUrl, outputWidth = PASSPORT_OUTPUT_WIDTH, outputHeight = PASSPORT_OUTPUT_HEIGHT) => {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
@@ -490,36 +496,47 @@ const TournamentRegistrations = () => {
         clearTimeout(timeout);
         try {
           const { width, height } = img;
+          const aspect = outputWidth / outputHeight;
           const isLongShot = height > width * 1.3;
 
-          let cropSize;
+          let cropW;
+          let cropH;
           let cropX;
           let cropY;
 
           if (isLongShot) {
-            // Full-body / long shot: take a square from the top of the frame,
-            // as wide as the image, so it covers the head & shoulders.
-            cropSize = width;
-            cropX = 0;
-            cropY = height * 0.03; // small margin so the very top edge isn't clipped
-            if (cropY + cropSize > height) {
-              cropSize = height - cropY;
+            // Full-body / long shot: take just the head & shoulders from the
+            // top of the frame, sized to the passport aspect ratio.
+            cropH = height * 0.45;
+            cropW = cropH * aspect;
+            if (cropW > width) {
+              cropW = width;
+              cropH = cropW / aspect;
             }
+            cropX = (width - cropW) / 2;
+            cropY = height * 0.02; // small margin so the very top edge isn't clipped
           } else {
-            // Close-up / headshot-style photo: center-crop the largest square,
-            // biased slightly toward the top where the face typically is.
-            cropSize = Math.min(width, height);
-            cropX = (width - cropSize) / 2;
-            cropY = Math.max(0, (height - cropSize) * 0.15);
+            // Close-up / headshot-style photo: crop the largest region that
+            // matches the passport aspect ratio, biased toward the top where
+            // the face typically is.
+            if (width / height > aspect) {
+              cropH = height;
+              cropW = height * aspect;
+            } else {
+              cropW = width;
+              cropH = width / aspect;
+            }
+            cropX = (width - cropW) / 2;
+            cropY = Math.max(0, (height - cropH) * 0.15);
           }
 
           const canvas = document.createElement('canvas');
-          canvas.width = outputSize;
-          canvas.height = outputSize;
+          canvas.width = outputWidth;
+          canvas.height = outputHeight;
           const ctx = canvas.getContext('2d');
           ctx.fillStyle = '#FFFFFF';
-          ctx.fillRect(0, 0, outputSize, outputSize);
-          ctx.drawImage(img, cropX, cropY, cropSize, cropSize, 0, 0, outputSize, outputSize);
+          ctx.fillRect(0, 0, outputWidth, outputHeight);
+          ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, outputWidth, outputHeight);
 
           canvas.toBlob(
             (blob) => {
@@ -543,44 +560,6 @@ const TournamentRegistrations = () => {
     });
   };
 
-  // Loads a Blob into an <img> element (needed to draw it onto a canvas).
-  const loadImageFromBlob = (blob) => {
-    return new Promise((resolve, reject) => {
-      const url = URL.createObjectURL(blob);
-      const img = new Image();
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        resolve(img);
-      };
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        reject(new Error('Failed to load cropped image'));
-      };
-      img.src = url;
-    });
-  };
-
-  // Flattens a transparent-background PNG (the background-removal output)
-  // onto a solid white square, so the final file is a normal, printable JPEG.
-  const flattenOntoWhite = async (transparentBlob, outputSize = 500) => {
-    const img = await loadImageFromBlob(transparentBlob);
-    const canvas = document.createElement('canvas');
-    canvas.width = outputSize;
-    canvas.height = outputSize;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, outputSize, outputSize);
-    ctx.drawImage(img, 0, 0, outputSize, outputSize);
-
-    return new Promise((resolve, reject) => {
-      canvas.toBlob(
-        (blob) => (blob ? resolve(blob) : reject(new Error('Failed to flatten image'))),
-        'image/jpeg',
-        0.92
-      );
-    });
-  };
-
   const handleDownloadPhotosZip = async () => {
     const withPhotos = filteredRegistrations.filter((reg) => reg.photo && reg.photo.trim());
 
@@ -600,8 +579,7 @@ const TournamentRegistrations = () => {
         const reg = withPhotos[i];
         try {
           const croppedBlob = await cropToHeadshot(reg.photo);
-          const noBackgroundBlob = await removeBackground(croppedBlob);
-          const finalBlob = await flattenOntoWhite(noBackgroundBlob);
+          const finalBlob = await removeBackground(croppedBlob);
 
           // Sanitize name for use as a filename
           const baseName = (reg.name || 'player').trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_') || 'player';
@@ -609,7 +587,7 @@ const TournamentRegistrations = () => {
           // Avoid overwriting files with duplicate player names
           const count = usedNames.get(baseName) || 0;
           usedNames.set(baseName, count + 1);
-          const filename = count === 0 ? `${baseName}.jpg` : `${baseName}_${count + 1}.jpg`;
+          const filename = count === 0 ? `${baseName}.png` : `${baseName}_${count + 1}.png`;
 
           zip.file(filename, finalBlob);
         } catch (photoError) {
