@@ -470,23 +470,75 @@ const TournamentRegistrations = () => {
     }
   };
 
-  const getExtensionFromMime = (mimeType) => {
-    if (!mimeType) return 'jpg';
-    if (mimeType.includes('png')) return 'png';
-    if (mimeType.includes('webp')) return 'webp';
-    if (mimeType.includes('gif')) return 'gif';
-    return 'jpg';
-  };
+  // Crops a photo down to a head-and-shoulders square.
+  // Close-up portraits are center-cropped (biased slightly upward, since a
+  // face usually sits above the vertical center of a headshot-style photo).
+  // Long / full-body shots are cropped from the top of the frame instead,
+  // since the head is almost always in the upper portion of the image.
+  const cropToHeadshot = (imageUrl, outputSize = 500) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
 
-  const fetchPhotoBlob = async (photo) => {
-    if (photo.startsWith('data:')) {
-      const res = await fetch(photo);
-      return res.blob();
-    }
-    // Remote (e.g. Cloudinary) URL
-    const res = await fetch(photo);
-    if (!res.ok) throw new Error(`Failed to fetch photo (${res.status})`);
-    return res.blob();
+      const timeout = setTimeout(() => {
+        reject(new Error('Image load timeout'));
+      }, 15000);
+
+      img.onload = () => {
+        clearTimeout(timeout);
+        try {
+          const { width, height } = img;
+          const isLongShot = height > width * 1.3;
+
+          let cropSize;
+          let cropX;
+          let cropY;
+
+          if (isLongShot) {
+            // Full-body / long shot: take a square from the top of the frame,
+            // as wide as the image, so it covers the head & shoulders.
+            cropSize = width;
+            cropX = 0;
+            cropY = height * 0.03; // small margin so the very top edge isn't clipped
+            if (cropY + cropSize > height) {
+              cropSize = height - cropY;
+            }
+          } else {
+            // Close-up / headshot-style photo: center-crop the largest square,
+            // biased slightly toward the top where the face typically is.
+            cropSize = Math.min(width, height);
+            cropX = (width - cropSize) / 2;
+            cropY = Math.max(0, (height - cropSize) * 0.15);
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = outputSize;
+          canvas.height = outputSize;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, outputSize, outputSize);
+          ctx.drawImage(img, cropX, cropY, cropSize, cropSize, 0, 0, outputSize, outputSize);
+
+          canvas.toBlob(
+            (blob) => {
+              if (blob) resolve(blob);
+              else reject(new Error('Failed to create cropped image'));
+            },
+            'image/jpeg',
+            0.92
+          );
+        } catch (error) {
+          reject(error);
+        }
+      };
+
+      img.onerror = () => {
+        clearTimeout(timeout);
+        reject(new Error('Failed to load image'));
+      };
+
+      img.src = imageUrl;
+    });
   };
 
   const handleDownloadPhotosZip = async () => {
@@ -505,20 +557,19 @@ const TournamentRegistrations = () => {
 
       for (const reg of withPhotos) {
         try {
-          const blob = await fetchPhotoBlob(reg.photo);
-          const extension = getExtensionFromMime(blob.type);
+          const croppedBlob = await cropToHeadshot(reg.photo);
 
           // Sanitize name for use as a filename
-          let baseName = (reg.name || 'player').trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_') || 'player';
+          const baseName = (reg.name || 'player').trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_') || 'player';
 
           // Avoid overwriting files with duplicate player names
           const count = usedNames.get(baseName) || 0;
           usedNames.set(baseName, count + 1);
-          const filename = count === 0 ? `${baseName}.${extension}` : `${baseName}_${count + 1}.${extension}`;
+          const filename = count === 0 ? `${baseName}.jpg` : `${baseName}_${count + 1}.jpg`;
 
-          zip.file(filename, blob);
+          zip.file(filename, croppedBlob);
         } catch (photoError) {
-          console.error(`Error fetching photo for ${reg.name}:`, photoError);
+          console.error(`Error cropping photo for ${reg.name}:`, photoError);
           failedCount += 1;
         }
       }
@@ -537,7 +588,7 @@ const TournamentRegistrations = () => {
       URL.revokeObjectURL(url);
 
       if (failedCount > 0) {
-        alert(`Downloaded photos ZIP, but ${failedCount} photo(s) could not be fetched and were skipped.`);
+        alert(`Downloaded photos ZIP, but ${failedCount} photo(s) could not be cropped/fetched and were skipped.`);
       }
     } catch (error) {
       console.error('Error creating photos ZIP:', error);
@@ -622,7 +673,7 @@ const TournamentRegistrations = () => {
               onClick={handleDownloadPhotosZip}
               className="btn-download btn-photos-zip"
               disabled={downloadingPhotos}
-              title="Download all player photos as a ZIP file"
+              title="Download all player photos, cropped to headshots, as a ZIP file"
             >
               {downloadingPhotos ? (
                 <>
