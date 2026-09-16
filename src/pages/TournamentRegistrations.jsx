@@ -6,6 +6,7 @@ import { ROLES } from '../utils/userManagement';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import JSZip from 'jszip';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './Players.css';
 import './TournamentRegistrations.css';
@@ -35,6 +36,7 @@ const TournamentRegistrations = () => {
   const [syncingPlayers, setSyncingPlayers] = useState(false);
   const [playerSyncResult, setPlayerSyncResult] = useState(null);
   const [photoModal, setPhotoModal] = useState({ show: false, photo: null, name: '' });
+  const [downloadingPhotos, setDownloadingPhotos] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -468,6 +470,83 @@ const TournamentRegistrations = () => {
     }
   };
 
+  const getExtensionFromMime = (mimeType) => {
+    if (!mimeType) return 'jpg';
+    if (mimeType.includes('png')) return 'png';
+    if (mimeType.includes('webp')) return 'webp';
+    if (mimeType.includes('gif')) return 'gif';
+    return 'jpg';
+  };
+
+  const fetchPhotoBlob = async (photo) => {
+    if (photo.startsWith('data:')) {
+      const res = await fetch(photo);
+      return res.blob();
+    }
+    // Remote (e.g. Cloudinary) URL
+    const res = await fetch(photo);
+    if (!res.ok) throw new Error(`Failed to fetch photo (${res.status})`);
+    return res.blob();
+  };
+
+  const handleDownloadPhotosZip = async () => {
+    const withPhotos = filteredRegistrations.filter((reg) => reg.photo && reg.photo.trim());
+
+    if (withPhotos.length === 0) {
+      alert('No player photos available to download');
+      return;
+    }
+
+    setDownloadingPhotos(true);
+    try {
+      const zip = new JSZip();
+      const usedNames = new Map();
+      let failedCount = 0;
+
+      for (const reg of withPhotos) {
+        try {
+          const blob = await fetchPhotoBlob(reg.photo);
+          const extension = getExtensionFromMime(blob.type);
+
+          // Sanitize name for use as a filename
+          let baseName = (reg.name || 'player').trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_') || 'player';
+
+          // Avoid overwriting files with duplicate player names
+          const count = usedNames.get(baseName) || 0;
+          usedNames.set(baseName, count + 1);
+          const filename = count === 0 ? `${baseName}.${extension}` : `${baseName}_${count + 1}.${extension}`;
+
+          zip.file(filename, blob);
+        } catch (photoError) {
+          console.error(`Error fetching photo for ${reg.name}:`, photoError);
+          failedCount += 1;
+        }
+      }
+
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(zipBlob);
+
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${tournament.name}_Player_Photos_${new Date().toISOString().split('T')[0]}.zip`);
+      link.style.visibility = 'hidden';
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      if (failedCount > 0) {
+        alert(`Downloaded photos ZIP, but ${failedCount} photo(s) could not be fetched and were skipped.`);
+      }
+    } catch (error) {
+      console.error('Error creating photos ZIP:', error);
+      alert('Error downloading player photos');
+    } finally {
+      setDownloadingPhotos(false);
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -538,6 +617,21 @@ const TournamentRegistrations = () => {
             </button>
             <button onClick={handleDownloadExcel} className="btn-download btn-excel">
               📥 Download Excel
+            </button>
+            <button
+              onClick={handleDownloadPhotosZip}
+              className="btn-download btn-photos-zip"
+              disabled={downloadingPhotos}
+              title="Download all player photos as a ZIP file"
+            >
+              {downloadingPhotos ? (
+                <>
+                  <span className="btn-spinner"></span>
+                  Zipping Photos...
+                </>
+              ) : (
+                <>🖼️ Download Photos (ZIP)</>
+              )}
             </button>
           </div>
         </div>
