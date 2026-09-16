@@ -7,6 +7,7 @@ import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import JSZip from 'jszip';
+import { removeBackground } from '@imgly/background-removal';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './Players.css';
 import './TournamentRegistrations.css';
@@ -37,6 +38,7 @@ const TournamentRegistrations = () => {
   const [playerSyncResult, setPlayerSyncResult] = useState(null);
   const [photoModal, setPhotoModal] = useState({ show: false, photo: null, name: '' });
   const [downloadingPhotos, setDownloadingPhotos] = useState(false);
+  const [photoZipProgress, setPhotoZipProgress] = useState({ current: 0, total: 0 });
 
   useEffect(() => {
     loadData();
@@ -541,6 +543,44 @@ const TournamentRegistrations = () => {
     });
   };
 
+  // Loads a Blob into an <img> element (needed to draw it onto a canvas).
+  const loadImageFromBlob = (blob) => {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        resolve(img);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Failed to load cropped image'));
+      };
+      img.src = url;
+    });
+  };
+
+  // Flattens a transparent-background PNG (the background-removal output)
+  // onto a solid white square, so the final file is a normal, printable JPEG.
+  const flattenOntoWhite = async (transparentBlob, outputSize = 500) => {
+    const img = await loadImageFromBlob(transparentBlob);
+    const canvas = document.createElement('canvas');
+    canvas.width = outputSize;
+    canvas.height = outputSize;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, outputSize, outputSize);
+    ctx.drawImage(img, 0, 0, outputSize, outputSize);
+
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error('Failed to flatten image'))),
+        'image/jpeg',
+        0.92
+      );
+    });
+  };
+
   const handleDownloadPhotosZip = async () => {
     const withPhotos = filteredRegistrations.filter((reg) => reg.photo && reg.photo.trim());
 
@@ -550,14 +590,18 @@ const TournamentRegistrations = () => {
     }
 
     setDownloadingPhotos(true);
+    setPhotoZipProgress({ current: 0, total: withPhotos.length });
     try {
       const zip = new JSZip();
       const usedNames = new Map();
       let failedCount = 0;
 
-      for (const reg of withPhotos) {
+      for (let i = 0; i < withPhotos.length; i++) {
+        const reg = withPhotos[i];
         try {
           const croppedBlob = await cropToHeadshot(reg.photo);
+          const noBackgroundBlob = await removeBackground(croppedBlob);
+          const finalBlob = await flattenOntoWhite(noBackgroundBlob);
 
           // Sanitize name for use as a filename
           const baseName = (reg.name || 'player').trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_') || 'player';
@@ -567,10 +611,12 @@ const TournamentRegistrations = () => {
           usedNames.set(baseName, count + 1);
           const filename = count === 0 ? `${baseName}.jpg` : `${baseName}_${count + 1}.jpg`;
 
-          zip.file(filename, croppedBlob);
+          zip.file(filename, finalBlob);
         } catch (photoError) {
-          console.error(`Error cropping photo for ${reg.name}:`, photoError);
+          console.error(`Error processing photo for ${reg.name}:`, photoError);
           failedCount += 1;
+        } finally {
+          setPhotoZipProgress({ current: i + 1, total: withPhotos.length });
         }
       }
 
@@ -588,13 +634,14 @@ const TournamentRegistrations = () => {
       URL.revokeObjectURL(url);
 
       if (failedCount > 0) {
-        alert(`Downloaded photos ZIP, but ${failedCount} photo(s) could not be cropped/fetched and were skipped.`);
+        alert(`Downloaded photos ZIP, but ${failedCount} photo(s) could not be processed and were skipped.`);
       }
     } catch (error) {
       console.error('Error creating photos ZIP:', error);
       alert('Error downloading player photos');
     } finally {
       setDownloadingPhotos(false);
+      setPhotoZipProgress({ current: 0, total: 0 });
     }
   };
 
@@ -673,12 +720,12 @@ const TournamentRegistrations = () => {
               onClick={handleDownloadPhotosZip}
               className="btn-download btn-photos-zip"
               disabled={downloadingPhotos}
-              title="Download all player photos, cropped to headshots, as a ZIP file"
+              title="Download all player photos, cropped to headshots with background removed, as a ZIP file"
             >
               {downloadingPhotos ? (
                 <>
                   <span className="btn-spinner"></span>
-                  Zipping Photos...
+                  Processing {photoZipProgress.current}/{photoZipProgress.total}...
                 </>
               ) : (
                 <>🖼️ Download Photos (ZIP)</>
