@@ -483,17 +483,37 @@ const TournamentRegistrations = () => {
   // upward, since a face usually sits above the vertical center of a
   // headshot-style photo). Long / full-body shots take just the top portion
   // of the frame instead, since the head is almost always up there.
-  const cropToHeadshot = (imageUrl, outputWidth = PASSPORT_OUTPUT_WIDTH, outputHeight = PASSPORT_OUTPUT_HEIGHT) => {
+  const cropToHeadshot = async (imageUrl, outputWidth = PASSPORT_OUTPUT_WIDTH, outputHeight = PASSPORT_OUTPUT_HEIGHT) => {
+    // Load the photo as a same-origin blob URL first. Drawing directly from
+    // a remote URL (even with crossOrigin="anonymous") taints the canvas if
+    // the response is missing the right CORS headers, which makes
+    // canvas.toBlob() fail silently and drops the player from the ZIP.
+    // A blob: URL is always same-origin for canvas purposes once fetched.
+    let objectUrl;
+    if (imageUrl.startsWith('data:')) {
+      objectUrl = imageUrl;
+    } else {
+      const res = await fetch(imageUrl);
+      if (!res.ok) throw new Error(`Failed to fetch photo (${res.status})`);
+      const blob = await res.blob();
+      objectUrl = URL.createObjectURL(blob);
+    }
+
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.crossOrigin = 'anonymous';
+
+      const cleanup = () => {
+        clearTimeout(timeout);
+        if (objectUrl !== imageUrl) URL.revokeObjectURL(objectUrl);
+      };
 
       const timeout = setTimeout(() => {
+        cleanup();
         reject(new Error('Image load timeout'));
       }, 15000);
 
       img.onload = () => {
-        clearTimeout(timeout);
+        cleanup();
         try {
           const { width, height } = img;
           const aspect = outputWidth / outputHeight;
@@ -552,11 +572,11 @@ const TournamentRegistrations = () => {
       };
 
       img.onerror = () => {
-        clearTimeout(timeout);
+        cleanup();
         reject(new Error('Failed to load image'));
       };
 
-      img.src = imageUrl;
+      img.src = objectUrl;
     });
   };
 
@@ -579,7 +599,19 @@ const TournamentRegistrations = () => {
         const reg = withPhotos[i];
         try {
           const croppedBlob = await cropToHeadshot(reg.photo);
-          const finalBlob = await removeBackground(croppedBlob);
+
+          // Background removal runs an ML model in the browser and can fail
+          // (model fetch blocked, CORS, out of memory, etc). Don't let that
+          // drop the player from the ZIP entirely — fall back to the cropped
+          // (background intact) photo so every player still gets a file.
+          let finalBlob = croppedBlob;
+          let extension = 'jpg';
+          try {
+            finalBlob = await removeBackground(croppedBlob);
+            extension = 'png';
+          } catch (bgError) {
+            console.error(`Background removal failed for ${reg.name}, using cropped photo instead:`, bgError);
+          }
 
           // Sanitize name for use as a filename
           const baseName = (reg.name || 'player').trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_') || 'player';
@@ -587,7 +619,7 @@ const TournamentRegistrations = () => {
           // Avoid overwriting files with duplicate player names
           const count = usedNames.get(baseName) || 0;
           usedNames.set(baseName, count + 1);
-          const filename = count === 0 ? `${baseName}.png` : `${baseName}_${count + 1}.png`;
+          const filename = count === 0 ? `${baseName}.${extension}` : `${baseName}_${count + 1}.${extension}`;
 
           zip.file(filename, finalBlob);
         } catch (photoError) {
