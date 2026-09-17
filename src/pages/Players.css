@@ -113,6 +113,14 @@
   font-weight: 700;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   letter-spacing: 0.3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-download svg {
+  flex-shrink: 0;
 }
 
 .btn-download {
