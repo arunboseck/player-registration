@@ -47,6 +47,14 @@ const SyncPlayersIcon = () => (
   </svg>
 );
 
+const RawPhotosIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="4" width="18" height="14" rx="2" fill="#fff" />
+    <circle cx="8" cy="9.5" r="1.7" fill="#42a5f5" />
+    <path d="M4 16l5-4 3 2.5 4-3.5 4 4" stroke="#42a5f5" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+  </svg>
+);
+
 const SyncPhotosIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
@@ -89,6 +97,8 @@ const TournamentRegistrations = () => {
   const [photoModal, setPhotoModal] = useState({ show: false, photo: null, name: '' });
   const [downloadingPhotos, setDownloadingPhotos] = useState(false);
   const [photoZipProgress, setPhotoZipProgress] = useState({ current: 0, total: 0 });
+  const [downloadingRawPhotos, setDownloadingRawPhotos] = useState(false);
+  const [rawPhotoZipProgress, setRawPhotoZipProgress] = useState({ current: 0, total: 0 });
 
   useEffect(() => {
     loadData();
@@ -705,6 +715,85 @@ const TournamentRegistrations = () => {
     }
   };
 
+  const getExtensionFromMime = (mimeType) => {
+    if (!mimeType) return 'jpg';
+    if (mimeType.includes('png')) return 'png';
+    if (mimeType.includes('webp')) return 'webp';
+    if (mimeType.includes('gif')) return 'gif';
+    return 'jpg';
+  };
+
+  const fetchPhotoBlob = async (photo) => {
+    const res = await fetch(photo);
+    if (!res.ok) throw new Error(`Failed to fetch photo (${res.status})`);
+    return res.blob();
+  };
+
+  // Downloads every player's original photo as-is (no crop, no background
+  // removal) into a single ZIP, named after each player.
+  const handleDownloadRawPhotosZip = async () => {
+    const withPhotos = filteredRegistrations.filter((reg) => reg.photo && reg.photo.trim());
+
+    if (withPhotos.length === 0) {
+      alert('No player photos available to download');
+      return;
+    }
+
+    setDownloadingRawPhotos(true);
+    setRawPhotoZipProgress({ current: 0, total: withPhotos.length });
+    try {
+      const zip = new JSZip();
+      const usedNames = new Map();
+      let failedCount = 0;
+
+      for (let i = 0; i < withPhotos.length; i++) {
+        const reg = withPhotos[i];
+        try {
+          const blob = await fetchPhotoBlob(reg.photo);
+          const extension = getExtensionFromMime(blob.type);
+
+          // Sanitize name for use as a filename
+          const baseName = (reg.name || 'player').trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_') || 'player';
+
+          // Avoid overwriting files with duplicate player names
+          const count = usedNames.get(baseName) || 0;
+          usedNames.set(baseName, count + 1);
+          const filename = count === 0 ? `${baseName}.${extension}` : `${baseName}_${count + 1}.${extension}`;
+
+          zip.file(filename, blob);
+        } catch (photoError) {
+          console.error(`Error fetching photo for ${reg.name}:`, photoError);
+          failedCount += 1;
+        } finally {
+          setRawPhotoZipProgress({ current: i + 1, total: withPhotos.length });
+        }
+      }
+
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(zipBlob);
+
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${tournament.name}_Player_Photos_Original_${new Date().toISOString().split('T')[0]}.zip`);
+      link.style.visibility = 'hidden';
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      if (failedCount > 0) {
+        alert(`Downloaded photos ZIP, but ${failedCount} photo(s) could not be fetched and were skipped.`);
+      }
+    } catch (error) {
+      console.error('Error creating photos ZIP:', error);
+      alert('Error downloading player photos');
+    } finally {
+      setDownloadingRawPhotos(false);
+      setRawPhotoZipProgress({ current: 0, total: 0 });
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -776,28 +865,35 @@ const TournamentRegistrations = () => {
                 </button>
               </>
             )}
-            <button onClick={handleDownloadPDF} className="btn-download btn-pdf">
-              <PdfIcon /> Download PDF
+            <button onClick={handleDownloadPDF} className="btn-download btn-pdf btn-icon-only" title="Download PDF">
+              <PdfIcon />
             </button>
-            <button onClick={handleDownloadExcel} className="btn-download btn-excel">
-              <ExcelIcon /> Download Excel
+            <button onClick={handleDownloadExcel} className="btn-download btn-excel btn-icon-only" title="Download Excel">
+              <ExcelIcon />
+            </button>
+            <button
+              onClick={handleDownloadRawPhotosZip}
+              className="btn-download btn-photos-raw-zip btn-icon-only"
+              disabled={downloadingRawPhotos}
+              title={
+                downloadingRawPhotos
+                  ? `Downloading ${rawPhotoZipProgress.current}/${rawPhotoZipProgress.total}...`
+                  : 'Download all original player photos as a ZIP file'
+              }
+            >
+              {downloadingRawPhotos ? <span className="btn-spinner"></span> : <RawPhotosIcon />}
             </button>
             <button
               onClick={handleDownloadPhotosZip}
-              className="btn-download btn-photos-zip"
+              className="btn-download btn-photos-zip btn-icon-only"
               disabled={downloadingPhotos}
-              title="Download all player photos, cropped to headshots with background removed, as a ZIP file"
+              title={
+                downloadingPhotos
+                  ? `Processing ${photoZipProgress.current}/${photoZipProgress.total}...`
+                  : 'Download all player photos, cropped to headshots with background removed, as a ZIP file'
+              }
             >
-              {downloadingPhotos ? (
-                <>
-                  <span className="btn-spinner"></span>
-                  Processing {photoZipProgress.current}/{photoZipProgress.total}...
-                </>
-              ) : (
-                <>
-                  <ZipIcon /> Download Photos (ZIP)
-                </>
-              )}
+              {downloadingPhotos ? <span className="btn-spinner"></span> : <ZipIcon />}
             </button>
           </div>
         </div>
