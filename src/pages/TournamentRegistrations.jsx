@@ -11,60 +11,61 @@ import { removeBackground } from '@imgly/background-removal';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 // Small inline brand-colored icons for the header action buttons (avoids
-// pulling in an icon library just for five fixed glyphs).
+// pulling in an icon library just for six fixed glyphs). Self-colored so
+// they read on their own with no button background behind them.
 const PdfIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" fill="#fff" />
-    <path d="M14 2v6h6" fill="#e2e8f0" />
-    <text x="12" y="18" textAnchor="middle" fontSize="7" fontWeight="700" fill="#e53935">PDF</text>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" fill="#fef2f2" stroke="#ef4444" strokeWidth="1.4" strokeLinejoin="round" />
+    <path d="M14 2v6h6" stroke="#ef4444" strokeWidth="1.4" strokeLinejoin="round" fill="none" />
+    <text x="12" y="18" textAnchor="middle" fontSize="7" fontWeight="700" fill="#ef4444">PDF</text>
   </svg>
 );
 
 const ExcelIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" fill="#fff" />
-    <path d="M14 2v6h6" fill="#c8e6c9" />
-    <text x="12" y="18" textAnchor="middle" fontSize="6" fontWeight="700" fill="#1e7e34">XLS</text>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" fill="#f0fdf4" stroke="#10b981" strokeWidth="1.4" strokeLinejoin="round" />
+    <path d="M14 2v6h6" stroke="#10b981" strokeWidth="1.4" strokeLinejoin="round" fill="none" />
+    <text x="12" y="18" textAnchor="middle" fontSize="6" fontWeight="700" fill="#10b981">XLS</text>
   </svg>
 );
 
 const ZipIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#fff" />
-    <path d="M15 2v5h5" fill="#ffe0b2" />
-    <rect x="10" y="6" width="3" height="2" fill="#fb8c00" />
-    <rect x="10" y="10" width="3" height="2" fill="#fb8c00" />
-    <rect x="10" y="14" width="3" height="2" fill="#fb8c00" />
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#fffbeb" stroke="#f59e0b" strokeWidth="1.4" strokeLinejoin="round" />
+    <path d="M15 2v5h5" stroke="#f59e0b" strokeWidth="1.4" strokeLinejoin="round" fill="none" />
+    <rect x="10" y="6" width="3" height="2" fill="#f59e0b" />
+    <rect x="10" y="10" width="3" height="2" fill="#f59e0b" />
+    <rect x="10" y="14" width="3" height="2" fill="#f59e0b" />
   </svg>
 );
 
 const SyncPlayersIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="9" cy="8" r="3" fill="#fff" />
-    <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" fill="#fff" />
-    <circle cx="17" cy="9" r="2.5" fill="#e1bee7" />
-    <path d="M14 20c0-2.5 1.8-4.5 4-4.8" fill="#e1bee7" />
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="9" cy="8" r="3" fill="#7c3aed" />
+    <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" fill="#7c3aed" />
+    <circle cx="17" cy="9" r="2.5" fill="#c4b5fd" />
+    <path d="M14 20c0-2.5 1.8-4.5 4-4.8" fill="#c4b5fd" />
   </svg>
 );
 
 const RawPhotosIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="3" y="4" width="18" height="14" rx="2" fill="#fff" />
-    <circle cx="8" cy="9.5" r="1.7" fill="#42a5f5" />
-    <path d="M4 16l5-4 3 2.5 4-3.5 4 4" stroke="#42a5f5" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="4" width="18" height="14" rx="2" fill="#eff6ff" stroke="#3b82f6" strokeWidth="1.4" />
+    <circle cx="8" cy="9.5" r="1.7" fill="#3b82f6" />
+    <path d="M4 16l5-4 3 2.5 4-3.5 4 4" stroke="#3b82f6" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
   </svg>
 );
 
 const SyncPhotosIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
       d="M4 12a8 8 0 0 1 13.7-5.7L20 8M20 12a8 8 0 0 1-13.7 5.7L4 16"
-      stroke="#fff"
+      stroke="#7c3aed"
       strokeWidth="2"
       strokeLinecap="round"
       fill="none"
     />
-    <path d="M20 4v4h-4M4 20v-4h4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <path d="M20 4v4h-4M4 20v-4h4" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
   </svg>
 );
 import './Players.css';
@@ -834,34 +835,19 @@ const TournamentRegistrations = () => {
               <>
                 <button
                   onClick={handleSyncPlayersToModule}
-                  className="btn-download btn-sync-players"
+                  className="btn-download btn-sync-players btn-icon-only"
                   disabled={syncingPlayers}
-                  title="Add missing players to main player module"
+                  title={syncingPlayers ? 'Syncing players…' : 'Sync to Player Module — add missing players to main player module'}
                 >
-                  {syncingPlayers ? (
-                    <>
-                      <span className="btn-spinner"></span>
-                      Syncing Players...
-                    </>
-                  ) : (
-                    <>
-                      <SyncPlayersIcon /> Sync to Player Module
-                    </>
-                  )}
+                  {syncingPlayers ? <span className="btn-spinner"></span> : <SyncPlayersIcon />}
                 </button>
                 <button
                   onClick={handleSyncPhotos}
-                  className="btn-download btn-sync"
+                  className="btn-download btn-sync btn-icon-only"
                   disabled={syncing}
-                  title="Replace base64 photos with Cloudinary URLs from Players collection"
+                  title={syncing ? 'Syncing photos…' : 'Sync Photos — replace base64 photos with Cloudinary URLs from Players collection'}
                 >
-                  {syncing ? (
-                    <>⏳ Syncing...</>
-                  ) : (
-                    <>
-                      <SyncPhotosIcon /> Sync Photos
-                    </>
-                  )}
+                  {syncing ? <span className="btn-spinner"></span> : <SyncPhotosIcon />}
                 </button>
               </>
             )}

@@ -124,9 +124,23 @@
 }
 
 .btn-icon-only {
-  padding: 0.85rem;
-  width: 3rem;
-  height: 3rem;
+  padding: 0.6rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.btn-icon-only:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.06) !important;
+  box-shadow: none !important;
+  transform: translateY(-2px);
+}
+
+.btn-icon-only:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .btn-download {

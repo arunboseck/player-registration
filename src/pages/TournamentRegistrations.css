@@ -678,56 +678,29 @@
   }
 }
 
-.btn-pdf {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
-}
-
-.btn-pdf:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
-}
-
-.btn-csv {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-}
-
-.btn-csv:hover {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
-}
-
-/* Download Photos ZIP Button */
-.btn-photos-zip {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
-}
-
-.btn-photos-zip:hover:not(:disabled) {
-  background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
-}
-
-.btn-photos-zip:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* Sync Button */
+/* PDF / Excel / ZIP / Sync header buttons are icon-only (see .btn-icon-only
+   in Players.css) — no button background, the icon itself carries the
+   brand color, so these rules only need to stay out of that cascade. */
+.btn-pdf,
+.btn-csv,
+.btn-photos-zip,
 .btn-sync {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
+.btn-pdf:hover:not(:disabled),
+.btn-csv:hover:not(:disabled),
+.btn-photos-zip:hover:not(:disabled),
 .btn-sync:hover:not(:disabled) {
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important;
+  background: rgba(0, 0, 0, 0.06) !important;
+  box-shadow: none !important;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
 }
 
+.btn-photos-zip:disabled,
 .btn-sync:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
   transform: none;
 }
@@ -1585,35 +1558,37 @@
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-/* Sync Players Button */
+/* Sync Players Button — icon-only, no button background (see .btn-icon-only
+   in Players.css); the icon itself is purple-colored. */
 .btn-sync-players {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  color: white;
-  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+  background: transparent;
+  box-shadow: none;
   position: relative;
   overflow: hidden;
 }
 
 .btn-sync-players:hover:not(:disabled) {
-  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.5);
-  transform: translateY(-3px);
+  background: rgba(0, 0, 0, 0.06);
+  box-shadow: none;
+  transform: translateY(-2px);
 }
 
 .btn-sync-players:disabled {
-  opacity: 0.7;
+  opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
-/* Button Spinner Animation */
+/* Button Spinner Animation — dark-on-light now that icon buttons have no
+   colored background behind them. */
 .btn-spinner {
   display: inline-block;
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(124, 58, 237, 0.25);
+  border-top-color: #7c3aed;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-  margin-right: 8px;
   vertical-align: middle;
 }
 
