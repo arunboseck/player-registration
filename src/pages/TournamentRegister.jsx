@@ -179,6 +179,12 @@ const TournamentRegister = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'mobile') {
+      // Allow only digits, max 10 characters (no spaces or special characters)
+      const digitsOnly = value.replace(/[^0-9]/g, '').slice(0, 10);
+      setFormData((prev) => ({ ...prev, mobile: digitsOnly }));
+      return;
+    }
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -1046,7 +1052,29 @@ const TournamentRegister = () => {
                   </div>
                   <div className="form-group">
                     <label>Mobile Number *</label>
-                    <input type="tel" name="mobile" value={formData.mobile} onChange={handleChange} required />
+                    <input
+                      type="tel"
+                      name="mobile"
+                      value={formData.mobile}
+                      onChange={handleChange}
+                      onKeyPress={(e) => {
+                        if (!/[0-9]/.test(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onPaste={(e) => {
+                        const pasted = (e.clipboardData || window.clipboardData).getData('text');
+                        if (/[^0-9]/.test(pasted)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      inputMode="numeric"
+                      pattern="[0-9]{10}"
+                      maxLength={10}
+                      title="Enter exactly 10 digits, no spaces or special characters"
+                      placeholder="10-digit mobile number"
+                      required
+                    />
                   </div>
                 </div>
 
