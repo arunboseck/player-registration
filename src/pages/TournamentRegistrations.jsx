@@ -454,7 +454,7 @@ const TournamentRegistrations = () => {
       doc.setFontSize(10);
       doc.setFont(undefined, 'normal');
       doc.text(`Location: ${tournament.location}`, 14, 28);
-      doc.text(`Date: ${new Date(tournament.startDate).toLocaleDateString()} - ${new Date(tournament.endDate).toLocaleDateString()}`, 14, 34);
+      doc.text(`Date: ${new Date(tournament.startDate).toLocaleDateString()}`, 14, 34);
       doc.text(`Total Registrations: ${filteredRegistrations.length}`, 14, 40);
 
       // Process all photos to circular bordered images
