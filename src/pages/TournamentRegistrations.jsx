@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTournamentById, getTournamentRegistrations, deleteRegistration, updateRegistration, syncTournamentPhotosWithPlayers, syncTournamentPlayersToMainModule, uploadPhotoToStorage, getPlayerByMobile, updatePlayer } from '../utils/firebaseStorage';
+import { getTournamentById, getTournamentRegistrations, deleteRegistration, updateRegistration, updateRegistrationsOrder, syncTournamentPhotosWithPlayers, syncTournamentPlayersToMainModule, uploadPhotoToStorage, getPlayerByMobile, updatePlayer } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import { ROLES } from '../utils/userManagement';
 import * as XLSX from 'xlsx';
@@ -100,6 +100,9 @@ const TournamentRegistrations = () => {
   const [photoZipProgress, setPhotoZipProgress] = useState({ current: 0, total: 0 });
   const [downloadingRawPhotos, setDownloadingRawPhotos] = useState(false);
   const [rawPhotoZipProgress, setRawPhotoZipProgress] = useState({ current: 0, total: 0 });
+  const [draggedId, setDraggedId] = useState(null);
+  const [dragOverId, setDragOverId] = useState(null);
+  const [savingOrder, setSavingOrder] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -118,7 +121,17 @@ const TournamentRegistrations = () => {
       setTournament(tournamentData);
 
       const regs = await getTournamentRegistrations(id);
-      setRegistrations(regs);
+      // Preserve manually saved drag-and-drop order (sortOrder), falling back
+      // to registration time for players that don't have one yet.
+      const sortedRegs = [...regs].sort((a, b) => {
+        const aHasOrder = typeof a.sortOrder === 'number';
+        const bHasOrder = typeof b.sortOrder === 'number';
+        if (aHasOrder && bHasOrder) return a.sortOrder - b.sortOrder;
+        if (aHasOrder) return -1;
+        if (bHasOrder) return 1;
+        return new Date(a.registeredAt || 0) - new Date(b.registeredAt || 0);
+      });
+      setRegistrations(sortedRegs);
     } catch (error) {
       console.error('Error loading data:', error);
       alert('Error loading tournament data');
@@ -800,6 +813,58 @@ const TournamentRegistrations = () => {
     navigate('/');
   };
 
+  // ==================== DRAG-AND-DROP REORDERING ====================
+  const isReorderable = searchTerm.trim() === '';
+
+  const handleDragStart = (e, regId) => {
+    if (!isReorderable) return;
+    setDraggedId(regId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e, regId) => {
+    if (!isReorderable || draggedId === null) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (regId !== dragOverId) setDragOverId(regId);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedId(null);
+    setDragOverId(null);
+  };
+
+  const handleDrop = async (e, targetId) => {
+    e.preventDefault();
+    if (!isReorderable || draggedId === null || draggedId === targetId) {
+      handleDragEnd();
+      return;
+    }
+
+    const fromIndex = registrations.findIndex((r) => r.id === draggedId);
+    const toIndex = registrations.findIndex((r) => r.id === targetId);
+    if (fromIndex === -1 || toIndex === -1) {
+      handleDragEnd();
+      return;
+    }
+
+    const reordered = [...registrations];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+
+    setRegistrations(reordered);
+    handleDragEnd();
+
+    setSavingOrder(true);
+    try {
+      await updateRegistrationsOrder(id, reordered.map((r) => r.id));
+    } catch (error) {
+      console.error('Error saving new player order:', error);
+    } finally {
+      setSavingOrder(false);
+    }
+  };
+
   const filteredRegistrations = registrations.filter((reg) =>
     reg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     reg.place.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -896,8 +961,16 @@ const TournamentRegistrations = () => {
             <span className="count-badge">
               {filteredRegistrations.length} {filteredRegistrations.length === 1 ? 'Registration' : 'Registrations'}
             </span>
+            {savingOrder && <span className="count-badge order-saving-badge">Saving order…</span>}
           </div>
         </div>
+
+        {isReorderable && filteredRegistrations.length > 1 && (
+          <p className="reorder-hint">↕️ Drag and drop a player card using the handle to reorder the list</p>
+        )}
+        {!isReorderable && (
+          <p className="reorder-hint reorder-hint-disabled">Clear the search to enable drag-and-drop reordering</p>
+        )}
 
         {/* Player Sync Result Display */}
         {playerSyncResult && (
@@ -989,7 +1062,27 @@ const TournamentRegistrations = () => {
         ) : (
           <div className="registrations-list">
             {filteredRegistrations.map((reg, index) => (
-              <div key={reg.id} className="registration-card">
+              <div
+                key={reg.id}
+                className={`registration-card${draggedId === reg.id ? ' dragging' : ''}${dragOverId === reg.id && draggedId !== reg.id ? ' drag-over' : ''}`}
+                draggable={isReorderable}
+                onDragStart={(e) => handleDragStart(e, reg.id)}
+                onDragOver={(e) => handleDragOver(e, reg.id)}
+                onDrop={(e) => handleDrop(e, reg.id)}
+                onDragEnd={handleDragEnd}
+              >
+                {isReorderable && (
+                  <div className="registration-drag-handle" title="Drag to reorder">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="9" cy="6" r="1.6" />
+                      <circle cx="15" cy="6" r="1.6" />
+                      <circle cx="9" cy="12" r="1.6" />
+                      <circle cx="15" cy="12" r="1.6" />
+                      <circle cx="9" cy="18" r="1.6" />
+                      <circle cx="15" cy="18" r="1.6" />
+                    </svg>
+                  </div>
+                )}
                 <div className="registration-serial">
                   <span className="serial-number">{index + 1}</span>
                 </div>

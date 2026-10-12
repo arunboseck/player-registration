@@ -271,6 +271,54 @@
   border-color: #d1d5db;
 }
 
+.registration-card.dragging {
+  opacity: 0.5;
+}
+
+.registration-card.drag-over {
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.35);
+}
+
+/* Drag Handle */
+.registration-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  cursor: grab;
+  padding: 0.25rem;
+  border-radius: 6px;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.registration-drag-handle:hover {
+  color: #667eea;
+  background: #f3f4ff;
+}
+
+.registration-card.dragging .registration-drag-handle {
+  cursor: grabbing;
+}
+
+/* Reorder hint */
+.reorder-hint {
+  margin: -0.5rem 0 1rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.reorder-hint-disabled {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.order-saving-badge {
+  margin-left: 0.5rem;
+  background: #fef3c7;
+  color: #92400e;
+}
+
 /* Serial Number */
 .registration-serial {
   display: flex;

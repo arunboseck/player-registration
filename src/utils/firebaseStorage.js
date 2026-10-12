@@ -1,4 +1,4 @@
-import { ref as dbRef, set, get, remove, push, query, orderByChild, orderByKey, equalTo, limitToFirst, startAfter, endBefore, limitToLast } from 'firebase/database';
+import { ref as dbRef, set, get, remove, push, update, query, orderByChild, orderByKey, equalTo, limitToFirst, startAfter, endBefore, limitToLast } from 'firebase/database';
 import { database } from '../firebase/config';
 
 // ==================== PHOTO STORAGE HELPERS (CLOUDINARY - FREE!) ====================
@@ -771,6 +771,27 @@ export const updateRegistration = async (tournamentId, registrationId, updatedDa
   } catch (error) {
     console.error('Error updating registration:', error);
     return { success: false, message: 'Failed to update registration' };
+  }
+};
+
+/**
+ * Persist a new display order for a tournament's registrations after a
+ * drag-and-drop reorder. Writes a `sortOrder` index to each registration
+ * in a single multi-path update.
+ * @param {string} tournamentId
+ * @param {string[]} orderedRegistrationIds - registration ids in their new order
+ */
+export const updateRegistrationsOrder = async (tournamentId, orderedRegistrationIds) => {
+  try {
+    const updates = {};
+    orderedRegistrationIds.forEach((registrationId, index) => {
+      updates[`tournament_registrations/${tournamentId}/${registrationId}/sortOrder`] = index;
+    });
+    await update(dbRef(database), updates);
+    return true;
+  } catch (error) {
+    console.error('Error updating registrations order:', error);
+    return false;
   }
 };
 
