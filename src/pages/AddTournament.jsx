@@ -1,8 +1,20 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import { addTournament, uploadPhotoToStorage } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import './RegisterPlayer.css';
+
+const QUILL_MODULES = {
+  toolbar: [
+    [{ header: [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ list: 'ordered' }, { list: 'bullet' }],
+    ['link'],
+    ['clean'],
+  ],
+};
 
 const TOURNAMENT_STATUSES = ['Upcoming', 'Ongoing', 'Completed', 'Cancelled'];
 
@@ -120,7 +132,8 @@ const AddTournament = () => {
     if (formData.auctionDate && formData.startDate && new Date(formData.auctionDate) > new Date(formData.startDate)) {
       newErrors.auctionDate = 'Auction date must be before or on the start date';
     }
-    if (!formData.description.trim()) newErrors.description = 'Description is required';
+    const descriptionText = formData.description.replace(/<(.|\n)*?>/g, '').trim();
+    if (!descriptionText) newErrors.description = 'Description is required';
 
     // Organizer details validation (at least one organizer required)
     organizers.forEach((organizer, index) => {
@@ -261,7 +274,18 @@ const AddTournament = () => {
 
             <div className="form-group">
               <label>Description *</label>
-              <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Enter tournament description" rows="4" />
+              <ReactQuill
+                theme="snow"
+                value={formData.description}
+                onChange={(value) => {
+                  setFormData((prev) => ({ ...prev, description: value }));
+                  if (errors.description) {
+                    setErrors((prev) => ({ ...prev, description: '' }));
+                  }
+                }}
+                modules={QUILL_MODULES}
+                placeholder="Enter tournament description"
+              />
               {errors.description && <span className="error-message">{errors.description}</span>}
             </div>
 

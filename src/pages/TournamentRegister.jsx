@@ -467,7 +467,7 @@ const TournamentRegister = () => {
             <h1>{tournament.name}</h1>
             <p><strong>{tournament.location}</strong></p>
             <p>{new Date(tournament.startDate).toLocaleDateString()} - {new Date(tournament.endDate).toLocaleDateString()}</p>
-            <p style={{marginTop: '1rem'}}>{tournament.description}</p>
+            <div className="tournament-description-richtext" style={{marginTop: '1rem'}} dangerouslySetInnerHTML={{ __html: tournament.description }} />
           </div>
         )}
 
