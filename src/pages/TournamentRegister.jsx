@@ -807,9 +807,9 @@ const TournamentRegister = () => {
                           marginBottom: tournament.organizers.length > 1 && index < tournament.organizers.length - 1 ? '0.5rem' : '0'
                         }}>
                           <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: '1fr 1fr',
-                            gap: '1rem'
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.9rem'
                           }}>
                             {organizer.name && (
                               <div>
@@ -823,7 +823,8 @@ const TournamentRegister = () => {
                                 </div>
                                 <div style={{
                                   fontSize: '1.05rem',
-                                  fontWeight: '600'
+                                  fontWeight: '600',
+                                  wordBreak: 'break-word'
                                 }}>
                                   {organizer.name}
                                 </div>
@@ -843,7 +844,8 @@ const TournamentRegister = () => {
                                 <div style={{
                                   fontSize: '1.05rem',
                                   fontWeight: '600',
-                                  letterSpacing: '0.5px'
+                                  letterSpacing: '0.5px',
+                                  wordBreak: 'break-word'
                                 }}>
                                   📞 {organizer.mobile}
                                 </div>
@@ -892,9 +894,9 @@ const TournamentRegister = () => {
                       backdropFilter: 'blur(10px)'
                     }}>
                       <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr',
-                        gap: '1rem'
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.9rem'
                       }}>
                         {tournament.organizerName && (
                           <div>
@@ -908,7 +910,8 @@ const TournamentRegister = () => {
                             </div>
                             <div style={{
                               fontSize: '1.05rem',
-                              fontWeight: '600'
+                              fontWeight: '600',
+                              wordBreak: 'break-word'
                             }}>
                               {tournament.organizerName}
                             </div>
@@ -928,7 +931,8 @@ const TournamentRegister = () => {
                             <div style={{
                               fontSize: '1.05rem',
                               fontWeight: '600',
-                              letterSpacing: '0.5px'
+                              letterSpacing: '0.5px',
+                              wordBreak: 'break-word'
                             }}>
                               📞 {tournament.organizerMobile}
                             </div>
