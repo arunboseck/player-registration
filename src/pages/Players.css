@@ -445,6 +445,19 @@
   margin: 0;
 }
 
+.pagination-info-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.pagination-controls-top {
+  margin-top: 0;
+  padding: 0;
+}
+
 /* Pagination Controls */
 .pagination-controls {
   display: flex;

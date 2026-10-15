@@ -169,8 +169,37 @@ const Tournaments = () => {
           </div>
         ) : (
           <>
-            <div className="pagination-info">
+            <div className="pagination-info pagination-info-top">
               <p>Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, tournaments.length)} of {tournaments.length} tournaments</p>
+              {totalPages > 1 && (
+                <div className="pagination-controls pagination-controls-top">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="btn-pagination"
+                  >
+                    ← Previous
+                  </button>
+                  <div className="pagination-numbers">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`btn-page ${currentPage === pageNum ? 'active' : ''}`}
+                      >
+                        {pageNum}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="btn-pagination"
+                  >
+                    Next →
+                  </button>
+                </div>
+              )}
             </div>
             <div className="table-container">
               <table className="data-table">
