@@ -707,22 +707,70 @@
 }
 
 @media (max-width: 640px) {
-  .registration-info {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
   .registration-card {
     padding: 1rem;
+    gap: 0.85rem;
+    border-radius: 16px;
   }
 
   .registration-avatar {
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
+  }
+
+  /* Give name & place their own full-width row so they're never
+     cut off, then let mobile/DOB/blood/position share a 2-col grid */
+  .registration-info {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem 1rem;
+  }
+
+  .info-column.info-name,
+  .info-column.info-place {
+    grid-column: span 1;
+  }
+
+  .info-column label {
+    font-size: 0.65rem;
+  }
+
+  /* Stop truncating values on mobile — wrap instead of cutting them off */
+  .info-column strong,
+  .info-column span {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    word-break: break-word;
+    font-size: 0.85rem;
+    line-height: 1.3;
+  }
+
+  /* Full-width, evenly spaced action pills */
+  .registration-actions {
+    width: 100%;
+    gap: 0.6rem;
+  }
+
+  .registration-actions .btn-icon {
+    flex: 1;
+    width: auto;
+    height: 46px;
+    border-radius: 12px;
   }
 
   .modal-content {
     width: 95%;
     margin: 1rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .registration-info {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .registration-card {
+    padding: 0.85rem;
   }
 }
 
