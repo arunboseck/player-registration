@@ -726,18 +726,19 @@
   .registration-avatar {
     width: 52px;
     height: 52px;
+    align-self: center;
   }
 
-  /* Give name & place their own full-width row so they're never
-     cut off, then let mobile/DOB/blood/position share a 2-col grid */
+  /* Avatar stays on the left; fields stack in a single column to its
+     right (one field per row) instead of dropping to their own
+     full-width row below the avatar. */
   .registration-info {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem 1rem;
-  }
-
-  .info-column.info-name,
-  .info-column.info-place {
-    grid-column: span 1;
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+    width: auto;
+    flex: 1;
+    min-width: 0;
+    padding-right: 2.75rem;
   }
 
   .info-column label {
@@ -776,7 +777,7 @@
 
 @media (max-width: 420px) {
   .registration-info {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 
   .registration-card {
