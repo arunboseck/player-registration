@@ -1315,6 +1315,9 @@ const TournamentRegistrations = () => {
                 {/* Mobile-only layout — centered avatar/name/position card
                     with a boxed detail list and a kebab menu for actions */}
                 <div className="registration-card-mobile">
+                  <div className="card-mobile-serial">
+                    <span>{index + 1}</span>
+                  </div>
                   <div className="card-mobile-menu" onClick={(e) => e.stopPropagation()}>
                     <button
                       type="button"

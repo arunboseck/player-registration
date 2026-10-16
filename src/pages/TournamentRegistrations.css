@@ -814,10 +814,26 @@
     padding: 0.5rem 0 0;
   }
 
-  .card-mobile-menu {
+  .card-mobile-serial {
     position: absolute;
     top: -0.25rem;
     right: -0.25rem;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #667eea;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card-mobile-menu {
+    position: absolute;
+    top: -0.25rem;
+    right: 2.1rem;
   }
 
   .card-mobile-menu-trigger {
