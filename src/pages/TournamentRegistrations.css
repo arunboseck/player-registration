@@ -1943,3 +1943,123 @@
     font-size: 1.75rem;
   }
 }
+
+/* ---------------------------------------------------------------------
+   Header / navbar action buttons — mobile responsiveness.
+   - .btn-nav-label text is hidden on narrow screens so Dashboard /
+     Tournaments / Logout become icon-only buttons.
+   - The full row of PDF/Excel/ZIP/Sync icon buttons (.header-actions) is
+     replaced on mobile by a single "Actions" dropdown trigger
+     (.header-actions-mobile) to avoid horizontal overflow/scrolling.
+   --------------------------------------------------------------------- */
+.btn-nav,
+.btn-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.header-actions-mobile {
+  position: relative;
+  display: none;
+}
+
+.btn-actions-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.9rem;
+  border: 1.5px solid rgba(102, 126, 234, 0.3);
+  background: #fff;
+  color: #4b5563;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-actions-toggle:hover {
+  background: rgba(102, 126, 234, 0.08);
+}
+
+.actions-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  min-width: 240px;
+  max-width: 85vw;
+  z-index: 50;
+  overflow: hidden;
+  padding: 0.4rem;
+}
+
+.actions-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  text-align: left;
+}
+
+.actions-dropdown-item:hover:not(:disabled) {
+  background: rgba(102, 126, 234, 0.08);
+}
+
+.actions-dropdown-item:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.actions-dropdown-item svg {
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-wrap: wrap;
+    padding: 1rem 1.25rem;
+    row-gap: 0.75rem;
+  }
+
+  .navbar-brand h1 {
+    font-size: 1.1rem;
+    white-space: normal;
+    line-height: 1.3;
+  }
+
+  .navbar-actions {
+    gap: 0.5rem;
+  }
+
+  .btn-nav,
+  .btn-logout {
+    padding: 0.55rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    justify-content: center;
+  }
+
+  .btn-nav-label {
+    display: none;
+  }
+
+  .header-actions {
+    display: none;
+  }
+
+  .header-actions-mobile {
+    display: block;
+  }
+}

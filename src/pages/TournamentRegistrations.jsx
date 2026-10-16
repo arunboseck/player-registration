@@ -71,6 +71,39 @@ const SyncPhotosIcon = () => (
 import './Players.css';
 import './TournamentRegistrations.css';
 
+const MoreIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="5" r="1.8" fill="currentColor" />
+    <circle cx="12" cy="12" r="1.8" fill="currentColor" />
+    <circle cx="12" cy="19" r="1.8" fill="currentColor" />
+  </svg>
+);
+
+const DashboardIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="3" width="7" height="9" rx="1.5" fill="currentColor" />
+    <rect x="14" y="3" width="7" height="5" rx="1.5" fill="currentColor" />
+    <rect x="14" y="12" width="7" height="9" rx="1.5" fill="currentColor" />
+    <rect x="3" y="16" width="7" height="5" rx="1.5" fill="currentColor" />
+  </svg>
+);
+
+const TournamentsIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M7 3h10v4a5 5 0 0 1-10 0V3z" fill="currentColor" />
+    <path d="M3 5h4v2a3 3 0 0 1-4-2zM21 5h-4v2a3 3 0 0 0 4-2z" fill="currentColor" />
+    <rect x="11" y="13" width="2" height="4" fill="currentColor" />
+    <rect x="8" y="17" width="8" height="2.5" rx="1" fill="currentColor" />
+  </svg>
+);
+
+const LogoutIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 const POSITIONS = [
   'ALL ROUNDER', 'LEFT ARM MEDIUM (BOWLING)', 'LEFT ARM FAST MEDIUM (BOWLING)',
   'LEFT ARM FAST (BOWLING)', 'LEFT HAND BATTING (BATTER)', 'RIGHT ARM MEDIUM (BOWLING)',
@@ -103,6 +136,14 @@ const TournamentRegistrations = () => {
   const [draggedId, setDraggedId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
   const [savingOrder, setSavingOrder] = useState(false);
+  const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!actionsMenuOpen) return;
+    const closeMenu = () => setActionsMenuOpen(false);
+    document.addEventListener('click', closeMenu);
+    return () => document.removeEventListener('click', closeMenu);
+  }, [actionsMenuOpen]);
 
   useEffect(() => {
     loadData();
@@ -881,9 +922,18 @@ const TournamentRegistrations = () => {
           <h1>🏏 Cricket Player Management</h1>
         </div>
         <div className="navbar-actions">
-          <button onClick={() => navigate('/dashboard')} className="btn-nav">Dashboard</button>
-          <button onClick={() => navigate('/tournaments')} className="btn-nav">Tournaments</button>
-          <button onClick={handleLogout} className="btn-logout">Logout</button>
+          <button onClick={() => navigate('/dashboard')} className="btn-nav" title="Dashboard">
+            <DashboardIcon />
+            <span className="btn-nav-label">Dashboard</span>
+          </button>
+          <button onClick={() => navigate('/tournaments')} className="btn-nav" title="Tournaments">
+            <TournamentsIcon />
+            <span className="btn-nav-label">Tournaments</span>
+          </button>
+          <button onClick={handleLogout} className="btn-logout" title="Logout">
+            <LogoutIcon />
+            <span className="btn-nav-label">Logout</span>
+          </button>
         </div>
       </nav>
 
@@ -946,6 +996,80 @@ const TournamentRegistrations = () => {
             >
               {downloadingPhotos ? <span className="btn-spinner"></span> : <ZipIcon />}
             </button>
+          </div>
+
+          <div className="header-actions-mobile" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="btn-actions-toggle"
+              title="Actions"
+              onClick={() => setActionsMenuOpen((open) => !open)}
+            >
+              <MoreIcon />
+              <span>Actions</span>
+            </button>
+            {actionsMenuOpen && (
+              <div className="actions-dropdown">
+                {!isOrganizer && (
+                  <>
+                    <button
+                      onClick={() => { setActionsMenuOpen(false); handleSyncPlayersToModule(); }}
+                      className="actions-dropdown-item"
+                      disabled={syncingPlayers}
+                    >
+                      {syncingPlayers ? <span className="btn-spinner"></span> : <SyncPlayersIcon />}
+                      <span>{syncingPlayers ? 'Syncing players…' : 'Sync to Player Module'}</span>
+                    </button>
+                    <button
+                      onClick={() => { setActionsMenuOpen(false); handleSyncPhotos(); }}
+                      className="actions-dropdown-item"
+                      disabled={syncing}
+                    >
+                      {syncing ? <span className="btn-spinner"></span> : <SyncPhotosIcon />}
+                      <span>{syncing ? 'Syncing photos…' : 'Sync Photos'}</span>
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={() => { setActionsMenuOpen(false); handleDownloadPDF(); }}
+                  className="actions-dropdown-item"
+                >
+                  <PdfIcon />
+                  <span>Download PDF</span>
+                </button>
+                <button
+                  onClick={() => { setActionsMenuOpen(false); handleDownloadExcel(); }}
+                  className="actions-dropdown-item"
+                >
+                  <ExcelIcon />
+                  <span>Download Excel</span>
+                </button>
+                <button
+                  onClick={() => { setActionsMenuOpen(false); handleDownloadRawPhotosZip(); }}
+                  className="actions-dropdown-item"
+                  disabled={downloadingRawPhotos}
+                >
+                  {downloadingRawPhotos ? <span className="btn-spinner"></span> : <RawPhotosIcon />}
+                  <span>
+                    {downloadingRawPhotos
+                      ? `Downloading ${rawPhotoZipProgress.current}/${rawPhotoZipProgress.total}...`
+                      : 'Download Photos (Raw ZIP)'}
+                  </span>
+                </button>
+                <button
+                  onClick={() => { setActionsMenuOpen(false); handleDownloadPhotosZip(); }}
+                  className="actions-dropdown-item"
+                  disabled={downloadingPhotos}
+                >
+                  {downloadingPhotos ? <span className="btn-spinner"></span> : <ZipIcon />}
+                  <span>
+                    {downloadingPhotos
+                      ? `Processing ${photoZipProgress.current}/${photoZipProgress.total}...`
+                      : 'Download Photos (Cropped ZIP)'}
+                  </span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
