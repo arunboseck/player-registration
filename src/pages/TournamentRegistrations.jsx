@@ -137,6 +137,7 @@ const TournamentRegistrations = () => {
   const [dragOverId, setDragOverId] = useState(null);
   const [savingOrder, setSavingOrder] = useState(false);
   const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
+  const [cardMenuOpenId, setCardMenuOpenId] = useState(null);
 
   useEffect(() => {
     if (!actionsMenuOpen) return;
@@ -144,6 +145,13 @@ const TournamentRegistrations = () => {
     document.addEventListener('click', closeMenu);
     return () => document.removeEventListener('click', closeMenu);
   }, [actionsMenuOpen]);
+
+  useEffect(() => {
+    if (!cardMenuOpenId) return;
+    const closeMenu = () => setCardMenuOpenId(null);
+    document.addEventListener('click', closeMenu);
+    return () => document.removeEventListener('click', closeMenu);
+  }, [cardMenuOpenId]);
 
   useEffect(() => {
     loadData();
@@ -1195,110 +1203,210 @@ const TournamentRegistrations = () => {
                 onDrop={(e) => handleDrop(e, reg.id)}
                 onDragEnd={handleDragEnd}
               >
-                {isReorderable && (
-                  <div className="registration-drag-handle" title="Drag to reorder">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <circle cx="9" cy="6" r="1.6" />
-                      <circle cx="15" cy="6" r="1.6" />
-                      <circle cx="9" cy="12" r="1.6" />
-                      <circle cx="15" cy="12" r="1.6" />
-                      <circle cx="9" cy="18" r="1.6" />
-                      <circle cx="15" cy="18" r="1.6" />
-                    </svg>
-                  </div>
-                )}
-                <div className="registration-serial">
-                  <span className="serial-number">{index + 1}</span>
-                </div>
-
-                <div
-                  className="registration-avatar"
-                  onClick={() => handlePhotoClick(reg.photo, reg.name)}
-                  style={{ cursor: reg.photo ? 'pointer' : 'default' }}
-                  title={reg.photo ? 'Click to view full size' : ''}
-                >
-                  {reg.photo ? (
-                    <img
-                      src={reg.photo}
-                      alt={reg.name}
-                      onError={(e) => {
-                        // If image fails to load, show placeholder
-                        e.target.style.display = 'none';
-                        e.target.parentElement.innerHTML = `<div class="avatar-placeholder">${reg.name.charAt(0).toUpperCase()}</div>`;
-                      }}
-                    />
-                  ) : (
-                    <div className="avatar-placeholder">
-                      {reg.name.charAt(0).toUpperCase()}
+                {/* Desktop / tablet layout — unchanged */}
+                <div className="registration-card-desktop">
+                  {isReorderable && (
+                    <div className="registration-drag-handle" title="Drag to reorder">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="9" cy="6" r="1.6" />
+                        <circle cx="15" cy="6" r="1.6" />
+                        <circle cx="9" cy="12" r="1.6" />
+                        <circle cx="15" cy="12" r="1.6" />
+                        <circle cx="9" cy="18" r="1.6" />
+                        <circle cx="15" cy="18" r="1.6" />
+                      </svg>
                     </div>
                   )}
+                  <div className="registration-serial">
+                    <span className="serial-number">{index + 1}</span>
+                  </div>
+
+                  <div
+                    className="registration-avatar"
+                    onClick={() => handlePhotoClick(reg.photo, reg.name)}
+                    style={{ cursor: reg.photo ? 'pointer' : 'default' }}
+                    title={reg.photo ? 'Click to view full size' : ''}
+                  >
+                    {reg.photo ? (
+                      <img
+                        src={reg.photo}
+                        alt={reg.name}
+                        onError={(e) => {
+                          // If image fails to load, show placeholder
+                          e.target.style.display = 'none';
+                          e.target.parentElement.innerHTML = `<div class="avatar-placeholder">${reg.name.charAt(0).toUpperCase()}</div>`;
+                        }}
+                      />
+                    ) : (
+                      <div className="avatar-placeholder">
+                        {reg.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="registration-info">
+                    <div className="info-column info-name">
+                      <label>Name</label>
+                      <strong>{reg.name}</strong>
+                    </div>
+
+                    <div className="info-column info-place">
+                      <label>Place</label>
+                      <span>{reg.place}</span>
+                    </div>
+
+                    <div className="info-column info-mobile">
+                      <label>Mobile</label>
+                      <span>{reg.mobile}</span>
+                    </div>
+
+                    <div className="info-column info-dob">
+                      <label>Date of Birth</label>
+                      <span>{reg.dateOfBirth ? new Date(reg.dateOfBirth).toLocaleDateString() : 'N/A'}</span>
+                    </div>
+
+                    <div className="info-column info-blood">
+                      <label>Blood Group</label>
+                      <span className="badge-inline badge-blood">{reg.bloodGroup || 'N/A'}</span>
+                    </div>
+
+                    <div className="info-column info-position">
+                      <label>Position</label>
+                      <span className="badge-inline badge-position">{reg.position}</span>
+                    </div>
+                  </div>
+
+                  <div className="registration-actions">
+                    <button
+                      className="btn-icon btn-view"
+                      title="View Details"
+                      onClick={() => alert(`Name: ${reg.name}\nMobile: ${reg.mobile}\nPlace: ${reg.place}\nPosition: ${reg.position}\nBlood Group: ${reg.bloodGroup}\nDOB: ${reg.dateOfBirth}`)}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                    </button>
+                    <button
+                      className="btn-icon btn-edit"
+                      title="Edit Registration"
+                      onClick={() => handleEditClick(reg)}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                      </svg>
+                    </button>
+                    <button
+                      className="btn-icon btn-delete"
+                      title="Delete Registration"
+                      onClick={() => handleDeleteClick(reg)}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                      </svg>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="registration-info">
-                  <div className="info-column info-name">
-                    <label>Name</label>
-                    <strong>{reg.name}</strong>
+                {/* Mobile-only layout — centered avatar/name/position card
+                    with a boxed detail list and a kebab menu for actions */}
+                <div className="registration-card-mobile">
+                  <div className="card-mobile-menu" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      type="button"
+                      className="card-mobile-menu-trigger"
+                      title="Actions"
+                      onClick={() => setCardMenuOpenId((openId) => (openId === reg.id ? null : reg.id))}
+                    >
+                      <MoreIcon />
+                    </button>
+                    {cardMenuOpenId === reg.id && (
+                      <div className="card-mobile-menu-dropdown">
+                        <button
+                          className="card-mobile-menu-item"
+                          onClick={() => {
+                            setCardMenuOpenId(null);
+                            alert(`Name: ${reg.name}\nMobile: ${reg.mobile}\nPlace: ${reg.place}\nPosition: ${reg.position}\nBlood Group: ${reg.bloodGroup}\nDOB: ${reg.dateOfBirth}`);
+                          }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                          </svg>
+                          <span>View Details</span>
+                        </button>
+                        <button
+                          className="card-mobile-menu-item"
+                          onClick={() => { setCardMenuOpenId(null); handleEditClick(reg); }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                          </svg>
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          className="card-mobile-menu-item card-mobile-menu-item-danger"
+                          onClick={() => { setCardMenuOpenId(null); handleDeleteClick(reg); }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                          </svg>
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="info-column info-place">
-                    <label>Place</label>
-                    <span>{reg.place}</span>
-                  </div>
-
-                  <div className="info-column info-mobile">
-                    <label>Mobile</label>
-                    <span>{reg.mobile}</span>
-                  </div>
-
-                  <div className="info-column info-dob">
-                    <label>Date of Birth</label>
-                    <span>{reg.dateOfBirth ? new Date(reg.dateOfBirth).toLocaleDateString() : 'N/A'}</span>
-                  </div>
-
-                  <div className="info-column info-blood">
-                    <label>Blood Group</label>
-                    <span className="badge-inline badge-blood">{reg.bloodGroup || 'N/A'}</span>
-                  </div>
-
-                  <div className="info-column info-position">
-                    <label>Position</label>
-                    <span className="badge-inline badge-position">{reg.position}</span>
-                  </div>
-                </div>
-
-                <div className="registration-actions">
-                  <button
-                    className="btn-icon btn-view"
-                    title="View Details"
-                    onClick={() => alert(`Name: ${reg.name}\nMobile: ${reg.mobile}\nPlace: ${reg.place}\nPosition: ${reg.position}\nBlood Group: ${reg.bloodGroup}\nDOB: ${reg.dateOfBirth}`)}
+                  <div
+                    className="card-mobile-avatar"
+                    onClick={() => handlePhotoClick(reg.photo, reg.name)}
+                    style={{ cursor: reg.photo ? 'pointer' : 'default' }}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  </button>
-                  <button
-                    className="btn-icon btn-edit"
-                    title="Edit Registration"
-                    onClick={() => handleEditClick(reg)}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                    </svg>
-                  </button>
-                  <button
-                    className="btn-icon btn-delete"
-                    title="Delete Registration"
-                    onClick={() => handleDeleteClick(reg)}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3 6 5 6 21 6"></polyline>
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                      <line x1="10" y1="11" x2="10" y2="17"></line>
-                      <line x1="14" y1="11" x2="14" y2="17"></line>
-                    </svg>
-                  </button>
+                    {reg.photo ? (
+                      <img
+                        src={reg.photo}
+                        alt={reg.name}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.parentElement.innerHTML = `<div class="avatar-placeholder">${reg.name.charAt(0).toUpperCase()}</div>`;
+                        }}
+                      />
+                    ) : (
+                      <div className="avatar-placeholder">
+                        {reg.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+
+                  <h3 className="card-mobile-name">{reg.name}</h3>
+                  <div className="card-mobile-position">{reg.position}</div>
+
+                  <div className="card-mobile-info-box">
+                    <div className="card-mobile-info-row">
+                      <span className="card-mobile-info-label">Mobile:</span>
+                      <span className="card-mobile-info-value">{reg.mobile}</span>
+                    </div>
+                    <div className="card-mobile-info-row">
+                      <span className="card-mobile-info-label">DOB:</span>
+                      <span className="card-mobile-info-value">{reg.dateOfBirth ? new Date(reg.dateOfBirth).toLocaleDateString() : 'N/A'}</span>
+                    </div>
+                    <div className="card-mobile-info-row">
+                      <span className="card-mobile-info-label">Blood Group:</span>
+                      <span className="card-mobile-info-value">{reg.bloodGroup || 'N/A'}</span>
+                    </div>
+                    <div className="card-mobile-info-row">
+                      <span className="card-mobile-info-label">Place:</span>
+                      <span className="card-mobile-info-value">{reg.place}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
