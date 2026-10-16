@@ -817,7 +817,7 @@
   .card-mobile-serial {
     position: absolute;
     top: -0.25rem;
-    right: -0.25rem;
+    left: -0.25rem;
     width: 28px;
     height: 28px;
     border-radius: 50%;
@@ -833,7 +833,7 @@
   .card-mobile-menu {
     position: absolute;
     top: -0.25rem;
-    right: 2.1rem;
+    right: -0.25rem;
   }
 
   .card-mobile-menu-trigger {
