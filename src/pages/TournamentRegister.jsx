@@ -744,7 +744,6 @@ const TournamentRegister = () => {
           display: 'grid',
           gridTemplateColumns: '300px 1fr',
           gap: '2rem',
-          marginTop: '2rem',
           alignItems: 'center'
         }}>
           {/* Organizer Details Sidebar - Left */}
