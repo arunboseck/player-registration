@@ -259,10 +259,19 @@
   padding: 1.25rem 1.5rem;
   display: flex;
   align-items: center;
-  gap: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
   border: 1px solid #e5e7eb;
+}
+
+/* Wrapper around the original desktop/tablet row content (drag handle,
+   serial, avatar, info grid, actions). Needs its own flex layout since
+   it's no longer a direct flex item of .registration-card on its own. */
+.registration-card-desktop {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
 }
 
 .registration-card:hover {
