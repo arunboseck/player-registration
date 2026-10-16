@@ -445,11 +445,7 @@ const TournamentRegister = () => {
           <div style={{
             width: '100%',
             maxWidth: '450px',
-            maxHeight: '90vh',
             margin: '0 auto',
-            borderRadius: '20px',
-            overflow: 'hidden',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
@@ -459,10 +455,11 @@ const TournamentRegister = () => {
               alt={tournament.name}
               style={{
                 width: '100%',
-                height: '100%',
                 maxHeight: '90vh',
                 display: 'block',
-                objectFit: 'contain'
+                objectFit: 'contain',
+                borderRadius: '20px',
+                boxShadow: '0 10px 40px rgba(0,0,0,0.15)'
               }}
             />
           </div>
@@ -748,7 +745,7 @@ const TournamentRegister = () => {
           gridTemplateColumns: '300px 1fr',
           gap: '2rem',
           marginTop: '2rem',
-          alignItems: 'start'
+          alignItems: 'center'
         }}>
           {/* Organizer Details Sidebar - Left */}
           {((tournament.organizers && tournament.organizers.length > 0) || tournament.organizerName) && (
