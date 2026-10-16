@@ -444,21 +444,25 @@ const TournamentRegister = () => {
         {tournament.tournamentPoster ? (
           <div style={{
             width: '100%',
-            maxWidth: '1200px',
+            maxWidth: '450px',
+            maxHeight: '90vh',
             margin: '0 auto',
             borderRadius: '20px',
             overflow: 'hidden',
             boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
-            marginBottom: '2rem'
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}>
             <img
               src={tournament.tournamentPoster}
               alt={tournament.name}
               style={{
                 width: '100%',
-                height: 'auto',
+                height: '100%',
+                maxHeight: '90vh',
                 display: 'block',
-                objectFit: 'cover'
+                objectFit: 'contain'
               }}
             />
           </div>
@@ -757,7 +761,9 @@ const TournamentRegister = () => {
                 borderRadius: '16px',
                 padding: '1.75rem',
                 color: 'white',
-                boxShadow: '0 10px 40px rgba(0,0,0,0.15)'
+                boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+                maxHeight: '90vh',
+                overflowY: 'auto'
               }}>
                 <h3 style={{
                   fontSize: '1.2rem',
