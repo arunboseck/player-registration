@@ -478,6 +478,8 @@ const TournamentRegister = () => {
             maxWidth: '650px',
             margin: '2rem auto',
             padding: '1rem',
+            maxHeight: '90vh',
+            overflowY: 'auto',
             animation: 'fadeInScale 0.6s ease-out'
           }}>
             <style>{`
