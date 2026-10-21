@@ -476,10 +476,11 @@ const TournamentRegister = () => {
         {tournament.auctionDate && new Date(tournament.auctionDate) <= new Date() ? (
           <div style={{
             maxWidth: '650px',
-            margin: '2rem auto',
-            padding: '1rem',
+            margin: '0 auto',
+            padding: '0.5rem',
             maxHeight: '90vh',
-            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
             animation: 'fadeInScale 0.6s ease-out'
           }}>
             <style>{`
@@ -504,14 +505,17 @@ const TournamentRegister = () => {
 
             {/* Main Closed Message Card */}
             <div style={{
-              padding: '2.5rem 2rem',
+              padding: '1.5rem',
               background: 'linear-gradient(135deg, #f59e0b 0%, #dc2626 100%)',
-              borderRadius: '24px',
+              borderRadius: '20px',
               boxShadow: '0 20px 60px rgba(220, 38, 38, 0.3)',
               textAlign: 'center',
               color: 'white',
               position: 'relative',
-              overflow: 'hidden'
+              overflow: 'auto',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column'
             }}>
               {/* Animated Background Pattern */}
               <div style={{
@@ -527,17 +531,17 @@ const TournamentRegister = () => {
               {/* Content */}
               <div style={{ position: 'relative', zIndex: 1 }}>
                 <div className="closed-icon" style={{
-                  fontSize: '4rem',
-                  marginBottom: '1rem',
+                  fontSize: '2.25rem',
+                  marginBottom: '0.5rem',
                   filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))'
                 }}>
                   🚫
                 </div>
 
                 <h2 style={{
-                  fontSize: '2rem',
+                  fontSize: '1.4rem',
                   fontWeight: '800',
-                  marginBottom: '1rem',
+                  marginBottom: '0.4rem',
                   color: 'white',
                   letterSpacing: '-0.5px',
                   textShadow: '0 2px 4px rgba(0,0,0,0.1)'
@@ -546,26 +550,26 @@ const TournamentRegister = () => {
                 </h2>
 
                 <p style={{
-                  fontSize: '1.05rem',
-                  marginBottom: '1.5rem',
+                  fontSize: '0.85rem',
+                  marginBottom: '0.75rem',
                   opacity: '0.95',
-                  lineHeight: '1.5'
+                  lineHeight: '1.4'
                 }}>
                   The auction has started! Player registration for this tournament is now closed.
                 </p>
 
                 <div style={{
                   background: 'rgba(255,255,255,0.15)',
-                  borderRadius: '12px',
-                  padding: '1rem',
-                  marginBottom: '1.5rem',
+                  borderRadius: '10px',
+                  padding: '0.6rem 0.75rem',
+                  marginBottom: '0.75rem',
                   backdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255,255,255,0.2)'
                 }}>
-                  <div style={{ fontSize: '0.8rem', opacity: '0.9', marginBottom: '0.4rem', fontWeight: '500' }}>
+                  <div style={{ fontSize: '0.7rem', opacity: '0.9', marginBottom: '0.2rem', fontWeight: '500' }}>
                     Auction Date
                   </div>
-                  <div style={{ fontSize: '1rem', fontWeight: '700' }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: '700' }}>
                     {new Date(tournament.auctionDate).toLocaleDateString('en-US', {
                       weekday: 'long',
                       year: 'numeric',
@@ -578,16 +582,17 @@ const TournamentRegister = () => {
                 {/* Organizer Details Section */}
                 <div style={{
                   background: 'rgba(255,255,255,0.95)',
-                  borderRadius: '12px',
-                  padding: '1.5rem',
+                  borderRadius: '10px',
+                  padding: '0.85rem',
                   color: '#1f2937',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  overflowY: 'auto'
                 }}>
                   <div style={{
-                    fontSize: '0.85rem',
+                    fontSize: '0.7rem',
                     fontWeight: '600',
                     color: '#6b7280',
-                    marginBottom: '1rem',
+                    marginBottom: '0.6rem',
                     textTransform: 'uppercase',
                     letterSpacing: '1px'
                   }}>
@@ -598,23 +603,24 @@ const TournamentRegister = () => {
                   {tournament.organizers && tournament.organizers.length > 0 ? (
                     <div style={{
                       display: 'flex',
-                      flexDirection: 'column',
-                      gap: '1.25rem'
+                      flexWrap: 'wrap',
+                      justifyContent: 'center',
+                      gap: '0.75rem'
                     }}>
                       {tournament.organizers.map((organizer, index) => (
                         <div key={index} style={{
                           textAlign: 'center',
-                          paddingBottom: tournament.organizers.length > 1 && index < tournament.organizers.length - 1 ? '1.25rem' : '0',
-                          borderBottom: tournament.organizers.length > 1 && index < tournament.organizers.length - 1 ? '1px solid #e5e7eb' : 'none'
+                          flex: '1 1 110px',
+                          maxWidth: '150px'
                         }}>
                           {organizer.photo && (
                             <div style={{
-                              width: '70px',
-                              height: '70px',
+                              width: '48px',
+                              height: '48px',
                               borderRadius: '50%',
-                              margin: '0 auto 0.75rem',
+                              margin: '0 auto 0.35rem',
                               overflow: 'hidden',
-                              border: '3px solid #f59e0b',
+                              border: '2px solid #f59e0b',
                               boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
                             }}>
                               <img
@@ -631,10 +637,13 @@ const TournamentRegister = () => {
 
                           {organizer.name && (
                             <div style={{
-                              fontSize: '1.15rem',
+                              fontSize: '0.85rem',
                               fontWeight: '700',
                               color: '#111827',
-                              marginBottom: '0.75rem'
+                              marginBottom: '0.35rem',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
                             }}>
                               {organizer.name}
                             </div>
@@ -644,15 +653,14 @@ const TournamentRegister = () => {
                             <a href={`tel:${organizer.mobile}`} style={{
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '0.5rem',
-                              padding: '0.65rem 1.25rem',
+                              gap: '0.35rem',
+                              padding: '0.4rem 0.75rem',
                               background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                               color: 'white',
-                              borderRadius: '10px',
-                              fontSize: '1rem',
+                              borderRadius: '8px',
+                              fontSize: '0.75rem',
                               fontWeight: '600',
                               textDecoration: 'none',
-                              marginTop: '0.5rem',
                               boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
                               transition: 'all 0.3s ease',
                               cursor: 'pointer'
@@ -676,12 +684,12 @@ const TournamentRegister = () => {
                     <div style={{ textAlign: 'center' }}>
                       {tournament.organizerPhoto && (
                         <div style={{
-                          width: '70px',
-                          height: '70px',
+                          width: '48px',
+                          height: '48px',
                           borderRadius: '50%',
-                          margin: '0 auto 0.75rem',
+                          margin: '0 auto 0.35rem',
                           overflow: 'hidden',
-                          border: '3px solid #f59e0b',
+                          border: '2px solid #f59e0b',
                           boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
                         }}>
                           <img
@@ -698,10 +706,10 @@ const TournamentRegister = () => {
 
                       {tournament.organizerName && (
                         <div style={{
-                          fontSize: '1.15rem',
+                          fontSize: '0.85rem',
                           fontWeight: '700',
                           color: '#111827',
-                          marginBottom: '0.75rem'
+                          marginBottom: '0.35rem'
                         }}>
                           {tournament.organizerName}
                         </div>
@@ -711,15 +719,14 @@ const TournamentRegister = () => {
                         <a href={`tel:${tournament.organizerMobile}`} style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '0.5rem',
-                          padding: '0.65rem 1.25rem',
+                          gap: '0.35rem',
+                          padding: '0.4rem 0.75rem',
                           background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                           color: 'white',
-                          borderRadius: '10px',
-                          fontSize: '1rem',
+                          borderRadius: '8px',
+                          fontSize: '0.75rem',
                           fontWeight: '600',
                           textDecoration: 'none',
-                          marginTop: '0.5rem',
                           boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
                           transition: 'all 0.3s ease',
                           cursor: 'pointer'
