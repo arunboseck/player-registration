@@ -862,6 +862,15 @@ const TournamentRegistrations = () => {
     navigate('/');
   };
 
+  const formatRegisteredAt = (value) => {
+    if (!value) return 'N/A';
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return 'N/A';
+    const datePart = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    const timePart = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    return `${datePart}, ${timePart}`;
+  };
+
   // ==================== DRAG-AND-DROP REORDERING ====================
   const isReorderable = searchTerm.trim() === '';
 
@@ -1274,6 +1283,11 @@ const TournamentRegistrations = () => {
                       <label>Position</label>
                       <span className="badge-inline badge-position">{reg.position}</span>
                     </div>
+
+                    <div className="info-column info-registered-at">
+                      <label>Registered On</label>
+                      <span>{formatRegisteredAt(reg.registeredAt)}</span>
+                    </div>
                   </div>
 
                   <div className="registration-actions">
@@ -1408,6 +1422,10 @@ const TournamentRegistrations = () => {
                     <div className="card-mobile-info-row">
                       <span className="card-mobile-info-label">Place:</span>
                       <span className="card-mobile-info-value">{reg.place}</span>
+                    </div>
+                    <div className="card-mobile-info-row">
+                      <span className="card-mobile-info-label">Registered On:</span>
+                      <span className="card-mobile-info-value">{formatRegisteredAt(reg.registeredAt)}</span>
                     </div>
                   </div>
                 </div>
