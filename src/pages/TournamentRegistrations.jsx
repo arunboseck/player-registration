@@ -1554,6 +1554,22 @@ const TournamentRegistrations = () => {
                 )}
                 {!dbSearching && visibleDbSearchResults.map((player) => (
                   <div key={player.id} className="add-player-result-row">
+                    <div className="add-player-result-avatar">
+                      {player.photo ? (
+                        <img
+                          src={player.photo}
+                          alt={player.name}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.parentElement.innerHTML = `<div class="avatar-placeholder">${player.name.charAt(0).toUpperCase()}</div>`;
+                          }}
+                        />
+                      ) : (
+                        <div className="avatar-placeholder">
+                          {player.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
                     <div className="add-player-result-info">
                       <strong>{player.name}</strong>
                       <span>{player.mobile} · {player.place}</span>
