@@ -1554,7 +1554,11 @@ const TournamentRegistrations = () => {
                 )}
                 {!dbSearching && visibleDbSearchResults.map((player) => (
                   <div key={player.id} className="add-player-result-row">
-                    <div className="add-player-result-avatar">
+                    <div
+                      className="add-player-result-avatar"
+                      onClick={() => player.photo && handlePhotoClick(player.photo, player.name)}
+                      style={{ cursor: player.photo ? 'pointer' : 'default' }}
+                    >
                       {player.photo ? (
                         <img
                           src={player.photo}
