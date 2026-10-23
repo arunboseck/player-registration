@@ -1026,7 +1026,7 @@ const TournamentRegister = () => {
                     disabled={submitting}
                     className="btn-quick-join"
                   >
-                    {submitting ? '⏳ Joining Tournament...' : '✅ Join This Tournament'}
+                    {submitting ? '⏳ Joining Tournament...' : '✅ Click here to Join this Tournament'}
                   </button>
                 </div>
               )}
