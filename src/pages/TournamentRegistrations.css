@@ -330,7 +330,8 @@
 
 /* Add Player from Database Modal */
 .add-player-modal {
-  max-width: 600px;
+  max-width: 760px;
+  width: 92%;
 }
 
 .add-player-search-form {
