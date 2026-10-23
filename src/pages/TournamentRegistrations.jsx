@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTournamentById, getTournamentRegistrations, deleteRegistration, updateRegistration, updateRegistrationsOrder, syncTournamentPhotosWithPlayers, syncTournamentPlayersToMainModule, uploadPhotoToStorage, getPlayerByMobile, updatePlayer } from '../utils/firebaseStorage';
+import { getTournamentById, getTournamentRegistrations, deleteRegistration, updateRegistration, updateRegistrationsOrder, syncTournamentPhotosWithPlayers, syncTournamentPlayersToMainModule, uploadPhotoToStorage, getPlayerByMobile, updatePlayer, searchPlayers, addTournamentRegistration } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import { ROLES } from '../utils/userManagement';
 import * as XLSX from 'xlsx';
@@ -71,6 +71,14 @@ const SyncPhotosIcon = () => (
 import './Players.css';
 import './TournamentRegistrations.css';
 
+const AddPlayerIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="9" cy="8" r="3.2" fill="#0ea5e9" />
+    <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" fill="#0ea5e9" />
+    <path d="M18 8v6M15 11h6" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
 const MoreIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="12" cy="5" r="1.8" fill="currentColor" />
@@ -138,6 +146,12 @@ const TournamentRegistrations = () => {
   const [savingOrder, setSavingOrder] = useState(false);
   const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
   const [cardMenuOpenId, setCardMenuOpenId] = useState(null);
+  const [addPlayerModal, setAddPlayerModal] = useState(false);
+  const [dbSearchTerm, setDbSearchTerm] = useState('');
+  const [dbSearchResults, setDbSearchResults] = useState([]);
+  const [dbSearching, setDbSearching] = useState(false);
+  const [dbSearched, setDbSearched] = useState(false);
+  const [assigningId, setAssigningId] = useState(null);
 
   useEffect(() => {
     if (!actionsMenuOpen) return;
@@ -871,6 +885,68 @@ const TournamentRegistrations = () => {
     return `${datePart}, ${timePart}`;
   };
 
+  // ==================== ADD PLAYER FROM MAIN DATABASE ====================
+  const registeredMobiles = new Set(registrations.map((r) => (r.mobile || '').replace(/[^0-9]/g, '')));
+
+  const handleOpenAddPlayerModal = () => {
+    setDbSearchTerm('');
+    setDbSearchResults([]);
+    setDbSearched(false);
+    setAddPlayerModal(true);
+  };
+
+  const handleCloseAddPlayerModal = () => {
+    setAddPlayerModal(false);
+  };
+
+  const handleSearchDbPlayers = async (e) => {
+    e.preventDefault();
+    const term = dbSearchTerm.trim();
+    if (!term) return;
+    setDbSearching(true);
+    setDbSearched(true);
+    try {
+      const results = await searchPlayers(term);
+      setDbSearchResults(results);
+    } catch (error) {
+      console.error('Error searching players database:', error);
+      setDbSearchResults([]);
+    } finally {
+      setDbSearching(false);
+    }
+  };
+
+  const handleAssignPlayerToTournament = async (player) => {
+    setAssigningId(player.id);
+    try {
+      const playerData = {
+        name: player.name,
+        mobile: player.mobile,
+        dateOfBirth: player.dateOfBirth,
+        bloodGroup: player.bloodGroup,
+        place: player.place,
+        position: player.position,
+        photo: player.photo || ''
+      };
+      const result = await addTournamentRegistration(id, playerData);
+      if (result.success) {
+        await loadData();
+      } else {
+        alert(result.message);
+      }
+    } catch (error) {
+      console.error('Error assigning player to tournament:', error);
+      alert('Error assigning player to tournament');
+    } finally {
+      setAssigningId(null);
+    }
+  };
+
+  // Players already registered for this tournament are hidden from results
+  const visibleDbSearchResults = dbSearchResults.filter(
+    (p) => !registeredMobiles.has((p.mobile || '').replace(/[^0-9]/g, ''))
+  );
+
   // ==================== DRAG-AND-DROP REORDERING ====================
   const isReorderable = searchTerm.trim() === '';
 
@@ -963,6 +1039,13 @@ const TournamentRegistrations = () => {
             </p>
           </div>
           <div className="header-actions">
+            <button
+              onClick={handleOpenAddPlayerModal}
+              className="btn-download btn-add-player btn-icon-only"
+              title="Add Player from Database — search the main player database and assign a player to this tournament"
+            >
+              <AddPlayerIcon />
+            </button>
             {!isOrganizer && (
               <>
                 <button
@@ -1027,6 +1110,13 @@ const TournamentRegistrations = () => {
             </button>
             {actionsMenuOpen && (
               <div className="actions-dropdown">
+                <button
+                  onClick={() => { setActionsMenuOpen(false); handleOpenAddPlayerModal(); }}
+                  className="actions-dropdown-item"
+                >
+                  <AddPlayerIcon />
+                  <span>Add Player from Database</span>
+                </button>
                 {!isOrganizer && (
                   <>
                     <button
@@ -1434,6 +1524,59 @@ const TournamentRegistrations = () => {
           </div>
         )}
       </div>
+
+      {/* Add Player from Database Modal */}
+      {addPlayerModal && (
+        <div className="modal-overlay" onClick={handleCloseAddPlayerModal}>
+          <div className="modal-content add-player-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>➕ Add Player from Database</h3>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={handleSearchDbPlayers} className="add-player-search-form">
+                <input
+                  type="text"
+                  placeholder="Search by name or mobile number..."
+                  value={dbSearchTerm}
+                  onChange={(e) => setDbSearchTerm(e.target.value)}
+                  className="search-input"
+                  autoFocus
+                />
+                <button type="submit" className="btn-cancel" disabled={dbSearching || !dbSearchTerm.trim()}>
+                  {dbSearching ? 'Searching…' : 'Search'}
+                </button>
+              </form>
+
+              <div className="add-player-results">
+                {dbSearching && <p>Searching players…</p>}
+                {!dbSearching && dbSearched && visibleDbSearchResults.length === 0 && (
+                  <p>No matching players found (or they are already registered for this tournament).</p>
+                )}
+                {!dbSearching && visibleDbSearchResults.map((player) => (
+                  <div key={player.id} className="add-player-result-row">
+                    <div className="add-player-result-info">
+                      <strong>{player.name}</strong>
+                      <span>{player.mobile} · {player.place}</span>
+                    </div>
+                    <button
+                      className="btn-confirm-delete"
+                      disabled={assigningId === player.id}
+                      onClick={() => handleAssignPlayerToTournament(player)}
+                    >
+                      {assigningId === player.id ? 'Adding…' : 'Add to Tournament'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={handleCloseAddPlayerModal}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {deleteModal.show && (
