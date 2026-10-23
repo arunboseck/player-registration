@@ -1005,7 +1005,7 @@ const TournamentRegister = () => {
               {foundPlayer && (
                 <div className="found-player-card">
                   <div className="found-player-header">
-                    <h4>✅ Player Found!</h4>
+                    <h4>Player Found!</h4>
                   </div>
                   <div className="found-player-details">
                     {foundPlayer.photo && (
