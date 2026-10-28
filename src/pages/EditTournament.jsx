@@ -4,6 +4,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { getTournamentById, updateTournament, uploadPhotoToStorage } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
+import TournamentDaysPicker from '../components/TournamentDaysPicker';
 import './RegisterPlayer.css';
 
 const QUILL_MODULES = {
@@ -31,6 +32,7 @@ const EditTournament = () => {
     status: 'Upcoming',
     description: '',
     tournamentPoster: '',
+    tournamentDays: [],
   });
   const [organizers, setOrganizers] = useState([
     { name: '', mobile: '', photo: '', photoPreview: null }
@@ -45,7 +47,7 @@ const EditTournament = () => {
       const tournament = await getTournamentById(id);
       if (tournament) {
         const { organizers: tournamentOrganizers, organizerName, organizerMobile, organizerPhoto, ...tournamentData } = tournament;
-        setFormData(tournamentData);
+        setFormData({ tournamentDays: [], ...tournamentData });
 
         // Load existing organizers or convert from old format
         if (tournamentOrganizers && Array.isArray(tournamentOrganizers) && tournamentOrganizers.length > 0) {
@@ -166,6 +168,9 @@ const EditTournament = () => {
     if (!formData.endDate) newErrors.endDate = 'End date is required';
     if (formData.startDate && formData.endDate && new Date(formData.endDate) < new Date(formData.startDate)) {
       newErrors.endDate = 'End date must be after start date';
+    }
+    if (formData.startDate && formData.endDate && (!formData.tournamentDays || formData.tournamentDays.length === 0)) {
+      newErrors.tournamentDays = 'Select at least one tournament day';
     }
     if (!formData.auctionDate) newErrors.auctionDate = 'Auction date is required';
     if (formData.auctionDate && formData.startDate && new Date(formData.auctionDate) > new Date(formData.startDate)) {
@@ -303,6 +308,26 @@ const EditTournament = () => {
                 <input type="date" name="endDate" value={formData.endDate} onChange={handleChange} />
                 {errors.endDate && <span className="error-message">{errors.endDate}</span>}
               </div>
+            </div>
+
+            <div className="form-group">
+              <label>Tournament Days *</label>
+              <small style={{display: 'block', marginBottom: '0.5rem', color: '#6b7280', fontSize: '0.85rem'}}>
+                By default every day in the range is selected. Uncheck days that have no matches
+                (e.g. keep only Sundays for a tournament spread across several weeks).
+              </small>
+              <TournamentDaysPicker
+                startDate={formData.startDate}
+                endDate={formData.endDate}
+                value={formData.tournamentDays || []}
+                onChange={(days) => {
+                  setFormData((prev) => ({ ...prev, tournamentDays: days }));
+                  if (errors.tournamentDays) {
+                    setErrors((prev) => ({ ...prev, tournamentDays: '' }));
+                  }
+                }}
+              />
+              {errors.tournamentDays && <span className="error-message">{errors.tournamentDays}</span>}
             </div>
 
             <div className="form-row">

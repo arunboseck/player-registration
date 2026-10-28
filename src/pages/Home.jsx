@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { getTournaments } from '../utils/firebaseStorage';
+import { getTournamentPlayDates } from '../utils/tournamentDays';
 import './Home.css';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -14,13 +15,6 @@ const toDateKey = (date) => {
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
-};
-
-const parseDateOnly = (value) => {
-  if (!value) return null;
-  const [y, m, d] = value.split('-').map(Number);
-  if (!y || !m || !d) return null;
-  return new Date(y, m - 1, d);
 };
 
 const buildMonthCells = (year, month) => {
@@ -68,16 +62,11 @@ const Home = () => {
   const tournamentsByDate = useMemo(() => {
     const map = {};
     tournaments.forEach((tournament) => {
-      const start = parseDateOnly(tournament.startDate);
-      const end = parseDateOnly(tournament.endDate);
-      if (!start || !end) return;
-      const cursor = new Date(start);
-      while (cursor <= end) {
-        const key = toDateKey(cursor);
+      const playDates = getTournamentPlayDates(tournament);
+      playDates.forEach((key) => {
         if (!map[key]) map[key] = [];
         map[key].push(tournament);
-        cursor.setDate(cursor.getDate() + 1);
-      }
+      });
     });
     return map;
   }, [tournaments]);
