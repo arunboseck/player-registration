@@ -594,6 +594,19 @@
   box-shadow: 0 8px 20px rgba(102, 126, 234, 0.45);
 }
 
+.btn-register-closed {
+  background: #e5e7eb;
+  color: #6b7280;
+  box-shadow: none;
+  cursor: not-allowed;
+  text-align: center;
+}
+
+.btn-register-closed:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 @media (max-width: 640px) {
   .home-header {
     padding: 1rem 1.25rem;

@@ -17,6 +17,13 @@ const toDateKey = (date) => {
   return `${y}-${m}-${d}`;
 };
 
+const isRegistrationClosed = (tournament) => {
+  const now = new Date();
+  if (tournament.auctionDate && new Date(tournament.auctionDate) <= now) return true;
+  if (tournament.endDate && new Date(tournament.endDate) < now) return true;
+  return false;
+};
+
 const buildMonthCells = (year, month) => {
   const firstDay = new Date(year, month, 1);
   const startWeekday = firstDay.getDay();
@@ -259,9 +266,15 @@ const Home = () => {
                         dangerouslySetInnerHTML={{ __html: tournament.description }}
                       />
                     )}
-                    <Link to={`/tournament-register/${tournament.id}`} className="btn-register-tournament">
-                      Register for this Tournament
-                    </Link>
+                    {isRegistrationClosed(tournament) ? (
+                      <span className="btn-register-tournament btn-register-closed">
+                        Registration Closed
+                      </span>
+                    ) : (
+                      <Link to={`/tournament-register/${tournament.id}`} className="btn-register-tournament">
+                        Register for this Tournament
+                      </Link>
+                    )}
                   </div>
                 </div>
               ))}
