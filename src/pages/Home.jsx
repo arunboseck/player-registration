@@ -184,7 +184,12 @@ const Home = () => {
 
         <div className="calendar-weekdays">
           {WEEKDAYS.map((day) => (
-            <div key={day} className="calendar-weekday">{day}</div>
+            <div
+              key={day}
+              className={['calendar-weekday', day === 'Sun' ? 'calendar-weekday-sunday' : ''].filter(Boolean).join(' ')}
+            >
+              {day}
+            </div>
           ))}
         </div>
 
@@ -203,6 +208,7 @@ const Home = () => {
               const isToday = isSameDay(cell.date, today);
               const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
               const isPast = cell.date < todayStart && !isToday;
+              const isSunday = cell.date.getDay() === 0;
 
               return (
                 <div
@@ -213,6 +219,7 @@ const Home = () => {
                     hasTournament ? 'calendar-cell-event' : '',
                     hasTournament && isPast ? 'calendar-cell-event-past' : '',
                     isToday ? 'calendar-cell-today' : '',
+                    isSunday ? 'calendar-cell-sunday' : '',
                   ].filter(Boolean).join(' ')}
                   onClick={() => handleDateClick(cell)}
                 >
