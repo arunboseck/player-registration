@@ -60,6 +60,23 @@
   animation: slideUp 0.6s ease-out;
 }
 
+.login-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+  color: #667eea;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.login-back-link:hover {
+  color: #764ba2;
+  transform: translateX(-3px);
+}
+
 @keyframes slideUp {
   from {
     opacity: 0;
