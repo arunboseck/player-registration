@@ -234,7 +234,10 @@ const Home = () => {
                       🗓️ {new Date(tournament.startDate).toLocaleDateString()} – {new Date(tournament.endDate).toLocaleDateString()}
                     </p>
                     {tournament.description && (
-                      <p className="tournament-modal-description">{tournament.description}</p>
+                      <div
+                        className="tournament-modal-description"
+                        dangerouslySetInnerHTML={{ __html: tournament.description }}
+                      />
                     )}
                     <Link to={`/tournament-register/${tournament.id}`} className="btn-register-tournament">
                       Register for this Tournament

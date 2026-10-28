@@ -458,6 +458,28 @@
   line-height: 1.5;
 }
 
+.tournament-modal-description > *:first-child {
+  margin-top: 0;
+}
+
+.tournament-modal-description > *:last-child {
+  margin-bottom: 0;
+}
+
+.tournament-modal-description h1,
+.tournament-modal-description h2,
+.tournament-modal-description h3,
+.tournament-modal-description h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0.6rem 0 0.3rem;
+}
+
+.tournament-modal-description p {
+  margin: 0 0 0.5rem;
+}
+
 .btn-register-tournament {
   display: inline-block;
   padding: 0.7rem 1.4rem;
