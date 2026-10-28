@@ -458,6 +458,76 @@
   flex-shrink: 0;
 }
 
+.tournament-modal-poster-clickable {
+  cursor: zoom-in;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tournament-modal-poster-clickable:hover {
+  transform: scale(1.04);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+/* ==================== Poster Lightbox (grow from click position) ==================== */
+
+.poster-lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+}
+
+.poster-lightbox-overlay-visible {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.poster-lightbox-image {
+  position: fixed;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  transition: top 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    left 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    border-radius 0.35s ease;
+}
+
+.poster-lightbox-overlay-visible .poster-lightbox-image {
+  top: 50%;
+  left: 50%;
+  width: min(90vw, 700px);
+  height: min(85vh, 900px);
+  transform: translate(-50%, -50%);
+  border-radius: 8px;
+}
+
+.poster-lightbox-close {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.poster-lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.08);
+}
+
 .tournament-modal-info {
   flex: 1;
   min-width: 0;

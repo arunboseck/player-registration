@@ -51,6 +51,8 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTournaments, setSelectedTournaments] = useState([]);
+  const [posterLightbox, setPosterLightbox] = useState(null); // { src, rect }
+  const [posterZoomed, setPosterZoomed] = useState(false);
 
   useEffect(() => {
     const loadTournaments = async () => {
@@ -121,6 +123,22 @@ const Home = () => {
   const closeModal = () => {
     setSelectedDate(null);
     setSelectedTournaments([]);
+  };
+
+  const openPosterLightbox = (e, src) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setPosterLightbox({ src, rect });
+    setPosterZoomed(false);
+    // Allow the browser to paint the start position before transitioning to full screen
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => setPosterZoomed(true));
+    });
+  };
+
+  const closePosterLightbox = () => {
+    setPosterZoomed(false);
+    // Wait for the shrink animation to finish before unmounting
+    setTimeout(() => setPosterLightbox(null), 300);
   };
 
   const isSameDay = (a, b) =>
@@ -236,7 +254,8 @@ const Home = () => {
                     <img
                       src={tournament.tournamentPoster}
                       alt={tournament.name}
-                      className="tournament-modal-poster"
+                      className="tournament-modal-poster tournament-modal-poster-clickable"
+                      onClick={(e) => openPosterLightbox(e, tournament.tournamentPoster)}
                     />
                   )}
                   <div className="tournament-modal-info">
@@ -259,6 +278,30 @@ const Home = () => {
               ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {posterLightbox && (
+        <div
+          className={`poster-lightbox-overlay ${posterZoomed ? 'poster-lightbox-overlay-visible' : ''}`}
+          onClick={closePosterLightbox}
+        >
+          <img
+            src={posterLightbox.src}
+            alt="Tournament poster"
+            className="poster-lightbox-image"
+            style={
+              posterZoomed
+                ? {}
+                : {
+                    top: posterLightbox.rect.top,
+                    left: posterLightbox.rect.left,
+                    width: posterLightbox.rect.width,
+                    height: posterLightbox.rect.height,
+                  }
+            }
+          />
+          <button className="poster-lightbox-close" onClick={closePosterLightbox} aria-label="Close">×</button>
         </div>
       )}
     </div>
