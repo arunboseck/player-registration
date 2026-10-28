@@ -130,15 +130,23 @@ const Home = () => {
 
   return (
     <div className="home-container">
-      <div className="home-hero">
-        <h1>🏏 Player Management System</h1>
-        <p className="home-tagline">
-          Manage players, tournaments and registrations all in one place.
-        </p>
-        <Link to="/admin-login" className="btn-admin-login">
-          Admin Login
+      <header className="home-header">
+        <div className="home-header-brand">
+          <span className="home-header-icon">🏏</span>
+          <span className="home-header-title">Player Management System</span>
+        </div>
+        <Link to="/admin-login" className="home-header-link">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <span>Admin Login</span>
         </Link>
-      </div>
+      </header>
+
+      <p className="home-tagline">
+        Manage players, tournaments and registrations all in one place.
+      </p>
 
       <div className="calendar-card">
         <div className="calendar-header">
@@ -183,7 +191,12 @@ const Home = () => {
                 >
                   <span className="calendar-cell-number">{cell.date.getDate()}</span>
                   {hasTournament && (
-                    <span className="calendar-event-dot" title={matches.map((t) => t.name).join(', ')} />
+                    <span
+                      className="calendar-event-label"
+                      title={matches.map((t) => t.name).join(', ')}
+                    >
+                      {matches.length === 1 ? matches[0].name : `${matches.length} Tournaments`}
+                    </span>
                   )}
                 </div>
               );
