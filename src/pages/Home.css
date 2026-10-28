@@ -316,13 +316,35 @@
   color: #4c3fb0;
 }
 
+/* Past tournaments: muted grey styling to distinguish from upcoming ones */
+.calendar-cell-event-past {
+  background: #f1f2f4;
+}
+
+.calendar-event-label-past {
+  background: #9aa1ab;
+  color: #f3f4f6;
+}
+
+.calendar-cell-event-past:hover .calendar-event-label-past {
+  background: #6b7280;
+  color: white;
+}
+
 .calendar-legend {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.6rem;
+  gap: 1.5rem;
   margin-top: 1.5rem;
   color: #6b7280;
   font-size: 0.85rem;
+}
+
+.calendar-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
 
 .calendar-legend-dot {
@@ -331,6 +353,10 @@
   border-radius: 50%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   flex-shrink: 0;
+}
+
+.calendar-legend-dot-past {
+  background: #9aa1ab;
 }
 
 /* ==================== Tournament Details Modal ==================== */

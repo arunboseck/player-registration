@@ -177,6 +177,8 @@ const Home = () => {
               const matches = tournamentsByDate[key] || [];
               const hasTournament = matches.length > 0;
               const isToday = isSameDay(cell.date, today);
+              const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+              const isPast = cell.date < todayStart && !isToday;
 
               return (
                 <div
@@ -185,6 +187,7 @@ const Home = () => {
                     'calendar-cell',
                     cell.outside ? 'calendar-cell-outside' : '',
                     hasTournament ? 'calendar-cell-event' : '',
+                    hasTournament && isPast ? 'calendar-cell-event-past' : '',
                     isToday ? 'calendar-cell-today' : '',
                   ].filter(Boolean).join(' ')}
                   onClick={() => handleDateClick(cell)}
@@ -192,7 +195,10 @@ const Home = () => {
                   <span className="calendar-cell-number">{cell.date.getDate()}</span>
                   {hasTournament && (
                     <span
-                      className="calendar-event-label"
+                      className={[
+                        'calendar-event-label',
+                        isPast ? 'calendar-event-label-past' : '',
+                      ].filter(Boolean).join(' ')}
                       title={matches.map((t) => t.name).join(', ')}
                     >
                       {matches.length === 1 ? matches[0].name : `${matches.length} Tournaments`}
@@ -205,8 +211,14 @@ const Home = () => {
         )}
 
         <div className="calendar-legend">
-          <span className="calendar-legend-dot" />
-          <span>Tournament confirmed on this date — click to view details</span>
+          <span className="calendar-legend-item">
+            <span className="calendar-legend-dot" />
+            <span>Upcoming / ongoing tournament — click to view details</span>
+          </span>
+          <span className="calendar-legend-item">
+            <span className="calendar-legend-dot calendar-legend-dot-past" />
+            <span>Past tournament</span>
+          </span>
         </div>
       </div>
 
