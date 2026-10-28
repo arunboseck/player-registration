@@ -218,17 +218,34 @@
   font-weight: 500;
 }
 
+.calendar-grid-viewport {
+  overflow: hidden;
+  width: 100%;
+}
+
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 6px;
   width: 100%;
-  animation: calendarFade 0.4s ease-out;
 }
 
-@keyframes calendarFade {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+.calendar-grid-slide-right {
+  animation: calendarSlideFromRight 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.calendar-grid-slide-left {
+  animation: calendarSlideFromLeft 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes calendarSlideFromRight {
+  from { opacity: 0; transform: translateX(36px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes calendarSlideFromLeft {
+  from { opacity: 0; transform: translateX(-36px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 .calendar-cell {

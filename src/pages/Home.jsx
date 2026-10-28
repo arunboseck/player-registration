@@ -54,6 +54,7 @@ const Home = () => {
   const [selectedTournaments, setSelectedTournaments] = useState([]);
   const [posterLightbox, setPosterLightbox] = useState(null); // { src, rect }
   const [posterZoomed, setPosterZoomed] = useState(false);
+  const [slideDirection, setSlideDirection] = useState('right');
 
   useEffect(() => {
     const loadTournaments = async () => {
@@ -84,6 +85,7 @@ const Home = () => {
   );
 
   const goToPrevMonth = () => {
+    setSlideDirection('left');
     setCurrentMonth((prev) => {
       if (prev === 0) {
         setCurrentYear((y) => y - 1);
@@ -94,6 +96,7 @@ const Home = () => {
   };
 
   const goToNextMonth = () => {
+    setSlideDirection('right');
     setCurrentMonth((prev) => {
       if (prev === 11) {
         setCurrentYear((y) => y + 1);
@@ -104,6 +107,9 @@ const Home = () => {
   };
 
   const goToToday = () => {
+    const target = today.getFullYear() * 12 + today.getMonth();
+    const current = currentYear * 12 + currentMonth;
+    setSlideDirection(target >= current ? 'right' : 'left');
     setCurrentYear(today.getFullYear());
     setCurrentMonth(today.getMonth());
   };
@@ -185,7 +191,11 @@ const Home = () => {
         {loading ? (
           <div className="calendar-loading">Loading tournaments…</div>
         ) : (
-          <div className="calendar-grid">
+          <div className="calendar-grid-viewport">
+            <div
+              key={`${currentYear}-${currentMonth}`}
+              className={`calendar-grid calendar-grid-slide-${slideDirection}`}
+            >
             {cells.map((cell, index) => {
               const key = toDateKey(cell.date);
               const matches = tournamentsByDate[key] || [];
@@ -221,6 +231,7 @@ const Home = () => {
                 </div>
               );
             })}
+            </div>
           </div>
         )}
 
