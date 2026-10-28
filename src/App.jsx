@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navigation from './components/Navigation';
+import Home from './pages/Home';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import RegisterPlayer from './pages/RegisterPlayer';
@@ -24,10 +25,11 @@ import './App.css';
 function Layout({ children }) {
   const location = useLocation();
 
-  // Don't show navigation on login page and tournament registration page
-  const isLoginPage = location.pathname === '/';
+  // Don't show navigation on the public home page, login page, and tournament registration page
+  const isHomePage = location.pathname === '/';
+  const isLoginPage = location.pathname === '/admin-login';
   const isTournamentRegisterPage = location.pathname.startsWith('/tournament-register/');
-  const showNavigation = !isLoginPage && !isTournamentRegisterPage;
+  const showNavigation = !isHomePage && !isLoginPage && !isTournamentRegisterPage;
 
   return (
     <>
@@ -43,7 +45,8 @@ function App() {
       <Router>
         <Layout>
           <Routes>
-            <Route path="/" element={<Login />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/admin-login" element={<Login />} />
             <Route path="/register" element={<PublicRegister />} />
             <Route
               path="/dashboard"

@@ -17,7 +17,7 @@ const Navigation = () => {
   const handleLogout = () => {
     logout();
     setSidebarOpen(false);
-    navigate('/');
+    navigate('/admin-login');
   };
 
   return (
