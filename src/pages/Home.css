@@ -615,8 +615,11 @@
 }
 
 .btn-register-tournament {
-  display: inline-block;
-  padding: 0.7rem 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0.7rem 1rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border-radius: 10px;
@@ -647,16 +650,25 @@
 
 .tournament-modal-actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.7rem;
+  flex-wrap: nowrap;
+  gap: 0.6rem;
   margin-top: 0.4rem;
+}
+
+.tournament-modal-actions .btn-register-tournament,
+.tournament-modal-actions .btn-view-players {
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: normal;
+  line-height: 1.2;
 }
 
 .btn-view-players {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.7rem 1.4rem;
+  text-align: center;
+  padding: 0.7rem 1rem;
   background: transparent;
   color: #667eea;
   border: 1.5px solid #667eea;
@@ -909,5 +921,15 @@
 
   .player-card-mobile {
     font-size: 0.72rem;
+  }
+
+  .tournament-modal-actions {
+    gap: 0.4rem;
+  }
+
+  .tournament-modal-actions .btn-register-tournament,
+  .tournament-modal-actions .btn-view-players {
+    padding: 0.6rem 0.5rem;
+    font-size: 0.78rem;
   }
 }
