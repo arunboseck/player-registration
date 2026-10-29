@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { getTournaments } from '../utils/firebaseStorage';
+import { getTournaments, getTournamentRegistrations } from '../utils/firebaseStorage';
 import { getTournamentPlayDates } from '../utils/tournamentDays';
 import './Home.css';
 
@@ -55,6 +55,7 @@ const Home = () => {
   const [posterLightbox, setPosterLightbox] = useState(null); // { src, rect }
   const [posterZoomed, setPosterZoomed] = useState(false);
   const [slideDirection, setSlideDirection] = useState('right');
+  const [playersModal, setPlayersModal] = useState(null); // { tournamentName, players, loading }
 
   useEffect(() => {
     const loadTournaments = async () => {
@@ -142,6 +143,22 @@ const Home = () => {
     // Wait for the shrink animation to finish before unmounting
     setTimeout(() => setPosterLightbox(null), 300);
   };
+
+  const openPlayersModal = async (tournament) => {
+    setPlayersModal({ tournamentName: tournament.name, players: [], loading: true });
+    const registrations = await getTournamentRegistrations(tournament.id);
+    const sorted = [...registrations].sort((a, b) => {
+      const aHasOrder = typeof a.sortOrder === 'number';
+      const bHasOrder = typeof b.sortOrder === 'number';
+      if (aHasOrder && bHasOrder) return a.sortOrder - b.sortOrder;
+      if (aHasOrder) return -1;
+      if (bHasOrder) return 1;
+      return new Date(a.registeredAt || 0) - new Date(b.registeredAt || 0);
+    });
+    setPlayersModal({ tournamentName: tournament.name, players: sorted, loading: false });
+  };
+
+  const closePlayersModal = () => setPlayersModal(null);
 
   const isSameDay = (a, b) =>
     a.getFullYear() === b.getFullYear() &&
@@ -284,15 +301,24 @@ const Home = () => {
                         dangerouslySetInnerHTML={{ __html: tournament.description }}
                       />
                     )}
-                    {isRegistrationClosed(tournament) ? (
-                      <span className="btn-register-tournament btn-register-closed">
-                        Registration Closed
-                      </span>
-                    ) : (
-                      <Link to={`/tournament-register/${tournament.id}`} className="btn-register-tournament">
-                        Register for this Tournament
-                      </Link>
-                    )}
+                    <div className="tournament-modal-actions">
+                      {isRegistrationClosed(tournament) ? (
+                        <span className="btn-register-tournament btn-register-closed">
+                          Registration Closed
+                        </span>
+                      ) : (
+                        <Link to={`/tournament-register/${tournament.id}`} className="btn-register-tournament">
+                          Register for this Tournament
+                        </Link>
+                      )}
+                      <button
+                        type="button"
+                        className="btn-view-players"
+                        onClick={() => openPlayersModal(tournament)}
+                      >
+                        View Registered Players
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -322,6 +348,39 @@ const Home = () => {
             }
           />
           <button className="poster-lightbox-close" onClick={closePosterLightbox} aria-label="Close">×</button>
+        </div>
+      )}
+
+      {playersModal && (
+        <div className="players-modal-overlay" onClick={closePlayersModal}>
+          <div className="players-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="tournament-modal-close" onClick={closePlayersModal} aria-label="Close">×</button>
+            <h3 className="players-modal-title">{playersModal.tournamentName}</h3>
+            <p className="players-modal-subtitle">Registered Players</p>
+
+            {playersModal.loading ? (
+              <div className="calendar-loading">Loading players…</div>
+            ) : playersModal.players.length === 0 ? (
+              <div className="calendar-loading">No players registered yet.</div>
+            ) : (
+              <div className="players-modal-grid">
+                {playersModal.players.map((player, index) => (
+                  <div key={player.id || index} className="player-card">
+                    <div className="player-card-photo">
+                      {player.photo ? (
+                        <img src={player.photo} alt={player.name} />
+                      ) : (
+                        <span className="player-card-photo-placeholder">👤</span>
+                      )}
+                    </div>
+                    <h4 className="player-card-name">{player.name}</h4>
+                    <p className="player-card-id">ID: {index + 1}</p>
+                    <p className="player-card-position">{player.position}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
