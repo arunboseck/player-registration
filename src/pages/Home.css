@@ -697,6 +697,28 @@
   overflow-y: auto;
   position: relative;
   animation: slideUpModal 0.3s ease-out;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+.players-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.players-modal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.players-modal::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+}
+
+.players-modal::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.4);
 }
 
 .players-modal-title {
@@ -762,6 +784,15 @@
   object-fit: cover;
 }
 
+.player-card-photo-clickable {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.player-card-photo-clickable:hover {
+  transform: scale(1.06);
+}
+
 .player-card-photo-placeholder {
   font-size: 2rem;
   opacity: 0.4;
@@ -779,6 +810,12 @@
   font-size: 0.85rem;
   font-weight: 600;
   margin: 0 0 0.15rem;
+}
+
+.player-card-mobile {
+  color: #a5b4fc;
+  font-size: 0.78rem;
+  margin: 0 0 0.2rem;
 }
 
 .player-card-position {

@@ -368,13 +368,19 @@ const Home = () => {
                   <div key={player.id || index} className="player-card">
                     <div className="player-card-photo">
                       {player.photo ? (
-                        <img src={player.photo} alt={player.name} />
+                        <img
+                          src={player.photo}
+                          alt={player.name}
+                          className="player-card-photo-clickable"
+                          onClick={(e) => openPosterLightbox(e, player.photo)}
+                        />
                       ) : (
                         <span className="player-card-photo-placeholder">👤</span>
                       )}
                     </div>
                     <h4 className="player-card-name">{player.name}</h4>
                     <p className="player-card-id">ID: {index + 1}</p>
+                    {player.mobile && <p className="player-card-mobile">📞 {player.mobile}</p>}
                     <p className="player-card-position">{player.position}</p>
                   </div>
                 ))}
