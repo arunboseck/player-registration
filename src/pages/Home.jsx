@@ -130,8 +130,26 @@ const Home = () => {
 
   const openPosterLightbox = (e, src) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    setPosterLightbox({ src, rect });
+    setPosterLightbox({ src, rect, fitted: null });
     setPosterZoomed(false);
+
+    // Compute the image's own aspect ratio so the expanded view hugs the
+    // poster instead of sitting inside an oversized, letterboxed box.
+    const img = new Image();
+    img.onload = () => {
+      const maxW = Math.min(window.innerWidth * 0.9, 700);
+      const maxH = Math.min(window.innerHeight * 0.85, 900);
+      const ratio = img.naturalWidth / img.naturalHeight;
+      let width = maxW;
+      let height = width / ratio;
+      if (height > maxH) {
+        height = maxH;
+        width = height * ratio;
+      }
+      setPosterLightbox((prev) => (prev && prev.src === src ? { ...prev, fitted: { width, height } } : prev));
+    };
+    img.src = src;
+
     // Allow the browser to paint the start position before transitioning to full screen
     requestAnimationFrame(() => {
       requestAnimationFrame(() => setPosterZoomed(true));
@@ -338,7 +356,9 @@ const Home = () => {
             className="poster-lightbox-image"
             style={
               posterZoomed
-                ? {}
+                ? posterLightbox.fitted
+                  ? { width: posterLightbox.fitted.width, height: posterLightbox.fitted.height }
+                  : {}
                 : {
                     top: posterLightbox.rect.top,
                     left: posterLightbox.rect.left,
