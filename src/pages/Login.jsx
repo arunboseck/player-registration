@@ -36,13 +36,7 @@ const Login = () => {
           </svg>
           <span>Back to Home</span>
         </Link>
-        <h1 style={{
-          color: 'white',
-          background: 'none',
-          WebkitBackgroundClip: 'unset',
-          WebkitTextFillColor: 'white',
-          backgroundClip: 'unset'
-        }}>🏏 Player Management System</h1>
+        <h1>🏏 Player Management System</h1>
         <h2>Admin Login</h2>
         {error && <div className="error-message">{error}</div>}
         <form onSubmit={handleSubmit}>
