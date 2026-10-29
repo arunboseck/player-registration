@@ -806,10 +806,14 @@
 }
 
 .player-card-id {
-  color: white;
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin: 0 0 0.15rem;
+  display: inline-block;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin: 0 0 0.3rem;
 }
 
 .player-card-mobile {

@@ -356,7 +356,9 @@ const Home = () => {
           <div className="players-modal" onClick={(e) => e.stopPropagation()}>
             <button className="tournament-modal-close" onClick={closePlayersModal} aria-label="Close">×</button>
             <h3 className="players-modal-title">{playersModal.tournamentName}</h3>
-            <p className="players-modal-subtitle">Registered Players</p>
+            <p className="players-modal-subtitle">
+              Registered Players{!playersModal.loading && ` (${playersModal.players.length})`}
+            </p>
 
             {playersModal.loading ? (
               <div className="calendar-loading">Loading players…</div>
