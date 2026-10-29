@@ -262,7 +262,7 @@ const Home = () => {
         <div className="calendar-legend">
           <span className="calendar-legend-item">
             <span className="calendar-legend-dot" />
-            <span>Upcoming / ongoing tournament — click to view details</span>
+            <span>Upcoming / ongoing tournament</span>
           </span>
           <span className="calendar-legend-item">
             <span className="calendar-legend-dot calendar-legend-dot-past" />
