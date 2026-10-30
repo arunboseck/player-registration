@@ -1,8 +1,77 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PublicHeader from '../components/PublicHeader';
+import { getTournaments, getPlayersCount, getTournamentRegistrations } from '../utils/firebaseStorage';
 import './Home.css';
 
+const isRegistrationClosed = (tournament) => {
+  const now = new Date();
+  if (tournament.auctionDate && new Date(tournament.auctionDate) <= now) return true;
+  if (tournament.endDate && new Date(tournament.endDate) < now) return true;
+  return false;
+};
+
+const formatDateRange = (startDate, endDate) => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const opts = { day: 'numeric', month: 'short', year: 'numeric' };
+  if (startDate === endDate) return start.toLocaleDateString('en-US', opts);
+  return `${start.toLocaleDateString('en-US', opts)} – ${end.toLocaleDateString('en-US', opts)}`;
+};
+
 const Home = () => {
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalTournaments: 0,
+    totalPlayers: 0,
+    totalRegistrations: 0,
+    upcomingCount: 0,
+  });
+  const [upcomingTournaments, setUpcomingTournaments] = useState([]);
+  const [recentTournaments, setRecentTournaments] = useState([]);
+
+  useEffect(() => {
+    const loadHomeData = async () => {
+      setLoading(true);
+      try {
+        const [allTournaments, totalPlayers] = await Promise.all([
+          getTournaments(),
+          getPlayersCount(),
+        ]);
+
+        const valid = allTournaments.filter((t) => t.status !== 'Cancelled' && t.startDate && t.endDate);
+        const now = new Date();
+
+        const upcoming = valid
+          .filter((t) => !isRegistrationClosed(t))
+          .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+
+        const past = valid
+          .filter((t) => isRegistrationClosed(t))
+          .sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+
+        // Registration counts across every tournament, fetched in parallel.
+        const counts = await Promise.all(
+          valid.map((t) => getTournamentRegistrations(t.id).then((regs) => regs.length).catch(() => 0))
+        );
+        const totalRegistrations = counts.reduce((sum, c) => sum + c, 0);
+
+        setStats({
+          totalTournaments: valid.length,
+          totalPlayers,
+          totalRegistrations,
+          upcomingCount: upcoming.filter((t) => new Date(t.startDate) >= now).length,
+        });
+        setUpcomingTournaments(upcoming.slice(0, 3));
+        setRecentTournaments(past.slice(0, 3));
+      } catch (err) {
+        console.error('Error loading home page data:', err);
+      }
+      setLoading(false);
+    };
+    loadHomeData();
+  }, []);
+
   return (
     <div className="home-container">
       <PublicHeader />
@@ -10,6 +79,93 @@ const Home = () => {
       <p className="home-tagline">
         Manage players, tournaments and registrations all in one place.
       </p>
+
+      {/* ==================== Live Stats ==================== */}
+      <div className="home-stats">
+        <div className="home-stat-card">
+          <span className="home-stat-icon">🏆</span>
+          <strong>{loading ? '—' : stats.totalTournaments}</strong>
+          <span>Tournaments Hosted</span>
+        </div>
+        <div className="home-stat-card">
+          <span className="home-stat-icon">👥</span>
+          <strong>{loading ? '—' : stats.totalPlayers}</strong>
+          <span>Registered Players</span>
+        </div>
+        <div className="home-stat-card">
+          <span className="home-stat-icon">📝</span>
+          <strong>{loading ? '—' : stats.totalRegistrations}</strong>
+          <span>Tournament Sign-ups</span>
+        </div>
+        <div className="home-stat-card">
+          <span className="home-stat-icon">🔥</span>
+          <strong>{loading ? '—' : stats.upcomingCount}</strong>
+          <span>Upcoming Events</span>
+        </div>
+      </div>
+
+      {/* ==================== Upcoming Tournaments ==================== */}
+      {!loading && upcomingTournaments.length > 0 && (
+        <section className="home-section">
+          <h2 className="home-section-title">🚀 Upcoming Tournaments</h2>
+          <div className="home-tournament-grid">
+            {upcomingTournaments.map((tournament) => (
+              <div key={tournament.id} className="home-tournament-card">
+                {tournament.tournamentPoster ? (
+                  <img
+                    src={tournament.tournamentPoster}
+                    alt={tournament.name}
+                    className="home-tournament-poster"
+                  />
+                ) : (
+                  <div className="home-tournament-poster home-tournament-poster-placeholder">🏏</div>
+                )}
+                <div className="home-tournament-body">
+                  <h3>{tournament.name}</h3>
+                  <p className="home-tournament-meta">📍 {tournament.location}</p>
+                  <p className="home-tournament-meta">🗓️ {formatDateRange(tournament.startDate, tournament.endDate)}</p>
+                  <div className="home-tournament-actions">
+                    {isRegistrationClosed(tournament) ? (
+                      <span className="btn-register-tournament btn-register-closed">Registration Closed</span>
+                    ) : (
+                      <Link to={`/tournament-register/${tournament.id}`} className="btn-register-tournament">
+                        Register Now
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ==================== Recently Concluded ==================== */}
+      {!loading && recentTournaments.length > 0 && (
+        <section className="home-section">
+          <h2 className="home-section-title">🏁 Recently Concluded</h2>
+          <div className="home-tournament-grid">
+            {recentTournaments.map((tournament) => (
+              <div key={tournament.id} className="home-tournament-card home-tournament-card-past">
+                {tournament.tournamentPoster ? (
+                  <img
+                    src={tournament.tournamentPoster}
+                    alt={tournament.name}
+                    className="home-tournament-poster"
+                  />
+                ) : (
+                  <div className="home-tournament-poster home-tournament-poster-placeholder">🏏</div>
+                )}
+                <div className="home-tournament-body">
+                  <h3>{tournament.name}</h3>
+                  <p className="home-tournament-meta">📍 {tournament.location}</p>
+                  <p className="home-tournament-meta">🗓️ {formatDateRange(tournament.startDate, tournament.endDate)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="home-landing-links">
         <Link to="/about" className="home-landing-card">
