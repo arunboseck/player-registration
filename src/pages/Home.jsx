@@ -56,6 +56,20 @@ const Home = () => {
   const [posterZoomed, setPosterZoomed] = useState(false);
   const [slideDirection, setSlideDirection] = useState('right');
   const [playersModal, setPlayersModal] = useState(null); // { tournamentName, players, loading }
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [menuOpen]);
+
+  const scrollToSection = (id) => {
+    setMenuOpen(false);
+    const el = document.getElementById(id);
+    if (el) {
+      setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+    }
+  };
 
   useEffect(() => {
     const loadTournaments = async () => {
@@ -186,10 +200,28 @@ const Home = () => {
   return (
     <div className="home-container">
       <header className="home-header">
+        <button
+          type="button"
+          className="home-hamburger"
+          onClick={() => setMenuOpen(true)}
+          aria-label="Open menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
         <div className="home-header-brand">
           <span className="home-header-icon">🏏</span>
           <span className="home-header-title">Player Management System</span>
         </div>
+
+        <nav className="home-header-nav">
+          <button type="button" className="home-nav-link" onClick={() => scrollToSection('home-top')}>Home</button>
+          <button type="button" className="home-nav-link" onClick={() => scrollToSection('home-about')}>About Us</button>
+          <button type="button" className="home-nav-link" onClick={() => scrollToSection('home-calendar')}>Calendar</button>
+        </nav>
+
         <Link to="/admin-login" className="home-header-link">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -199,11 +231,61 @@ const Home = () => {
         </Link>
       </header>
 
+      <div className={`home-sidebar-overlay ${menuOpen ? 'home-sidebar-overlay-open' : ''}`} onClick={() => setMenuOpen(false)}></div>
+      <aside className={`home-sidebar ${menuOpen ? 'home-sidebar-open' : ''}`}>
+        <div className="home-sidebar-header">
+          <span className="home-header-icon">🏏</span>
+          <span className="home-header-title">Menu</span>
+          <button type="button" className="home-sidebar-close" onClick={() => setMenuOpen(false)} aria-label="Close menu">×</button>
+        </div>
+        <div className="home-sidebar-links">
+          <button type="button" className="home-sidebar-link" onClick={() => scrollToSection('home-top')}>
+            <span>🏠</span> Home
+          </button>
+          <button type="button" className="home-sidebar-link" onClick={() => scrollToSection('home-about')}>
+            <span>ℹ️</span> About Us
+          </button>
+          <button type="button" className="home-sidebar-link" onClick={() => scrollToSection('home-calendar')}>
+            <span>📅</span> Calendar
+          </button>
+          <Link to="/admin-login" className="home-sidebar-link" onClick={() => setMenuOpen(false)}>
+            <span>🔐</span> Admin Login
+          </Link>
+        </div>
+      </aside>
+
+      <div id="home-top"></div>
+
       <p className="home-tagline">
         Manage players, tournaments and registrations all in one place.
       </p>
 
-      <div className="calendar-card">
+      <section id="home-about" className="home-about">
+        <div className="home-about-card">
+          <h2>About Us</h2>
+          <p>
+            We bring cricket tournaments to life — handling player registrations, team auctions
+            and schedules in one simple, beautiful platform. Browse upcoming tournaments on the
+            calendar below, register as a player, and track every match day in one place.
+          </p>
+          <div className="home-about-stats">
+            <div className="home-about-stat">
+              <strong>🏆</strong>
+              <span>Tournaments Managed</span>
+            </div>
+            <div className="home-about-stat">
+              <strong>👥</strong>
+              <span>Players Registered</span>
+            </div>
+            <div className="home-about-stat">
+              <strong>📸</strong>
+              <span>Memories Captured</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div id="home-calendar" className="calendar-card">
         <div className="calendar-header">
           <button className="calendar-nav-btn" onClick={goToPrevMonth} aria-label="Previous month">
             ‹

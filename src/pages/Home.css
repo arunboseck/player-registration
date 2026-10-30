@@ -105,6 +105,219 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
 }
 
+/* ---- Desktop nav links ---- */
+
+.home-header-nav {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.home-nav-link {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.3rem 0.1rem;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.home-nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 0;
+  height: 2px;
+  background: white;
+  transition: width 0.25s ease;
+}
+
+.home-nav-link:hover {
+  color: white;
+}
+
+.home-nav-link:hover::after {
+  width: 100%;
+}
+
+/* ---- Hamburger (mobile) ---- */
+
+.home-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.home-hamburger span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 2px;
+  transition: all 0.25s ease;
+}
+
+/* ---- Sidebar ---- */
+
+.home-sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 95;
+}
+
+.home-sidebar-overlay-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.home-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  max-width: 82vw;
+  background: linear-gradient(160deg, #6a5ad0 0%, #4c3fb0 100%);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+  transform: translateX(-100%);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+.home-sidebar-open {
+  transform: translateX(0);
+}
+
+.home-sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.25rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.home-sidebar-header .home-header-title {
+  flex: 1;
+}
+
+.home-sidebar-close {
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.home-sidebar-links {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
+  gap: 0.25rem;
+}
+
+.home-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  text-align: left;
+}
+
+.home-sidebar-link span {
+  font-size: 1.15rem;
+}
+
+.home-sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ---- About section ---- */
+
+.home-about {
+  width: calc(100% - 3rem);
+  max-width: 1400px;
+  margin: 0 1.5rem;
+  position: relative;
+  z-index: 10;
+  animation: homeSlideUp 0.6s ease-out;
+}
+
+.home-about-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 2rem 2.25rem;
+  color: white;
+}
+
+.home-about-card h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.home-about-card p {
+  margin: 0;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  max-width: 800px;
+}
+
+.home-about-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.home-about-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 0.9rem 1.25rem;
+  font-weight: 600;
+}
+
+.home-about-stat strong {
+  font-size: 1.4rem;
+}
+
 .home-tagline {
   color: rgba(255, 255, 255, 0.92);
   margin: 0.5rem 0 0;
@@ -862,6 +1075,28 @@
 
   .home-header-link span {
     display: none;
+  }
+
+  .home-header-nav {
+    display: none;
+  }
+
+  .home-hamburger {
+    display: flex;
+  }
+
+  .home-about-card {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .home-about-stats {
+    gap: 0.75rem;
+  }
+
+  .home-about-stat {
+    flex: 1 1 calc(50% - 0.75rem);
+    justify-content: center;
+    text-align: center;
   }
 
   .calendar-card {
