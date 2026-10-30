@@ -3,6 +3,8 @@ import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navigation from './components/Navigation';
 import Home from './pages/Home';
+import AboutUs from './pages/AboutUs';
+import CalendarPage from './pages/CalendarPage';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import RegisterPlayer from './pages/RegisterPlayer';
@@ -27,9 +29,12 @@ function Layout({ children }) {
 
   // Don't show navigation on the public home page, login page, and tournament registration page
   const isHomePage = location.pathname === '/';
+  const isAboutPage = location.pathname === '/about';
+  const isCalendarPage = location.pathname === '/calendar';
   const isLoginPage = location.pathname === '/admin-login';
   const isTournamentRegisterPage = location.pathname.startsWith('/tournament-register/');
-  const showNavigation = !isHomePage && !isLoginPage && !isTournamentRegisterPage;
+  const showNavigation =
+    !isHomePage && !isAboutPage && !isCalendarPage && !isLoginPage && !isTournamentRegisterPage;
 
   return (
     <>
@@ -46,6 +51,8 @@ function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/about" element={<AboutUs />} />
+            <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/admin-login" element={<Login />} />
             <Route path="/register" element={<PublicRegister />} />
             <Route
