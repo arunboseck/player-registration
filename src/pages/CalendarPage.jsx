@@ -184,9 +184,52 @@ const CalendarPage = () => {
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate();
 
+  const now = new Date();
+  const upcomingCount = tournaments.filter((t) => !isRegistrationClosed(t)).length;
+  const pastCount = tournaments.length - upcomingCount;
+  const thisMonthCount = tournaments.filter((t) => {
+    const start = new Date(t.startDate);
+    const end = new Date(t.endDate);
+    return (
+      (start.getFullYear() === now.getFullYear() && start.getMonth() === now.getMonth()) ||
+      (end.getFullYear() === now.getFullYear() && end.getMonth() === now.getMonth())
+    );
+  }).length;
+
   return (
     <div className="home-container">
       <PublicHeader />
+
+      {/* ==================== Hero ==================== */}
+      <section className="about-hero calendar-hero">
+        <span className="about-hero-badge">📅 Tournament Calendar</span>
+        <h1 className="about-hero-title">Every Match, <br /> At a Glance.</h1>
+        <p className="about-hero-subtitle">
+          Browse every tournament by date, check posters and venues, register in a click, and see
+          who's already signed up — all live from our database.
+        </p>
+
+        {!loading && (
+          <div className="calendar-quick-stats">
+            <div className="calendar-quick-stat">
+              <strong>{tournaments.length}</strong>
+              <span>Total Tournaments</span>
+            </div>
+            <div className="calendar-quick-stat">
+              <strong>{upcomingCount}</strong>
+              <span>Upcoming / Ongoing</span>
+            </div>
+            <div className="calendar-quick-stat">
+              <strong>{thisMonthCount}</strong>
+              <span>This Month</span>
+            </div>
+            <div className="calendar-quick-stat">
+              <strong>{pastCount}</strong>
+              <span>Concluded</span>
+            </div>
+          </div>
+        )}
+      </section>
 
       <div className="calendar-card">
         <div className="calendar-header">

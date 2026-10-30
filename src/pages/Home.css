@@ -835,6 +835,54 @@
 
 /* ==================== Tournament Calendar ==================== */
 
+.calendar-hero {
+  padding-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.calendar-quick-stats {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.1rem;
+  justify-content: center;
+  margin-top: 0.75rem;
+}
+
+.calendar-quick-stat {
+  flex: 1 1 160px;
+  max-width: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 16px;
+  padding: 1rem 0.75rem;
+  color: white;
+  text-align: center;
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+
+.calendar-quick-stat:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.calendar-quick-stat strong {
+  font-size: 1.7rem;
+  font-weight: 800;
+}
+
+.calendar-quick-stat span {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+}
+
 .calendar-card {
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(10px);
@@ -1611,6 +1659,15 @@
 
   .home-stat-card strong {
     font-size: 1.5rem;
+  }
+
+  .calendar-quick-stat {
+    flex: 1 1 calc(50% - 0.75rem);
+    padding: 0.85rem 0.6rem;
+  }
+
+  .calendar-quick-stat strong {
+    font-size: 1.3rem;
   }
 
   .home-section-title {
