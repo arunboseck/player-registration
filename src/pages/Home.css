@@ -318,6 +318,74 @@
   font-size: 1.4rem;
 }
 
+/* ==================== Hero (Home page) ==================== */
+
+.home-hero {
+  width: 100%;
+  max-width: 900px;
+  padding: 1.5rem 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  text-align: center;
+  animation: homeSlideUp 0.6s ease-out;
+}
+
+.home-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ==================== Feature Highlights (Home page) ==================== */
+
+.home-highlights-section {
+  max-width: 1100px;
+}
+
+.home-highlights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.home-highlight-card {
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 18px;
+  padding: 1.6rem 1.4rem;
+  text-align: center;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.2);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.home-highlight-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.28);
+}
+
+.home-highlight-icon {
+  font-size: 1.9rem;
+  display: block;
+  margin-bottom: 0.6rem;
+}
+
+.home-highlight-card h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.home-highlight-card p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: #6b7280;
+}
+
 .home-tagline {
   color: rgba(255, 255, 255, 0.92);
   margin: 0.5rem 0 0;
@@ -1547,6 +1615,19 @@
 
   .home-section-title {
     font-size: 1.1rem;
+  }
+
+  .home-hero-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .home-hero-actions .about-cta-btn {
+    justify-content: center;
+  }
+
+  .home-highlights-grid {
+    grid-template-columns: 1fr;
   }
 
   .home-tournament-grid {

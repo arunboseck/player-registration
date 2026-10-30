@@ -76,33 +76,72 @@ const Home = () => {
     <div className="home-container">
       <PublicHeader />
 
-      <p className="home-tagline">
-        Manage players, tournaments and registrations all in one place.
-      </p>
+      {/* ==================== Hero ==================== */}
+      <section className="home-hero">
+        <span className="about-hero-badge">🏏 Player Management System</span>
+        <h1 className="about-hero-title">
+          Manage Tournaments <br /> Like a Pro.
+        </h1>
+        <p className="about-hero-subtitle">
+          Create tournaments, open player registrations, track every sign-up live and export a
+          print-ready player list — all from one simple, beautiful platform.
+        </p>
 
-      {/* ==================== Live Stats ==================== */}
-      <div className="home-stats">
-        <div className="home-stat-card">
-          <span className="home-stat-icon">🏆</span>
-          <strong>{loading ? '—' : stats.totalTournaments}</strong>
-          <span>Tournaments Hosted</span>
+        <div className="home-hero-actions">
+          <Link to="/calendar" className="about-cta-btn about-cta-btn-primary">📅 Browse Tournaments</Link>
+          <Link to="/about" className="about-cta-btn about-cta-btn-secondary">ℹ️ How It Works</Link>
         </div>
-        <div className="home-stat-card">
-          <span className="home-stat-icon">👥</span>
-          <strong>{loading ? '—' : stats.totalPlayers}</strong>
-          <span>Registered Players</span>
+
+        {/* ==================== Live Stats ==================== */}
+        <div className="home-stats">
+          <div className="home-stat-card">
+            <span className="home-stat-icon">🏆</span>
+            <strong>{loading ? '—' : stats.totalTournaments}</strong>
+            <span>Tournaments Hosted</span>
+          </div>
+          <div className="home-stat-card">
+            <span className="home-stat-icon">👥</span>
+            <strong>{loading ? '—' : stats.totalPlayers}</strong>
+            <span>Registered Players</span>
+          </div>
+          <div className="home-stat-card">
+            <span className="home-stat-icon">📝</span>
+            <strong>{loading ? '—' : stats.totalRegistrations}</strong>
+            <span>Tournament Sign-ups</span>
+          </div>
+          <div className="home-stat-card">
+            <span className="home-stat-icon">🔥</span>
+            <strong>{loading ? '—' : stats.upcomingCount}</strong>
+            <span>Upcoming Events</span>
+          </div>
         </div>
-        <div className="home-stat-card">
-          <span className="home-stat-icon">📝</span>
-          <strong>{loading ? '—' : stats.totalRegistrations}</strong>
-          <span>Tournament Sign-ups</span>
+      </section>
+
+      {/* ==================== Feature Highlights ==================== */}
+      <section className="home-section home-highlights-section">
+        <div className="home-highlights-grid">
+          <div className="home-highlight-card">
+            <span className="home-highlight-icon">📝</span>
+            <h3>Player Registration</h3>
+            <p>Share one link — players register in under a minute, with photo and contact details.</p>
+          </div>
+          <div className="home-highlight-card">
+            <span className="home-highlight-icon">🏗️</span>
+            <h3>Tournament Management</h3>
+            <p>Create multi-day tournaments with posters, venues and a live calendar view.</p>
+          </div>
+          <div className="home-highlight-card">
+            <span className="home-highlight-icon">🔁</span>
+            <h3>Drag & Drop Ordering</h3>
+            <p>Reorder registered players exactly how you need them, saved instantly.</p>
+          </div>
+          <div className="home-highlight-card">
+            <span className="home-highlight-icon">📄</span>
+            <h3>PDF Export</h3>
+            <p>Download a clean, print-ready player list for auction day or team selection.</p>
+          </div>
         </div>
-        <div className="home-stat-card">
-          <span className="home-stat-icon">🔥</span>
-          <strong>{loading ? '—' : stats.upcomingCount}</strong>
-          <span>Upcoming Events</span>
-        </div>
-      </div>
+      </section>
 
       {/* ==================== Upcoming Tournaments ==================== */}
       {!loading && upcomingTournaments.length > 0 && (
