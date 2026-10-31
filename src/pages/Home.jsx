@@ -290,7 +290,22 @@ const Home = () => {
       {/* ==================== Upcoming Tournaments ==================== */}
       {!loading && upcomingTournaments.length > 0 && (
         <section className="home-section">
-          <h2 className="home-section-title">🚀 Upcoming Tournaments</h2>
+          <h2 className="home-section-title">
+            <span className="home-section-icon icon-section-upcoming">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" fill="url(#gradSectionUpcoming)" />
+                <path d="M32 12c7 8 13 16 13 24a13 13 0 01-26 0c0-4 1.6-7.6 4-11 .3 2.6 2 4.2 3.8 4.2C27 21.5 29 16 32 12z" fill="#fff" />
+                <path d="M27 40a5 5 0 0010 0" stroke="#d97706" strokeWidth="2.6" strokeLinecap="round" fill="none" />
+                <defs>
+                  <linearGradient id="gradSectionUpcoming" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#fb923c" />
+                    <stop offset="1" stopColor="#ea580c" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </span>
+            Upcoming Tournaments
+          </h2>
           <div className="home-tournament-grid">
             {upcomingTournaments.map((tournament) => (
               <div key={tournament.id} className="home-tournament-card">
@@ -327,7 +342,24 @@ const Home = () => {
       {/* ==================== Recently Concluded ==================== */}
       {!loading && recentTournaments.length > 0 && (
         <section className="home-section">
-          <h2 className="home-section-title">🏁 Recently Concluded</h2>
+          <h2 className="home-section-title">
+            <span className="home-section-icon icon-section-concluded">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" fill="url(#gradSectionConcluded)" />
+                <path d="M22 16h20v12c0 5.5-4.5 10-10 10s-10-4.5-10-10V16z" fill="#fff" />
+                <path d="M22 18h-6a2 2 0 00-2 2c0 5 3.5 8 7 8.5M42 18h6a2 2 0 012 2c0 5-3.5 8-7 8.5" stroke="#fff" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+                <rect x="29" y="38" width="6" height="6" fill="#fff" />
+                <rect x="23" y="44" width="18" height="4" rx="2" fill="#fff" />
+                <defs>
+                  <linearGradient id="gradSectionConcluded" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#a78bfa" />
+                    <stop offset="1" stopColor="#6d28d9" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </span>
+            Recently Concluded
+          </h2>
           <div className="home-tournament-grid">
             {recentTournaments.map((tournament) => (
               <div key={tournament.id} className="home-tournament-card home-tournament-card-past">
@@ -354,12 +386,40 @@ const Home = () => {
 
       <div className="home-landing-links">
         <Link to="/about" className="home-landing-card">
-          <span className="home-landing-icon">ℹ️</span>
+          <span className="home-landing-icon">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="32" cy="32" r="30" fill="url(#gradAboutLanding)" />
+              <circle cx="32" cy="20" r="4.5" fill="#fff" />
+              <rect x="27.5" y="28" width="9" height="20" rx="3" fill="#fff" />
+              <defs>
+                <linearGradient id="gradAboutLanding" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#60a5fa" />
+                  <stop offset="1" stopColor="#2563eb" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </span>
           <h3>About Us</h3>
           <p>Learn how we run player registrations, auctions and tournaments.</p>
         </Link>
         <Link to="/calendar" className="home-landing-card">
-          <span className="home-landing-icon">📅</span>
+          <span className="home-landing-icon">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="32" cy="32" r="30" fill="url(#gradCalLanding)" />
+              <rect x="16" y="18" width="32" height="28" rx="4" fill="#fff" />
+              <rect x="16" y="18" width="32" height="8" rx="4" fill="#f3f4f6" />
+              <rect x="22" y="12" width="3.5" height="10" rx="1.75" fill="#fff" />
+              <rect x="38.5" y="12" width="3.5" height="10" rx="1.75" fill="#fff" />
+              <rect x="22" y="32" width="6" height="6" rx="1.5" fill="url(#gradCalLanding)" />
+              <rect x="32" y="32" width="6" height="6" rx="1.5" fill="url(#gradCalLanding)" opacity="0.6" />
+              <defs>
+                <linearGradient id="gradCalLanding" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#f472b6" />
+                  <stop offset="1" stopColor="#db2777" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </span>
           <h3>Calendar</h3>
           <p>Browse upcoming and past tournaments, and see registered players.</p>
         </Link>
