@@ -563,6 +563,9 @@
 
 .home-tournament-body {
   padding: 1.1rem 1.25rem 1.3rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
 }
 
 .home-tournament-body h3 {
@@ -579,7 +582,8 @@
 }
 
 .home-tournament-actions {
-  margin-top: 0.8rem;
+  margin-top: auto;
+  padding-top: 0.8rem;
 }
 
 .home-tournament-actions .btn-register-tournament {
