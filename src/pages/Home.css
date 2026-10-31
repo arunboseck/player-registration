@@ -447,6 +447,19 @@
   font-weight: 600;
 }
 
+.stat-spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  animation: statSpin 0.8s linear infinite;
+}
+
+@keyframes statSpin {
+  to { transform: rotate(360deg); }
+}
+
 /* ==================== Tournament sections (Home page) ==================== */
 
 .home-section {

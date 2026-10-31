@@ -96,22 +96,22 @@ const Home = () => {
         <div className="home-stats">
           <div className="home-stat-card">
             <span className="home-stat-icon">🏆</span>
-            <strong>{loading ? '—' : stats.totalTournaments}</strong>
+            {loading ? <span className="stat-spinner" /> : <strong>{stats.totalTournaments}</strong>}
             <span>Tournaments Hosted</span>
           </div>
           <div className="home-stat-card">
             <span className="home-stat-icon">👥</span>
-            <strong>{loading ? '—' : stats.totalPlayers}</strong>
+            {loading ? <span className="stat-spinner" /> : <strong>{stats.totalPlayers}</strong>}
             <span>Registered Players</span>
           </div>
           <div className="home-stat-card">
             <span className="home-stat-icon">📝</span>
-            <strong>{loading ? '—' : stats.totalRegistrations}</strong>
+            {loading ? <span className="stat-spinner" /> : <strong>{stats.totalRegistrations}</strong>}
             <span>Tournament Sign-ups</span>
           </div>
           <div className="home-stat-card">
             <span className="home-stat-icon">🔥</span>
-            <strong>{loading ? '—' : stats.upcomingCount}</strong>
+            {loading ? <span className="stat-spinner" /> : <strong>{stats.upcomingCount}</strong>}
             <span>Upcoming Events</span>
           </div>
         </div>
