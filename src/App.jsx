@@ -1,25 +1,30 @@
+import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navigation from './components/Navigation';
+// Public pages load eagerly — they must stay small and fast on mobile.
 import Home from './pages/Home';
 import AboutUs from './pages/AboutUs';
 import CalendarPage from './pages/CalendarPage';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import RegisterPlayer from './pages/RegisterPlayer';
-import EditPlayer from './pages/EditPlayer';
-import Players from './pages/Players';
-import PublicRegister from './pages/PublicRegister';
-import AddTournament from './pages/AddTournament';
-import EditTournament from './pages/EditTournament';
-import Tournaments from './pages/Tournaments';
-import TournamentRegister from './pages/TournamentRegister';
-import TournamentRegistrations from './pages/TournamentRegistrations';
-import CleanupDuplicates from './pages/CleanupDuplicates';
-import MigratePhotos from './pages/MigratePhotos';
-import Settings from './pages/Settings';
-import UserManagement from './pages/UserManagement';
+// Everything else (admin/auth-gated pages, the camera-heavy tournament register
+// flow) is code-split so visiting "/" never has to parse/compile/execute their
+// JS — that main-thread work was the cause of scroll stutter on mobile.
+const Login = lazy(() => import('./pages/Login'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const RegisterPlayer = lazy(() => import('./pages/RegisterPlayer'));
+const EditPlayer = lazy(() => import('./pages/EditPlayer'));
+const Players = lazy(() => import('./pages/Players'));
+const PublicRegister = lazy(() => import('./pages/PublicRegister'));
+const AddTournament = lazy(() => import('./pages/AddTournament'));
+const EditTournament = lazy(() => import('./pages/EditTournament'));
+const Tournaments = lazy(() => import('./pages/Tournaments'));
+const TournamentRegister = lazy(() => import('./pages/TournamentRegister'));
+const TournamentRegistrations = lazy(() => import('./pages/TournamentRegistrations'));
+const CleanupDuplicates = lazy(() => import('./pages/CleanupDuplicates'));
+const MigratePhotos = lazy(() => import('./pages/MigratePhotos'));
+const Settings = lazy(() => import('./pages/Settings'));
+const UserManagement = lazy(() => import('./pages/UserManagement'));
 import { ROLES } from './utils/userManagement';
 import './App.css';
 
@@ -49,6 +54,7 @@ function App() {
     <AuthProvider>
       <Router>
         <Layout>
+          <Suspense fallback={null}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<AboutUs />} />
@@ -154,6 +160,7 @@ function App() {
             />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          </Suspense>
         </Layout>
       </Router>
     </AuthProvider>
