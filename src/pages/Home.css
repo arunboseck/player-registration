@@ -524,6 +524,15 @@
   background: #f3f4f6;
 }
 
+.home-tournament-poster-clickable {
+  cursor: zoom-in;
+  transition: filter 0.2s ease;
+}
+
+.home-tournament-poster-clickable:hover {
+  filter: brightness(0.92);
+}
+
 .home-tournament-poster-placeholder {
   display: flex;
   align-items: center;

@@ -29,6 +29,8 @@ const Home = () => {
   });
   const [upcomingTournaments, setUpcomingTournaments] = useState([]);
   const [recentTournaments, setRecentTournaments] = useState([]);
+  const [posterLightbox, setPosterLightbox] = useState(null); // { src, rect, fitted }
+  const [posterZoomed, setPosterZoomed] = useState(false);
 
   useEffect(() => {
     const loadHomeData = async () => {
@@ -71,6 +73,36 @@ const Home = () => {
     };
     loadHomeData();
   }, []);
+
+  const openPosterLightbox = (e, src) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setPosterLightbox({ src, rect, fitted: null });
+    setPosterZoomed(false);
+
+    const img = new Image();
+    img.onload = () => {
+      const maxW = Math.min(window.innerWidth * 0.9, 700);
+      const maxH = Math.min(window.innerHeight * 0.85, 900);
+      const ratio = img.naturalWidth / img.naturalHeight;
+      let width = maxW;
+      let height = width / ratio;
+      if (height > maxH) {
+        height = maxH;
+        width = height * ratio;
+      }
+      setPosterLightbox((prev) => (prev && prev.src === src ? { ...prev, fitted: { width, height } } : prev));
+    };
+    img.src = src;
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => setPosterZoomed(true));
+    });
+  };
+
+  const closePosterLightbox = () => {
+    setPosterZoomed(false);
+    setTimeout(() => setPosterLightbox(null), 300);
+  };
 
   return (
     <div className="home-container">
@@ -210,7 +242,8 @@ const Home = () => {
                   <img
                     src={tournament.tournamentPoster}
                     alt={tournament.name}
-                    className="home-tournament-poster"
+                    className="home-tournament-poster home-tournament-poster-clickable"
+                    onClick={(e) => openPosterLightbox(e, tournament.tournamentPoster)}
                   />
                 ) : (
                   <div className="home-tournament-poster home-tournament-poster-placeholder">🏏</div>
@@ -246,7 +279,8 @@ const Home = () => {
                   <img
                     src={tournament.tournamentPoster}
                     alt={tournament.name}
-                    className="home-tournament-poster"
+                    className="home-tournament-poster home-tournament-poster-clickable"
+                    onClick={(e) => openPosterLightbox(e, tournament.tournamentPoster)}
                   />
                 ) : (
                   <div className="home-tournament-poster home-tournament-poster-placeholder">🏏</div>
@@ -274,6 +308,32 @@ const Home = () => {
           <p>Browse upcoming and past tournaments, and see registered players.</p>
         </Link>
       </div>
+
+      {posterLightbox && (
+        <div
+          className={`poster-lightbox-overlay ${posterZoomed ? 'poster-lightbox-overlay-visible' : ''}`}
+          onClick={closePosterLightbox}
+        >
+          <img
+            src={posterLightbox.src}
+            alt="Tournament poster"
+            className="poster-lightbox-image"
+            style={
+              posterZoomed
+                ? posterLightbox.fitted
+                  ? { width: posterLightbox.fitted.width, height: posterLightbox.fitted.height }
+                  : {}
+                : {
+                    top: posterLightbox.rect.top,
+                    left: posterLightbox.rect.left,
+                    width: posterLightbox.rect.width,
+                    height: posterLightbox.rect.height,
+                  }
+            }
+          />
+          <button className="poster-lightbox-close" onClick={closePosterLightbox} aria-label="Close">×</button>
+        </div>
+      )}
     </div>
   );
 };
