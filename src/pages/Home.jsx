@@ -123,26 +123,82 @@ const Home = () => {
           <Link to="/calendar" className="about-cta-btn about-cta-btn-primary">📅 Browse Tournaments</Link>
           <Link to="/about" className="about-cta-btn about-cta-btn-secondary">ℹ️ How It Works</Link>
         </div>
+      </section>
 
-        {/* ==================== Live Stats ==================== */}
+      {/* ==================== Live Stats (full width) ==================== */}
+      <section className="home-stats-section">
         <div className="home-stats">
           <div className="home-stat-card">
-            <span className="home-stat-icon">🏆</span>
+            <span className="home-stat-icon icon-stat-trophy">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" fill="url(#gradStatTrophy)" />
+                <path d="M22 16h20v12c0 5.5-4.5 10-10 10s-10-4.5-10-10V16z" fill="#fff" />
+                <path d="M22 18h-6a2 2 0 00-2 2c0 5 3.5 8 7 8.5M42 18h6a2 2 0 012 2c0 5-3.5 8-7 8.5" stroke="#fff" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+                <rect x="29" y="38" width="6" height="6" fill="#fff" />
+                <rect x="23" y="44" width="18" height="4" rx="2" fill="#fff" />
+                <defs>
+                  <linearGradient id="gradStatTrophy" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#fbbf24" />
+                    <stop offset="1" stopColor="#d97706" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </span>
             {loading ? <span className="stat-spinner" /> : <strong>{stats.totalTournaments}</strong>}
             <span>Tournaments Hosted</span>
           </div>
           <div className="home-stat-card">
-            <span className="home-stat-icon">👥</span>
+            <span className="home-stat-icon icon-stat-players">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" fill="url(#gradStatPlayers)" />
+                <circle cx="23" cy="24" r="7" fill="#fff" />
+                <circle cx="41" cy="24" r="7" fill="#fff" opacity="0.85" />
+                <path d="M10 48c0-7.5 5.8-12 13-12s13 4.5 13 12" stroke="#fff" strokeWidth="3" strokeLinecap="round" fill="none" />
+                <path d="M28 48c0-7.5 5.8-12 13-12s13 4.5 13 12" stroke="#fff" strokeOpacity="0.85" strokeWidth="3" strokeLinecap="round" fill="none" />
+                <defs>
+                  <linearGradient id="gradStatPlayers" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#60a5fa" />
+                    <stop offset="1" stopColor="#2563eb" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </span>
             {loading ? <span className="stat-spinner" /> : <strong>{stats.totalPlayers}</strong>}
             <span>Registered Players</span>
           </div>
           <div className="home-stat-card">
-            <span className="home-stat-icon">📝</span>
+            <span className="home-stat-icon icon-stat-signup">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" fill="url(#gradStatSignup)" />
+                <path d="M21 14h15l8 8v26a2 2 0 01-2 2H21a2 2 0 01-2-2V16a2 2 0 012-2z" fill="#fff" />
+                <path d="M36 14l8 8h-6a2 2 0 01-2-2v-6z" fill="#f3f4f6" />
+                <path d="M23 34l5 5 10-11" stroke="#059669" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                <path d="M23 42h16" stroke="#059669" strokeWidth="2.4" strokeLinecap="round" />
+                <defs>
+                  <linearGradient id="gradStatSignup" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#34d399" />
+                    <stop offset="1" stopColor="#059669" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </span>
             {loading ? <span className="stat-spinner" /> : <strong>{stats.totalRegistrations}</strong>}
             <span>Tournament Sign-ups</span>
           </div>
           <div className="home-stat-card">
-            <span className="home-stat-icon">🔥</span>
+            <span className="home-stat-icon icon-stat-upcoming">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" fill="url(#gradStatUpcoming)" />
+                <path d="M32 14c6 7 10 13 10 19a10 10 0 01-20 0c0-3 1.2-6 3.4-9.2.4 2 1.6 3.2 3 3.2 0-6 1.6-10 3.6-13z" fill="#fff" />
+                <path d="M28 36a4 4 0 008 0" stroke="#d97706" strokeWidth="2.4" strokeLinecap="round" fill="none" />
+                <defs>
+                  <linearGradient id="gradStatUpcoming" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#fb923c" />
+                    <stop offset="1" stopColor="#ea580c" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </span>
             {loading ? <span className="stat-spinner" /> : <strong>{stats.upcomingCount}</strong>}
             <span>Upcoming Events</span>
           </div>
