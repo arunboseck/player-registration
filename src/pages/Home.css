@@ -20,6 +20,8 @@
   top: -250px;
   right: -250px;
   animation: homeFloat 20s ease-in-out infinite;
+  will-change: transform;
+  pointer-events: none;
 }
 
 .home-container::after {
@@ -32,6 +34,8 @@
   bottom: -200px;
   left: -200px;
   animation: homeFloat 15s ease-in-out infinite reverse;
+  will-change: transform;
+  pointer-events: none;
 }
 
 @keyframes homeFloat {
@@ -371,7 +375,6 @@
   width: 64px;
   height: 64px;
   margin: 0 auto 0.85rem;
-  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.18));
   transition: transform 0.25s ease;
 }
 
@@ -453,7 +456,6 @@
   width: 56px;
   height: 56px;
   margin-bottom: 0.2rem;
-  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.25));
   transition: transform 0.25s ease;
 }
 
@@ -521,7 +523,6 @@
   width: 42px;
   height: 42px;
   flex-shrink: 0;
-  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.25));
 }
 
 .home-section-icon svg {
@@ -645,7 +646,6 @@
   width: 56px;
   height: 56px;
   margin-bottom: 0.9rem;
-  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.2));
   transition: transform 0.25s ease;
 }
 
