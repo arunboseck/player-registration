@@ -121,22 +121,78 @@ const Home = () => {
       <section className="home-section home-highlights-section">
         <div className="home-highlights-grid">
           <div className="home-highlight-card">
-            <span className="home-highlight-icon">📝</span>
+            <span className="home-highlight-icon icon-registration">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" fill="url(#gradReg)" />
+                <circle cx="25" cy="24" r="8" fill="#fff" />
+                <path d="M11 48c0-8 6.3-13 14-13s14 5 14 13" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" fill="none" />
+                <path d="M40 22h13M40 29h13M40 36h8" stroke="#fff" strokeOpacity="0.9" strokeWidth="3" strokeLinecap="round" />
+                <defs>
+                  <linearGradient id="gradReg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#34d399" />
+                    <stop offset="1" stopColor="#059669" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </span>
             <h3>Player Registration</h3>
             <p>Share one link — players register in under a minute, with photo and contact details.</p>
           </div>
           <div className="home-highlight-card">
-            <span className="home-highlight-icon">🏗️</span>
+            <span className="home-highlight-icon icon-tournament">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" fill="url(#gradTour)" />
+                <path d="M22 16h20v14c0 5.5-4.5 10-10 10s-10-4.5-10-10V16z" fill="#fff" />
+                <path d="M22 18h-6a2 2 0 00-2 2c0 5 3.5 8 7 8.5M42 18h6a2 2 0 012 2c0 5-3.5 8-7 8.5" stroke="#fff" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+                <rect x="29" y="40" width="6" height="6" fill="#fff" />
+                <rect x="23" y="46" width="18" height="4" rx="2" fill="#fff" />
+                <defs>
+                  <linearGradient id="gradTour" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#fbbf24" />
+                    <stop offset="1" stopColor="#d97706" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </span>
             <h3>Tournament Management</h3>
             <p>Create multi-day tournaments with posters, venues and a live calendar view.</p>
           </div>
           <div className="home-highlight-card">
-            <span className="home-highlight-icon">🔁</span>
+            <span className="home-highlight-icon icon-reorder">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" fill="url(#gradReorder)" />
+                <rect x="18" y="20" width="22" height="7" rx="2.5" fill="#fff" />
+                <rect x="18" y="31" width="28" height="7" rx="2.5" fill="#fff" opacity="0.9" />
+                <rect x="18" y="42" width="16" height="7" rx="2.5" fill="#fff" opacity="0.75" />
+                <path d="M47 18l4 5h-8l4-5zM47 49l4-5h-8l4 5z" fill="#fff" />
+                <defs>
+                  <linearGradient id="gradReorder" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#818cf8" />
+                    <stop offset="1" stopColor="#4f46e5" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </span>
             <h3>Drag & Drop Ordering</h3>
             <p>Reorder registered players exactly how you need them, saved instantly.</p>
           </div>
           <div className="home-highlight-card">
-            <span className="home-highlight-icon">📄</span>
+            <span className="home-highlight-icon icon-pdf">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" fill="url(#gradPdf)" />
+                <path d="M21 14h15l8 8v26a2 2 0 01-2 2H21a2 2 0 01-2-2V16a2 2 0 012-2z" fill="#fff" />
+                <path d="M36 14v8h8" fill="#fbcfe8" />
+                <path d="M36 14l8 8h-6a2 2 0 01-2-2v-6z" fill="#f3f4f6" />
+                <text x="32" y="38" textAnchor="middle" fontSize="9" fontWeight="700" fill="#dc2626">PDF</text>
+                <path d="M24 44h16" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" />
+                <defs>
+                  <linearGradient id="gradPdf" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#f87171" />
+                    <stop offset="1" stopColor="#dc2626" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </span>
             <h3>PDF Export</h3>
             <p>Download a clean, print-ready player list for auction day or team selection.</p>
           </div>
