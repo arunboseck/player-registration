@@ -55,13 +55,13 @@ const PublicHeader = () => {
           <button type="button" className="home-sidebar-close" onClick={() => setMenuOpen(false)} aria-label="Close menu">×</button>
         </div>
         <div className="home-sidebar-links">
-          <Link to="/" className="home-sidebar-link" onClick={() => setMenuOpen(false)}>
+          <Link to="/" className={`home-sidebar-link ${isActive('/') ? 'home-sidebar-link-active' : ''}`} onClick={() => setMenuOpen(false)}>
             <span>🏠</span> Home
           </Link>
-          <Link to="/about" className="home-sidebar-link" onClick={() => setMenuOpen(false)}>
+          <Link to="/about" className={`home-sidebar-link ${isActive('/about') ? 'home-sidebar-link-active' : ''}`} onClick={() => setMenuOpen(false)}>
             <span>ℹ️</span> About Us
           </Link>
-          <Link to="/calendar" className="home-sidebar-link" onClick={() => setMenuOpen(false)}>
+          <Link to="/calendar" className={`home-sidebar-link ${isActive('/calendar') ? 'home-sidebar-link-active' : ''}`} onClick={() => setMenuOpen(false)}>
             <span>📅</span> Calendar
           </Link>
           <Link to="/admin-login" className="home-sidebar-link" onClick={() => setMenuOpen(false)}>

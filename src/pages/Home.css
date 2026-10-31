@@ -62,10 +62,11 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 2.5rem;
-  background: rgba(118, 75, 162, 0.55);
+  background: rgba(96, 60, 140, 0.92);
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-  position: relative;
-  z-index: 10;
+  position: sticky;
+  top: 0;
+  z-index: 50;
   animation: homeSlideUp 0.5s ease-out;
 }
 
@@ -144,6 +145,14 @@
 }
 
 .home-nav-link:hover::after {
+  width: 100%;
+}
+
+.home-nav-link-active {
+  color: white;
+}
+
+.home-nav-link-active::after {
   width: 100%;
 }
 
@@ -260,6 +269,11 @@
 
 .home-sidebar-link span {
   font-size: 1.15rem;
+}
+
+.home-sidebar-link-active {
+  background: rgba(255, 255, 255, 0.16);
+  color: white;
 }
 
 .home-sidebar-link:hover {
