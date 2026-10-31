@@ -401,8 +401,8 @@
 .home-stats {
   width: 100%;
   max-width: 1100px;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.25rem;
   justify-content: center;
   padding: 0 1.5rem;
@@ -410,7 +410,6 @@
 }
 
 .home-stat-card {
-  flex: 1 1 200px;
   max-width: 240px;
   display: flex;
   flex-direction: column;
@@ -1665,8 +1664,12 @@
     text-align: center;
   }
 
+  .home-stats {
+    grid-template-columns: 1fr;
+  }
+
   .home-stat-card {
-    flex: 1 1 calc(50% - 0.75rem);
+    max-width: none;
     padding: 1.1rem 0.9rem;
   }
 
