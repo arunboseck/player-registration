@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
+import QRCode from 'qrcode';
 import { getTournamentById, addTournamentRegistration, uploadPhotoToStorage, getPlayerByMobile, addPlayer } from '../utils/firebaseStorage';
 import { ref as dbRef, get } from 'firebase/database';
 import { database } from '../firebase/config';
@@ -42,6 +43,13 @@ const TournamentRegister = () => {
   const [alreadyRegistered, setAlreadyRegistered] = useState(false);
   const [alreadyRegisteredPlayer, setAlreadyRegisteredPlayer] = useState(null);
 
+  // UPI payment states
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
+  const [paymentScreenshot, setPaymentScreenshot] = useState('');
+  const [utrNumber, setUtrNumber] = useState('');
+  const [paymentError, setPaymentError] = useState('');
+  const [upiCopied, setUpiCopied] = useState(false);
+
   useEffect(() => {
     const loadTournament = async () => {
       try {
@@ -58,6 +66,47 @@ const TournamentRegister = () => {
     };
     loadTournament();
   }, [id]);
+
+  // Generate the UPI QR code once the tournament (with payment settings) is loaded
+  useEffect(() => {
+    const generateQr = async () => {
+      if (tournament?.paymentEnabled && tournament?.upiId && tournament?.entryFee) {
+        try {
+          const upiUrl = `upi://pay?pa=${encodeURIComponent(tournament.upiId)}&pn=${encodeURIComponent(tournament.upiPayeeName || tournament.name)}&am=${encodeURIComponent(tournament.entryFee)}&cu=INR&tn=${encodeURIComponent(`Entry fee - ${tournament.name}`)}`;
+          const dataUrl = await QRCode.toDataURL(upiUrl, {
+            width: 260,
+            margin: 1,
+            color: { dark: '#1e293b', light: '#ffffff' }
+          });
+          setQrCodeDataUrl(dataUrl);
+        } catch (err) {
+          console.error('Error generating UPI QR code:', err);
+        }
+      }
+    };
+    generateQr();
+  }, [tournament]);
+
+  const handleCopyUpiId = () => {
+    if (tournament?.upiId) {
+      navigator.clipboard.writeText(tournament.upiId).then(() => {
+        setUpiCopied(true);
+        setTimeout(() => setUpiCopied(false), 2000);
+      }).catch(() => {});
+    }
+  };
+
+  const handlePaymentScreenshotChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPaymentError('');
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPaymentScreenshot(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSearchPlayer = async () => {
     if (!searchMobile.trim() || searchMobile.length < 10) {
@@ -113,10 +162,22 @@ const TournamentRegister = () => {
   const handleQuickJoin = async () => {
     if (!foundPlayer) return;
 
+    // Require payment screenshot when payment collection is enabled for this tournament
+    if (tournament?.paymentEnabled && !paymentScreenshot) {
+      setPaymentError('Please upload your payment screenshot to complete registration.');
+      return;
+    }
+
     setSubmitting(true);
     setIsSubmitting(true);
 
     try {
+      let paymentScreenshotURL = '';
+      if (tournament?.paymentEnabled && paymentScreenshot) {
+        const tempId = `pay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        paymentScreenshotURL = await uploadPhotoToStorage(paymentScreenshot, tempId);
+      }
+
       const registrationData = {
         name: foundPlayer.name,
         mobile: foundPlayer.mobile,
@@ -126,6 +187,12 @@ const TournamentRegister = () => {
         position: foundPlayer.position,
         photo: foundPlayer.photo || '',
         registeredAt: new Date().toISOString(),
+        ...(tournament?.paymentEnabled && {
+          paymentStatus: 'pending',
+          paymentScreenshot: paymentScreenshotURL,
+          utrNumber: utrNumber.trim(),
+          entryFee: tournament.entryFee,
+        }),
       };
 
       const result = await addTournamentRegistration(id, registrationData);
@@ -149,6 +216,8 @@ const TournamentRegister = () => {
           setSearchMobile('');
           setSuccess(false);
         }, 3000);
+        setPaymentScreenshot('');
+        setUtrNumber('');
       }
     } catch (error) {
       console.error('Error registering player:', error);
@@ -275,6 +344,12 @@ const TournamentRegister = () => {
       return;
     }
 
+    // Require payment screenshot when payment collection is enabled for this tournament
+    if (tournament?.paymentEnabled && !paymentScreenshot) {
+      setPaymentError('Please upload your payment screenshot to complete registration.');
+      return;
+    }
+
     // Check for recent submission lock (prevents double-click and race conditions)
     const lockKey = `registration_lock_${id}_${formData.mobile}`;
     const lockTime = localStorage.getItem(lockKey);
@@ -335,11 +410,39 @@ const TournamentRegister = () => {
       await addPlayer(playerData);
       console.log('✅ Player check/add complete');
 
+      // Upload payment screenshot to Cloudinary (if payment is enabled for this tournament)
+      let paymentScreenshotURL = '';
+      if (tournament?.paymentEnabled && paymentScreenshot) {
+        console.log('📤 Uploading payment screenshot...');
+        try {
+          const tempId = `pay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          paymentScreenshotURL = await uploadPhotoToStorage(paymentScreenshot, tempId);
+        } catch (payError) {
+          console.error('❌ Payment screenshot upload failed:', payError);
+          setError(true);
+          setErrorMessage('Failed to upload payment screenshot. Please try again.');
+          setSubmitting(false);
+          setIsSubmitting(false);
+          localStorage.removeItem(lockKey);
+          setTimeout(() => {
+            setError(false);
+            setErrorMessage('');
+          }, 5000);
+          return;
+        }
+      }
+
       // Step 2: Add tournament registration with Cloudinary URL
       console.log('🏆 Registering player for tournament...');
       const registrationData = {
         ...formData,
-        photo: photoURL
+        photo: photoURL,
+        ...(tournament?.paymentEnabled && {
+          paymentStatus: 'pending',
+          paymentScreenshot: paymentScreenshotURL,
+          utrNumber: utrNumber.trim(),
+          entryFee: tournament.entryFee,
+        }),
       };
       const result = await addTournamentRegistration(id, registrationData);
 
@@ -366,6 +469,8 @@ const TournamentRegister = () => {
         name: '', mobile: '', dateOfBirth: '', bloodGroup: '', place: '', position: '', photo: ''
       });
       setDob({ day: '', month: '', year: '' }); // Reset date fields
+      setPaymentScreenshot('');
+      setUtrNumber('');
 
       // Keep submitting true for a bit longer to prevent rapid re-submission
       setTimeout(() => {
@@ -391,6 +496,83 @@ const TournamentRegister = () => {
         setErrorMessage('');
       }, 5000);
     }
+  };
+
+  // Shared UPI payment section — rendered both in the quick-join flow and the full registration form
+  const renderPaymentSection = () => {
+    if (!tournament?.paymentEnabled) return null;
+
+    return (
+      <div className="upi-payment-section">
+        <div className="upi-payment-header">
+          <span className="upi-payment-badge">💳 Entry Fee Payment</span>
+          <h4>Pay ₹{tournament.entryFee} via UPI to Complete Registration</h4>
+          <p>Scan the QR code or pay to the UPI ID below, then upload your payment screenshot.</p>
+        </div>
+
+        <div className="upi-payment-body">
+          <div className="upi-qr-wrap">
+            {qrCodeDataUrl ? (
+              <img src={qrCodeDataUrl} alt="UPI QR Code" className="upi-qr-image" />
+            ) : (
+              <div className="upi-qr-placeholder">Generating QR code…</div>
+            )}
+            <a
+              className="upi-pay-app-button"
+              href={`upi://pay?pa=${encodeURIComponent(tournament.upiId)}&pn=${encodeURIComponent(tournament.upiPayeeName || tournament.name)}&am=${encodeURIComponent(tournament.entryFee)}&cu=INR&tn=${encodeURIComponent(`Entry fee - ${tournament.name}`)}`}
+            >
+              📱 Pay with UPI App
+            </a>
+          </div>
+
+          <div className="upi-details-wrap">
+            <div className="upi-detail-row">
+              <span className="upi-detail-label">UPI ID</span>
+              <div className="upi-id-copy">
+                <span className="upi-detail-value">{tournament.upiId}</span>
+                <button type="button" className="upi-copy-btn" onClick={handleCopyUpiId}>
+                  {upiCopied ? '✓ Copied' : 'Copy'}
+                </button>
+              </div>
+            </div>
+            <div className="upi-detail-row">
+              <span className="upi-detail-label">Payee Name</span>
+              <span className="upi-detail-value">{tournament.upiPayeeName || tournament.name}</span>
+            </div>
+            <div className="upi-detail-row">
+              <span className="upi-detail-label">Amount</span>
+              <span className="upi-detail-value upi-amount">₹{tournament.entryFee}</span>
+            </div>
+
+            <div className="upi-upload-group">
+              <label>Upload Payment Screenshot *</label>
+              <input type="file" accept="image/*" onChange={handlePaymentScreenshotChange} />
+              {paymentScreenshot && (
+                <div className="photo-preview upi-screenshot-preview">
+                  <img src={paymentScreenshot} alt="Payment Screenshot" />
+                  <span className="photo-uploaded">✓ Screenshot uploaded</span>
+                </div>
+              )}
+            </div>
+
+            <div className="upi-upload-group">
+              <label>UTR / Transaction Reference No. (optional)</label>
+              <input
+                type="text"
+                value={utrNumber}
+                onChange={(e) => setUtrNumber(e.target.value)}
+                placeholder="12-digit UTR number from your UPI app"
+              />
+            </div>
+
+            {paymentError && <span className="error-message">{paymentError}</span>}
+            <p className="upi-verify-note">
+              ℹ️ Your payment will be verified manually by the organizer before your slot is confirmed.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   // Show loading state while tournament is being fetched
@@ -1021,6 +1203,9 @@ const TournamentRegister = () => {
                       <p><strong>Blood Group:</strong> {foundPlayer.bloodGroup}</p>
                     </div>
                   </div>
+
+                  {renderPaymentSection()}
+
                   <button
                     onClick={handleQuickJoin}
                     disabled={submitting}
@@ -1167,6 +1352,8 @@ const TournamentRegister = () => {
                     </div>
                   )}
                 </div>
+
+                {renderPaymentSection()}
 
                 <button type="submit" className="submit-button" disabled={submitting} style={{
                   opacity: submitting ? 0.6 : 1,

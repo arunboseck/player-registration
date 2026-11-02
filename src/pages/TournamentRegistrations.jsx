@@ -224,6 +224,20 @@ const TournamentRegistrations = () => {
     setDeleteModal({ show: false, registration: null });
   };
 
+  const handleVerifyPayment = async (registration) => {
+    try {
+      await updateRegistration(id, registration.id, {
+        ...registration,
+        paymentStatus: 'verified',
+        paymentVerifiedAt: new Date().toISOString()
+      });
+      await loadData();
+    } catch (error) {
+      console.error('Error verifying payment:', error);
+      alert('Error verifying payment');
+    }
+  };
+
   const handleEditClick = (registration) => {
     setEditFormData({
       name: registration.name,
@@ -1378,6 +1392,30 @@ const TournamentRegistrations = () => {
                       <label>Registered On</label>
                       <span>{formatRegisteredAt(reg.registeredAt)}</span>
                     </div>
+
+                    {reg.paymentStatus && (
+                      <div className="info-column info-payment">
+                        <label>Payment</label>
+                        <span
+                          className={`badge-inline badge-payment-${reg.paymentStatus}`}
+                          style={{ cursor: reg.paymentScreenshot ? 'pointer' : 'default' }}
+                          onClick={() => reg.paymentScreenshot && handlePhotoClick(reg.paymentScreenshot, `${reg.name} - Payment Screenshot`)}
+                          title={reg.paymentScreenshot ? 'Click to view payment screenshot' : ''}
+                        >
+                          {reg.paymentStatus === 'verified' ? '✓ Verified' : '⏳ Pending'}
+                        </span>
+                        {reg.paymentStatus === 'pending' && (
+                          <button
+                            type="button"
+                            className="btn-verify-payment"
+                            onClick={() => handleVerifyPayment(reg)}
+                            title="Mark payment as verified"
+                          >
+                            Mark Verified
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="registration-actions">
@@ -1517,6 +1555,29 @@ const TournamentRegistrations = () => {
                       <span className="card-mobile-info-label">Registered On:</span>
                       <span className="card-mobile-info-value">{formatRegisteredAt(reg.registeredAt)}</span>
                     </div>
+                    {reg.paymentStatus && (
+                      <div className="card-mobile-info-row">
+                        <span className="card-mobile-info-label">Payment:</span>
+                        <span className="card-mobile-info-value">
+                          <span
+                            className={`badge-inline badge-payment-${reg.paymentStatus}`}
+                            style={{ cursor: reg.paymentScreenshot ? 'pointer' : 'default' }}
+                            onClick={() => reg.paymentScreenshot && handlePhotoClick(reg.paymentScreenshot, `${reg.name} - Payment Screenshot`)}
+                          >
+                            {reg.paymentStatus === 'verified' ? '✓ Verified' : '⏳ Pending'}
+                          </span>
+                          {reg.paymentStatus === 'pending' && (
+                            <button
+                              type="button"
+                              className="btn-verify-payment"
+                              onClick={() => handleVerifyPayment(reg)}
+                            >
+                              Mark Verified
+                            </button>
+                          )}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

@@ -32,6 +32,10 @@ const AddTournament = () => {
     description: '',
     tournamentPoster: '',
     tournamentDays: [],
+    paymentEnabled: false,
+    upiId: '',
+    upiPayeeName: '',
+    entryFee: '',
   });
   const [organizers, setOrganizers] = useState([
     { name: '', mobile: '', photo: '', photoPreview: null }
@@ -139,6 +143,21 @@ const AddTournament = () => {
     }
     const descriptionText = formData.description.replace(/<(.|\n)*?>/g, '').trim();
     if (!descriptionText) newErrors.description = 'Description is required';
+
+    // UPI payment validation (only when payment collection is enabled)
+    if (formData.paymentEnabled) {
+      if (!formData.upiId.trim()) {
+        newErrors.upiId = 'UPI ID is required when payment is enabled';
+      } else if (!/^[\w.+-]{2,256}@[a-zA-Z][a-zA-Z]{2,64}$/.test(formData.upiId.trim())) {
+        newErrors.upiId = 'Enter a valid UPI ID (e.g. name@okhdfcbank)';
+      }
+      if (!formData.upiPayeeName.trim()) {
+        newErrors.upiPayeeName = 'Payee name is required when payment is enabled';
+      }
+      if (!formData.entryFee || Number(formData.entryFee) <= 0) {
+        newErrors.entryFee = 'Enter a valid entry fee amount';
+      }
+    }
 
     // Organizer details validation (at least one organizer required)
     organizers.forEach((organizer, index) => {
@@ -339,6 +358,111 @@ const AddTournament = () => {
                   <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#10b981' }}>
                     ✓ Poster uploaded successfully
                   </p>
+                </div>
+              )}
+            </div>
+
+            <div className="form-section-divider">
+              <h3>UPI Payment Collection</h3>
+            </div>
+
+            <div
+              className="form-group"
+              style={{
+                background: formData.paymentEnabled
+                  ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)'
+                  : '#f9fafb',
+                border: `2px solid ${formData.paymentEnabled ? '#10b981' : '#e5e7eb'}`,
+                borderRadius: '12px',
+                padding: '1.25rem',
+                transition: 'all 0.3s ease',
+              }}
+            >
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  cursor: 'pointer',
+                  marginBottom: formData.paymentEnabled ? '1.25rem' : 0,
+                }}
+                onClick={() =>
+                  setFormData((prev) => ({ ...prev, paymentEnabled: !prev.paymentEnabled }))
+                }
+              >
+                <span>
+                  Enable UPI Payment for this Tournament
+                  <small style={{ display: 'block', color: '#6b7280', fontWeight: 400, fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                    When enabled, players must pay the entry fee via UPI and upload a payment screenshot during registration.
+                  </small>
+                </span>
+                <span
+                  style={{
+                    position: 'relative',
+                    width: '48px',
+                    height: '26px',
+                    borderRadius: '13px',
+                    background: formData.paymentEnabled ? '#10b981' : '#cbd5e1',
+                    transition: 'background 0.3s ease',
+                    flexShrink: 0,
+                    marginLeft: '1rem',
+                  }}
+                >
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: '3px',
+                      left: formData.paymentEnabled ? '25px' : '3px',
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      background: '#fff',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                      transition: 'left 0.3s ease',
+                    }}
+                  />
+                </span>
+              </label>
+
+              {formData.paymentEnabled && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>UPI ID (VPA) *</label>
+                      <input
+                        type="text"
+                        name="upiId"
+                        value={formData.upiId}
+                        onChange={handleChange}
+                        placeholder="e.g. yourname@okhdfcbank"
+                      />
+                      {errors.upiId && <span className="error-message">{errors.upiId}</span>}
+                    </div>
+                    <div className="form-group">
+                      <label>Payee Name *</label>
+                      <input
+                        type="text"
+                        name="upiPayeeName"
+                        value={formData.upiPayeeName}
+                        onChange={handleChange}
+                        placeholder="Name shown to the payer"
+                      />
+                      {errors.upiPayeeName && <span className="error-message">{errors.upiPayeeName}</span>}
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Entry Fee (₹) *</label>
+                    <input
+                      type="number"
+                      name="entryFee"
+                      value={formData.entryFee}
+                      onChange={handleChange}
+                      placeholder="e.g. 500"
+                      min="1"
+                      style={{ maxWidth: '200px' }}
+                    />
+                    {errors.entryFee && <span className="error-message">{errors.entryFee}</span>}
+                  </div>
                 </div>
               )}
             </div>
