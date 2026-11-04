@@ -106,10 +106,30 @@
   }
 }
 
-/* Registered players search box inside the players modal */
+/* Keep the title + search box pinned while the player grid scrolls */
+.players-modal-title,
+.players-modal-subtitle {
+  position: sticky;
+  background: #1a1d29;
+  z-index: 2;
+}
+
+.players-modal-title {
+  top: 0;
+  padding-top: 0.1rem;
+}
+
+.players-modal-subtitle {
+  top: 1.7rem;
+}
+
 .players-modal-search-wrap {
-  position: relative;
+  position: sticky;
+  top: 3.6rem;
+  z-index: 2;
+  background: #1a1d29;
   margin: 0 0 1.25rem;
+  padding-bottom: 0.5rem;
 }
 
 .players-modal-search {
@@ -155,5 +175,24 @@
   .players-modal-search {
     font-size: 0.85rem;
     padding: 0.6rem 2rem 0.6rem 0.8rem;
+  }
+}
+
+/* Give the player photo as much of the card as possible */
+.players-modal .player-card {
+  padding: 0.6rem 0.6rem 1rem;
+}
+
+.players-modal .player-card-photo {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  margin-bottom: 0.7rem;
+}
+
+@media (max-width: 480px) {
+  .players-modal .player-card {
+    padding: 0.4rem 0.4rem 0.8rem;
   }
 }

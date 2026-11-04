@@ -273,7 +273,6 @@ const TournamentDetails = () => {
                     </div>
                     <h4 className="player-card-name">{player.name}</h4>
                     <p className="player-card-id">ID: {index + 1}</p>
-                    {player.mobile && <p className="player-card-mobile">📞 {player.mobile}</p>}
                     {player.position && <p className="player-card-position">{player.position}</p>}
                   </div>
                 ))}
