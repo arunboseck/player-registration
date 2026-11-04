@@ -105,3 +105,55 @@
     margin: 0 auto;
   }
 }
+
+/* Registered players search box inside the players modal */
+.players-modal-search-wrap {
+  position: relative;
+  margin: 0 0 1.25rem;
+}
+
+.players-modal-search {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.65rem 2.2rem 0.65rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #12141f;
+  color: #fff;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.players-modal-search::placeholder {
+  color: #6b7280;
+}
+
+.players-modal-search:focus {
+  border-color: #818cf8;
+}
+
+.players-modal-search-clear {
+  position: absolute;
+  top: 50%;
+  right: 0.6rem;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+}
+
+.players-modal-search-clear:hover {
+  color: #fff;
+}
+
+@media (max-width: 480px) {
+  .players-modal-search {
+    font-size: 0.85rem;
+    padding: 0.6rem 2rem 0.6rem 0.8rem;
+  }
+}

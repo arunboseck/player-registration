@@ -28,6 +28,8 @@ const TournamentDetails = () => {
   const [notFound, setNotFound] = useState(false);
   const [posterLightbox, setPosterLightbox] = useState(null);
   const [posterZoomed, setPosterZoomed] = useState(false);
+  const [playersModal, setPlayersModal] = useState(null); // { players, loading }
+  const [playerSearch, setPlayerSearch] = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -76,6 +78,35 @@ const TournamentDetails = () => {
     setPosterZoomed(false);
     setTimeout(() => setPosterLightbox(null), 300);
   };
+
+  const openPlayersModal = async () => {
+    setPlayerSearch('');
+    setPlayersModal({ players: [], loading: true });
+    const registrations = await getTournamentRegistrations(id).catch(() => []);
+    const sorted = [...registrations].sort((a, b) => {
+      const aHasOrder = typeof a.sortOrder === 'number';
+      const bHasOrder = typeof b.sortOrder === 'number';
+      if (aHasOrder && bHasOrder) return a.sortOrder - b.sortOrder;
+      if (aHasOrder) return -1;
+      if (bHasOrder) return 1;
+      return new Date(a.registeredAt || 0) - new Date(b.registeredAt || 0);
+    });
+    setPlayersModal({ players: sorted, loading: false });
+  };
+
+  const closePlayersModal = () => setPlayersModal(null);
+
+  const filteredPlayers = playersModal
+    ? playersModal.players.filter((player) => {
+        const term = playerSearch.trim().toLowerCase();
+        if (!term) return true;
+        return (
+          player.name?.toLowerCase().includes(term) ||
+          player.position?.toLowerCase().includes(term) ||
+          player.mobile?.toLowerCase().includes(term)
+        );
+      })
+    : [];
 
   if (loading) {
     return (
@@ -142,6 +173,11 @@ const TournamentDetails = () => {
               </Link>
             )}
             <Link to="/calendar" className="about-cta-btn about-cta-btn-secondary">📅 Back to Calendar</Link>
+            {registrationsCount > 0 && (
+              <button type="button" className="btn-view-players" onClick={openPlayersModal}>
+                👥 View Registered Players
+              </button>
+            )}
           </div>
         </div>
       </section>
@@ -179,6 +215,71 @@ const TournamentDetails = () => {
             }
           />
           <button className="poster-lightbox-close" onClick={closePosterLightbox} aria-label="Close">×</button>
+        </div>
+      )}
+
+      {playersModal && (
+        <div className="players-modal-overlay" onClick={closePlayersModal}>
+          <div className="players-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="tournament-modal-close" onClick={closePlayersModal} aria-label="Close">×</button>
+            <h3 className="players-modal-title">{tournament.name}</h3>
+            <p className="players-modal-subtitle">
+              Registered Players{!playersModal.loading && ` (${playersModal.players.length})`}
+            </p>
+
+            {!playersModal.loading && playersModal.players.length > 0 && (
+              <div className="players-modal-search-wrap">
+                <input
+                  type="text"
+                  className="players-modal-search"
+                  placeholder="🔍 Search by name, mobile or position…"
+                  value={playerSearch}
+                  onChange={(e) => setPlayerSearch(e.target.value)}
+                />
+                {playerSearch && (
+                  <button
+                    type="button"
+                    className="players-modal-search-clear"
+                    onClick={() => setPlayerSearch('')}
+                    aria-label="Clear search"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            )}
+
+            {playersModal.loading ? (
+              <div className="calendar-loading">Loading players…</div>
+            ) : playersModal.players.length === 0 ? (
+              <div className="calendar-loading">No players registered yet.</div>
+            ) : filteredPlayers.length === 0 ? (
+              <div className="calendar-loading">No players match "{playerSearch}".</div>
+            ) : (
+              <div className="players-modal-grid">
+                {filteredPlayers.map((player, index) => (
+                  <div key={player.id || index} className="player-card">
+                    <div className="player-card-photo">
+                      {player.photo ? (
+                        <img
+                          src={player.photo}
+                          alt={player.name}
+                          className="player-card-photo-clickable"
+                          onClick={(e) => openPosterLightbox(e, player.photo)}
+                        />
+                      ) : (
+                        <span className="player-card-photo-placeholder">👤</span>
+                      )}
+                    </div>
+                    <h4 className="player-card-name">{player.name}</h4>
+                    <p className="player-card-id">ID: {index + 1}</p>
+                    {player.mobile && <p className="player-card-mobile">📞 {player.mobile}</p>}
+                    {player.position && <p className="player-card-position">{player.position}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
