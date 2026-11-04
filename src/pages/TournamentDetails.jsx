@@ -220,7 +220,7 @@ const TournamentDetails = () => {
 
       {playersModal && (
         <div className="players-modal-overlay" onClick={closePlayersModal}>
-          <div className="players-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="players-modal td-players-modal" onClick={(e) => e.stopPropagation()}>
             <button className="tournament-modal-close" onClick={closePlayersModal} aria-label="Close">×</button>
             <h3 className="players-modal-title">{tournament.name}</h3>
             <p className="players-modal-subtitle">
@@ -249,35 +249,37 @@ const TournamentDetails = () => {
               </div>
             )}
 
-            {playersModal.loading ? (
-              <div className="calendar-loading">Loading players…</div>
-            ) : playersModal.players.length === 0 ? (
-              <div className="calendar-loading">No players registered yet.</div>
-            ) : filteredPlayers.length === 0 ? (
-              <div className="calendar-loading">No players match "{playerSearch}".</div>
-            ) : (
-              <div className="players-modal-grid">
-                {filteredPlayers.map((player, index) => (
-                  <div key={player.id || index} className="player-card">
-                    <div className="player-card-photo">
-                      {player.photo ? (
-                        <img
-                          src={player.photo}
-                          alt={player.name}
-                          className="player-card-photo-clickable"
-                          onClick={(e) => openPosterLightbox(e, player.photo)}
-                        />
-                      ) : (
-                        <span className="player-card-photo-placeholder">👤</span>
-                      )}
+            <div className="td-players-modal-scroll">
+              {playersModal.loading ? (
+                <div className="calendar-loading">Loading players…</div>
+              ) : playersModal.players.length === 0 ? (
+                <div className="calendar-loading">No players registered yet.</div>
+              ) : filteredPlayers.length === 0 ? (
+                <div className="calendar-loading">No players match "{playerSearch}".</div>
+              ) : (
+                <div className="players-modal-grid">
+                  {filteredPlayers.map((player, index) => (
+                    <div key={player.id || index} className="player-card">
+                      <div className="player-card-photo">
+                        {player.photo ? (
+                          <img
+                            src={player.photo}
+                            alt={player.name}
+                            className="player-card-photo-clickable"
+                            onClick={(e) => openPosterLightbox(e, player.photo)}
+                          />
+                        ) : (
+                          <span className="player-card-photo-placeholder">👤</span>
+                        )}
+                      </div>
+                      <h4 className="player-card-name">{player.name}</h4>
+                      <p className="player-card-id">ID: {index + 1}</p>
+                      {player.position && <p className="player-card-position">{player.position}</p>}
                     </div>
-                    <h4 className="player-card-name">{player.name}</h4>
-                    <p className="player-card-id">ID: {index + 1}</p>
-                    {player.position && <p className="player-card-position">{player.position}</p>}
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
