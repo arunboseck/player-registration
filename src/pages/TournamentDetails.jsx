@@ -30,6 +30,10 @@ const TournamentDetails = () => {
   const [posterZoomed, setPosterZoomed] = useState(false);
   const [playersModal, setPlayersModal] = useState(null); // { players, loading }
   const [playerSearch, setPlayerSearch] = useState('');
+  // View-only removal: hides a player card from this modal session without
+  // touching the database. Resets whenever the modal is reopened or the page
+  // is refreshed.
+  const [removedPlayerIds, setRemovedPlayerIds] = useState(() => new Set());
 
   useEffect(() => {
     const load = async () => {
@@ -81,6 +85,7 @@ const TournamentDetails = () => {
 
   const openPlayersModal = async () => {
     setPlayerSearch('');
+    setRemovedPlayerIds(new Set());
     setPlayersModal({ players: [], loading: true });
     const registrations = await getTournamentRegistrations(id).catch(() => []);
     const sorted = [...registrations].sort((a, b) => {
@@ -99,17 +104,27 @@ const TournamentDetails = () => {
 
   const closePlayersModal = () => setPlayersModal(null);
 
+  const handleRemovePlayerFromView = (playerKey) => {
+    setRemovedPlayerIds((prev) => {
+      const next = new Set(prev);
+      next.add(playerKey);
+      return next;
+    });
+  };
+
   const filteredPlayers = playersModal
-    ? playersModal.players.filter((player) => {
-        const term = playerSearch.trim().toLowerCase();
-        if (!term) return true;
-        return (
-          player.name?.toLowerCase().includes(term) ||
-          player.position?.toLowerCase().includes(term) ||
-          player.mobile?.toLowerCase().includes(term) ||
-          String(player.pdfId).includes(term)
-        );
-      })
+    ? playersModal.players
+        .filter((player) => !removedPlayerIds.has(player.id ?? player.pdfId))
+        .filter((player) => {
+          const term = playerSearch.trim().toLowerCase();
+          if (!term) return true;
+          return (
+            player.name?.toLowerCase().includes(term) ||
+            player.position?.toLowerCase().includes(term) ||
+            player.mobile?.toLowerCase().includes(term) ||
+            String(player.pdfId).includes(term)
+          );
+        })
     : [];
 
   if (loading) {
@@ -264,6 +279,15 @@ const TournamentDetails = () => {
                 <div className="players-modal-grid">
                   {filteredPlayers.map((player, index) => (
                     <div key={player.id || index} className="player-card">
+                      <button
+                        type="button"
+                        className="player-card-remove-btn"
+                        onClick={() => handleRemovePlayerFromView(player.id ?? player.pdfId)}
+                        aria-label={`Remove ${player.name} from this view`}
+                        title="Remove from view (not deleted)"
+                      >
+                        ×
+                      </button>
                       <div className="player-card-photo">
                         {player.photo ? (
                           <img

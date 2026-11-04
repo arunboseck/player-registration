@@ -200,6 +200,34 @@
 /* Give the player photo as much of the card as possible */
 .players-modal .player-card {
   padding: 0.6rem 0.6rem 1rem;
+  position: relative;
+}
+
+/* Temporary, client-side-only "remove from view" control — does not touch
+   the tournament or the database; resets on refresh / modal reopen. */
+.player-card-remove-btn {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(15, 17, 28, 0.75);
+  color: #f87171;
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.player-card-remove-btn:hover {
+  background: #f87171;
+  color: #fff;
 }
 
 .players-modal .player-card-photo {
