@@ -91,7 +91,10 @@ const TournamentDetails = () => {
       if (bHasOrder) return 1;
       return new Date(a.registeredAt || 0) - new Date(b.registeredAt || 0);
     });
-    setPlayersModal({ players: sorted, loading: false });
+    // Same order the PDF export uses (S.No column) — stamp it here once so the
+    // id stays fixed to each player regardless of search filtering later.
+    const withPdfId = sorted.map((player, index) => ({ ...player, pdfId: index + 1 }));
+    setPlayersModal({ players: withPdfId, loading: false });
   };
 
   const closePlayersModal = () => setPlayersModal(null);
@@ -103,7 +106,8 @@ const TournamentDetails = () => {
         return (
           player.name?.toLowerCase().includes(term) ||
           player.position?.toLowerCase().includes(term) ||
-          player.mobile?.toLowerCase().includes(term)
+          player.mobile?.toLowerCase().includes(term) ||
+          String(player.pdfId).includes(term)
         );
       })
     : [];
@@ -232,7 +236,7 @@ const TournamentDetails = () => {
                 <input
                   type="text"
                   className="players-modal-search"
-                  placeholder="🔍 Search by name, mobile or position…"
+                  placeholder="🔍 Search by name, ID, mobile or position…"
                   value={playerSearch}
                   onChange={(e) => setPlayerSearch(e.target.value)}
                 />
@@ -273,7 +277,7 @@ const TournamentDetails = () => {
                         )}
                       </div>
                       <h4 className="player-card-name">{player.name}</h4>
-                      <p className="player-card-id">ID: {index + 1}</p>
+                      <p className="player-card-id">ID: {player.pdfId}</p>
                       {player.position && <p className="player-card-position">{player.position}</p>}
                     </div>
                   ))}
