@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import PublicHeader from '../components/PublicHeader';
 import { getTournaments, getPlayersCount, getTournamentRegistrations } from '../utils/firebaseStorage';
 import './Home.css';
@@ -20,6 +20,7 @@ const formatDateRange = (startDate, endDate) => {
 };
 
 const Home = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalTournaments: 0,
@@ -308,13 +309,20 @@ const Home = () => {
           </h2>
           <div className="home-tournament-grid">
             {upcomingTournaments.map((tournament) => (
-              <div key={tournament.id} className="home-tournament-card">
+              <div
+                key={tournament.id}
+                className="home-tournament-card home-tournament-card-clickable"
+                onClick={() => navigate(`/tournament/${tournament.id}`)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/tournament/${tournament.id}`); }}
+              >
                 {tournament.tournamentPoster ? (
                   <img
                     src={tournament.tournamentPoster}
                     alt={tournament.name}
                     className="home-tournament-poster home-tournament-poster-clickable"
-                    onClick={(e) => openPosterLightbox(e, tournament.tournamentPoster)}
+                    onClick={(e) => { e.stopPropagation(); openPosterLightbox(e, tournament.tournamentPoster); }}
                   />
                 ) : (
                   <div className="home-tournament-poster home-tournament-poster-placeholder">🏏</div>
@@ -327,7 +335,11 @@ const Home = () => {
                     {isRegistrationClosed(tournament) ? (
                       <span className="btn-register-tournament btn-register-closed">Registration Closed</span>
                     ) : (
-                      <Link to={`/tournament-register/${tournament.id}`} className="btn-register-tournament">
+                      <Link
+                        to={`/tournament-register/${tournament.id}`}
+                        className="btn-register-tournament"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         Register Now
                       </Link>
                     )}
@@ -362,13 +374,20 @@ const Home = () => {
           </h2>
           <div className="home-tournament-grid">
             {recentTournaments.map((tournament) => (
-              <div key={tournament.id} className="home-tournament-card home-tournament-card-past">
+              <div
+                key={tournament.id}
+                className="home-tournament-card home-tournament-card-past home-tournament-card-clickable"
+                onClick={() => navigate(`/tournament/${tournament.id}`)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/tournament/${tournament.id}`); }}
+              >
                 {tournament.tournamentPoster ? (
                   <img
                     src={tournament.tournamentPoster}
                     alt={tournament.name}
                     className="home-tournament-poster home-tournament-poster-clickable"
-                    onClick={(e) => openPosterLightbox(e, tournament.tournamentPoster)}
+                    onClick={(e) => { e.stopPropagation(); openPosterLightbox(e, tournament.tournamentPoster); }}
                   />
                 ) : (
                   <div className="home-tournament-poster home-tournament-poster-placeholder">🏏</div>

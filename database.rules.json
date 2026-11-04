@@ -1,24 +1,38 @@
 {
   "rules": {
     ".read": true,
-    ".write": true,
-    
+
+    "users": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
     "players": {
-      ".indexOn": ["mobile", "name", "position"]
-    },
-    
-    "tournaments": {
-      ".indexOn": ["name", "date", "createdAt"]
-    },
-    
-    "tournament_registrations": {
-      "$tournamentId": {
-        ".indexOn": ["mobile", "name", "registeredAt"]
+      ".indexOn": ["mobile", "name", "position"],
+      "$playerId": {
+        ".write": "auth != null || !data.exists()"
       }
     },
-    
+
+    "tournaments": {
+      ".indexOn": ["name", "date", "createdAt"],
+      ".write": "auth != null"
+    },
+
+    "tournament_registrations": {
+      "$tournamentId": {
+        ".indexOn": ["mobile", "name", "registeredAt"],
+        "$registrationId": {
+          ".write": "auth != null || ((!data.exists() || data.child('paymentStatus').val() !== 'verified') && (!newData.exists() || newData.child('paymentStatus').val() !== 'verified'))"
+        }
+      }
+    },
+
     "tournament_registrations_unique": {
-      ".indexOn": [".value"]
+      ".indexOn": [".value"],
+      "$uniqueKey": {
+        ".write": "auth != null || !data.exists()"
+      }
     }
   }
 }

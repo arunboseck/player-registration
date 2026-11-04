@@ -20,6 +20,7 @@ const AddTournament = lazy(() => import('./pages/AddTournament'));
 const EditTournament = lazy(() => import('./pages/EditTournament'));
 const Tournaments = lazy(() => import('./pages/Tournaments'));
 const TournamentRegister = lazy(() => import('./pages/TournamentRegister'));
+const TournamentDetails = lazy(() => import('./pages/TournamentDetails'));
 const TournamentRegistrations = lazy(() => import('./pages/TournamentRegistrations'));
 const CleanupDuplicates = lazy(() => import('./pages/CleanupDuplicates'));
 const MigratePhotos = lazy(() => import('./pages/MigratePhotos'));
@@ -38,8 +39,9 @@ function Layout({ children }) {
   const isCalendarPage = location.pathname === '/calendar';
   const isLoginPage = location.pathname === '/admin-login';
   const isTournamentRegisterPage = location.pathname.startsWith('/tournament-register/');
+  const isTournamentDetailsPage = location.pathname.startsWith('/tournament/');
   const showNavigation =
-    !isHomePage && !isAboutPage && !isCalendarPage && !isLoginPage && !isTournamentRegisterPage;
+    !isHomePage && !isAboutPage && !isCalendarPage && !isLoginPage && !isTournamentRegisterPage && !isTournamentDetailsPage;
 
   return (
     <>
@@ -61,6 +63,7 @@ function App() {
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/admin-login" element={<Login />} />
             <Route path="/register" element={<PublicRegister />} />
+            <Route path="/tournament/:id" element={<TournamentDetails />} />
             <Route
               path="/dashboard"
               element={

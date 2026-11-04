@@ -569,6 +569,15 @@
   opacity: 0.85;
 }
 
+.home-tournament-card-clickable {
+  cursor: pointer;
+}
+
+.home-tournament-card-clickable:focus-visible {
+  outline: 3px solid #fb923c;
+  outline-offset: 2px;
+}
+
 .home-tournament-poster {
   width: 100%;
   height: 160px;
