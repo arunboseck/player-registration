@@ -270,7 +270,18 @@ const TournamentDetails = () => {
                             src={player.photo}
                             alt={player.name}
                             className="player-card-photo-clickable"
+                            loading="lazy"
                             onClick={(e) => openPosterLightbox(e, player.photo)}
+                            onError={(e) => {
+                              // Broken/unreachable photo URL — fall back to the
+                              // placeholder glyph instead of a broken-image icon.
+                              e.target.onerror = null;
+                              e.target.style.display = 'none';
+                              const placeholder = document.createElement('span');
+                              placeholder.className = 'player-card-photo-placeholder';
+                              placeholder.textContent = '👤';
+                              e.target.parentElement.appendChild(placeholder);
+                            }}
                           />
                         ) : (
                           <span className="player-card-photo-placeholder">👤</span>
