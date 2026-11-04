@@ -238,7 +238,7 @@ const TournamentDetails = () => {
       )}
 
       {playersModal && (
-        <div className="players-modal-overlay" onClick={closePlayersModal}>
+        <div className="players-modal-overlay td-players-modal-overlay" onClick={closePlayersModal}>
           <div className="players-modal td-players-modal" onClick={(e) => e.stopPropagation()}>
             <button className="tournament-modal-close" onClick={closePlayersModal} aria-label="Close">×</button>
             <h3 className="players-modal-title">{tournament.name}</h3>

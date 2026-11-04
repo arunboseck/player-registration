@@ -203,6 +203,20 @@
   width: 95vw;
 }
 
+@media (max-width: 480px) {
+  .td-players-modal-overlay {
+    padding: 0;
+  }
+
+  .td-players-modal {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+}
+
 /* Give the player photo as much of the card as possible */
 .players-modal .player-card {
   padding: 0.6rem 0.6rem 1rem;
@@ -215,13 +229,13 @@
   position: absolute;
   top: 0.4rem;
   right: 0.4rem;
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: none;
-  background: rgba(15, 17, 28, 0.75);
+  background: rgba(15, 17, 28, 0.8);
   color: #f87171;
-  font-size: 1rem;
+  font-size: 1.35rem;
   line-height: 1;
   display: flex;
   align-items: center;
