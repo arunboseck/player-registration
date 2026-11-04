@@ -197,6 +197,12 @@
   }
 }
 
+/* Use maximum available width for the registered-players lightbox */
+.td-players-modal {
+  max-width: 1400px;
+  width: 95vw;
+}
+
 /* Give the player photo as much of the card as possible */
 .players-modal .player-card {
   padding: 0.6rem 0.6rem 1rem;
