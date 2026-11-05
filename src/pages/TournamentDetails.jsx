@@ -270,7 +270,10 @@ const TournamentDetails = () => {
 
             <div className="td-players-modal-scroll">
               {playersModal.loading ? (
-                <div className="calendar-loading">Loading players…</div>
+                <div className="td-players-loading">
+                  <span className="td-players-spinner" />
+                  <span>Loading players…</span>
+                </div>
               ) : playersModal.players.length === 0 ? (
                 <div className="calendar-loading">No players registered yet.</div>
               ) : filteredPlayers.length === 0 ? (
@@ -290,23 +293,33 @@ const TournamentDetails = () => {
                       </button>
                       <div className="player-card-photo">
                         {player.photo ? (
-                          <img
-                            src={player.photo}
-                            alt={player.name}
-                            className="player-card-photo-clickable"
-                            loading="lazy"
-                            onClick={(e) => openPosterLightbox(e, player.photo)}
-                            onError={(e) => {
-                              // Broken/unreachable photo URL — fall back to the
-                              // placeholder glyph instead of a broken-image icon.
-                              e.target.onerror = null;
-                              e.target.style.display = 'none';
-                              const placeholder = document.createElement('span');
-                              placeholder.className = 'player-card-photo-placeholder';
-                              placeholder.textContent = '👤';
-                              e.target.parentElement.appendChild(placeholder);
-                            }}
-                          />
+                          <>
+                            <span className="player-card-photo-spinner" />
+                            <img
+                              src={player.photo}
+                              alt={player.name}
+                              className="player-card-photo-clickable player-card-photo-fade"
+                              loading="lazy"
+                              onClick={(e) => openPosterLightbox(e, player.photo)}
+                              onLoad={(e) => {
+                                e.target.classList.add('player-card-photo-loaded');
+                                const spinner = e.target.previousSibling;
+                                if (spinner) spinner.remove();
+                              }}
+                              onError={(e) => {
+                                // Broken/unreachable photo URL — fall back to the
+                                // placeholder glyph instead of a broken-image icon.
+                                e.target.onerror = null;
+                                e.target.style.display = 'none';
+                                const spinner = e.target.previousSibling;
+                                if (spinner) spinner.remove();
+                                const placeholder = document.createElement('span');
+                                placeholder.className = 'player-card-photo-placeholder';
+                                placeholder.textContent = '👤';
+                                e.target.parentElement.appendChild(placeholder);
+                              }}
+                            />
+                          </>
                         ) : (
                           <span className="player-card-photo-placeholder">👤</span>
                         )}
