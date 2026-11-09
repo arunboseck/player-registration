@@ -11,6 +11,15 @@ const isRegistrationClosed = (tournament) => {
   return false;
 };
 
+// Whether the tournament itself has actually finished (its end date has passed) —
+// this is what decides Upcoming vs Concluded, independent of registration/auction
+// cutoffs, so a tournament with a closed auction but a future event date still
+// shows as Upcoming.
+const isTournamentConcluded = (tournament) => {
+  if (!tournament.endDate) return false;
+  return new Date(tournament.endDate) < new Date();
+};
+
 const formatDateRange = (startDate, endDate) => {
   const start = new Date(startDate);
   const end = new Date(endDate);
@@ -46,11 +55,11 @@ const Home = () => {
         const now = new Date();
 
         const upcoming = valid
-          .filter((t) => !isRegistrationClosed(t))
+          .filter((t) => !isTournamentConcluded(t))
           .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
         const past = valid
-          .filter((t) => isRegistrationClosed(t))
+          .filter((t) => isTournamentConcluded(t))
           .sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
 
         // Registration counts across every tournament, fetched in parallel.
