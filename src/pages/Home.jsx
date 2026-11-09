@@ -41,6 +41,9 @@ const Home = () => {
   const [recentTournaments, setRecentTournaments] = useState([]);
   const [posterLightbox, setPosterLightbox] = useState(null); // { src, rect, fitted }
   const [posterZoomed, setPosterZoomed] = useState(false);
+  const [sliderIndex, setSliderIndex] = useState(0);
+  const [slidesPerView, setSlidesPerView] = useState(3);
+  const [sliderHovered, setSliderHovered] = useState(false);
 
   useEffect(() => {
     const loadHomeData = async () => {
@@ -74,7 +77,7 @@ const Home = () => {
           totalRegistrations,
           upcomingCount: upcoming.filter((t) => new Date(t.startDate) >= now).length,
         });
-        setUpcomingTournaments(upcoming.slice(0, 3));
+        setUpcomingTournaments(upcoming);
         setRecentTournaments(past.slice(0, 3));
       } catch (err) {
         console.error('Error loading home page data:', err);
@@ -83,6 +86,41 @@ const Home = () => {
     };
     loadHomeData();
   }, []);
+
+  // Responsive slide count for the upcoming-tournaments slider.
+  useEffect(() => {
+    const computeSlidesPerView = () => {
+      const w = window.innerWidth;
+      if (w <= 640) return 1;
+      if (w <= 980) return 2;
+      return 3;
+    };
+    const handleResize = () => setSlidesPerView(computeSlidesPerView());
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Clamp slider index whenever the data or the viewport's slide count changes.
+  useEffect(() => {
+    const maxIndex = Math.max(0, upcomingTournaments.length - slidesPerView);
+    setSliderIndex((prev) => Math.min(prev, maxIndex));
+  }, [upcomingTournaments, slidesPerView]);
+
+  // Auto-advance the slider, pausing while the user is hovering over it.
+  useEffect(() => {
+    const maxIndex = Math.max(0, upcomingTournaments.length - slidesPerView);
+    if (maxIndex === 0 || sliderHovered) return undefined;
+    const timer = setInterval(() => {
+      setSliderIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [upcomingTournaments, slidesPerView, sliderHovered]);
+
+  const sliderMaxIndex = Math.max(0, upcomingTournaments.length - slidesPerView);
+  const goToSlide = (index) => setSliderIndex(Math.max(0, Math.min(index, sliderMaxIndex)));
+  const goPrevSlide = () => goToSlide(sliderIndex === 0 ? sliderMaxIndex : sliderIndex - 1);
+  const goNextSlide = () => goToSlide(sliderIndex >= sliderMaxIndex ? 0 : sliderIndex + 1);
 
   const openPosterLightbox = (e, src) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -316,47 +354,98 @@ const Home = () => {
             </span>
             Upcoming Tournaments
           </h2>
-          <div className="home-tournament-grid">
-            {upcomingTournaments.map((tournament) => (
-              <div
-                key={tournament.id}
-                className="home-tournament-card home-tournament-card-clickable"
-                onClick={() => navigate(`/tournament/${tournament.id}`)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/tournament/${tournament.id}`); }}
+          <div
+            className="home-tournament-slider"
+            onMouseEnter={() => setSliderHovered(true)}
+            onMouseLeave={() => setSliderHovered(false)}
+          >
+            {sliderMaxIndex > 0 && (
+              <button
+                type="button"
+                className="home-slider-arrow home-slider-arrow-prev"
+                onClick={goPrevSlide}
+                aria-label="Previous tournaments"
               >
-                {tournament.tournamentPoster ? (
-                  <img
-                    src={tournament.tournamentPoster}
-                    alt={tournament.name}
-                    className="home-tournament-poster home-tournament-poster-clickable"
-                    onClick={(e) => { e.stopPropagation(); openPosterLightbox(e, tournament.tournamentPoster); }}
-                  />
-                ) : (
-                  <div className="home-tournament-poster home-tournament-poster-placeholder">🏏</div>
-                )}
-                <div className="home-tournament-body">
-                  <h3>{tournament.name}</h3>
-                  <p className="home-tournament-meta">📍 {tournament.location}</p>
-                  <p className="home-tournament-meta">🗓️ {formatDateRange(tournament.startDate, tournament.endDate)}</p>
-                  <div className="home-tournament-actions">
-                    {isRegistrationClosed(tournament) ? (
-                      <span className="btn-register-tournament btn-register-closed">Registration Closed</span>
-                    ) : (
-                      <Link
-                        to={`/tournament-register/${tournament.id}`}
-                        className="btn-register-tournament"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Register Now
-                      </Link>
-                    )}
+                ‹
+              </button>
+            )}
+            <div className="home-tournament-slider-viewport">
+              <div
+                className="home-tournament-slider-track"
+                style={{
+                  transform: `translateX(-${(100 / slidesPerView) * sliderIndex}%)`,
+                }}
+              >
+                {upcomingTournaments.map((tournament) => (
+                  <div
+                    key={tournament.id}
+                    className="home-tournament-slide"
+                    style={{ flexBasis: `${100 / slidesPerView}%` }}
+                  >
+                    <div
+                      className="home-tournament-card home-tournament-card-clickable"
+                      onClick={() => navigate(`/tournament/${tournament.id}`)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/tournament/${tournament.id}`); }}
+                    >
+                      {tournament.tournamentPoster ? (
+                        <img
+                          src={tournament.tournamentPoster}
+                          alt={tournament.name}
+                          className="home-tournament-poster home-tournament-poster-clickable"
+                          onClick={(e) => { e.stopPropagation(); openPosterLightbox(e, tournament.tournamentPoster); }}
+                        />
+                      ) : (
+                        <div className="home-tournament-poster home-tournament-poster-placeholder">🏏</div>
+                      )}
+                      <div className="home-tournament-body">
+                        <h3>{tournament.name}</h3>
+                        <p className="home-tournament-meta">📍 {tournament.location}</p>
+                        <p className="home-tournament-meta">🗓️ {formatDateRange(tournament.startDate, tournament.endDate)}</p>
+                        <div className="home-tournament-actions">
+                          {isRegistrationClosed(tournament) ? (
+                            <span className="btn-register-tournament btn-register-closed">Registration Closed</span>
+                          ) : (
+                            <Link
+                              to={`/tournament-register/${tournament.id}`}
+                              className="btn-register-tournament"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Register Now
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
+            </div>
+            {sliderMaxIndex > 0 && (
+              <button
+                type="button"
+                className="home-slider-arrow home-slider-arrow-next"
+                onClick={goNextSlide}
+                aria-label="Next tournaments"
+              >
+                ›
+              </button>
+            )}
           </div>
+          {sliderMaxIndex > 0 && (
+            <div className="home-slider-dots">
+              {Array.from({ length: sliderMaxIndex + 1 }).map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={`home-slider-dot ${i === sliderIndex ? 'home-slider-dot-active' : ''}`}
+                  onClick={() => goToSlide(i)}
+                  aria-label={`Go to slide ${i + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </section>
       )}
 
