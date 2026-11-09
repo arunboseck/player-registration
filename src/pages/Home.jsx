@@ -44,6 +44,8 @@ const Home = () => {
   const [sliderIndex, setSliderIndex] = useState(0);
   const [slidesPerView, setSlidesPerView] = useState(3);
   const [sliderHovered, setSliderHovered] = useState(false);
+  const [recentSliderIndex, setRecentSliderIndex] = useState(0);
+  const [recentSliderHovered, setRecentSliderHovered] = useState(false);
 
   useEffect(() => {
     const loadHomeData = async () => {
@@ -78,7 +80,7 @@ const Home = () => {
           upcomingCount: upcoming.filter((t) => new Date(t.startDate) >= now).length,
         });
         setUpcomingTournaments(upcoming);
-        setRecentTournaments(past.slice(0, 3));
+        setRecentTournaments(past);
       } catch (err) {
         console.error('Error loading home page data:', err);
       }
@@ -107,6 +109,11 @@ const Home = () => {
     setSliderIndex((prev) => Math.min(prev, maxIndex));
   }, [upcomingTournaments, slidesPerView]);
 
+  useEffect(() => {
+    const maxIndex = Math.max(0, recentTournaments.length - slidesPerView);
+    setRecentSliderIndex((prev) => Math.min(prev, maxIndex));
+  }, [recentTournaments, slidesPerView]);
+
   // Auto-advance the slider, pausing while the user is hovering over it.
   useEffect(() => {
     const maxIndex = Math.max(0, upcomingTournaments.length - slidesPerView);
@@ -117,10 +124,24 @@ const Home = () => {
     return () => clearInterval(timer);
   }, [upcomingTournaments, slidesPerView, sliderHovered]);
 
+  useEffect(() => {
+    const maxIndex = Math.max(0, recentTournaments.length - slidesPerView);
+    if (maxIndex === 0 || recentSliderHovered) return undefined;
+    const timer = setInterval(() => {
+      setRecentSliderIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [recentTournaments, slidesPerView, recentSliderHovered]);
+
   const sliderMaxIndex = Math.max(0, upcomingTournaments.length - slidesPerView);
   const goToSlide = (index) => setSliderIndex(Math.max(0, Math.min(index, sliderMaxIndex)));
   const goPrevSlide = () => goToSlide(sliderIndex === 0 ? sliderMaxIndex : sliderIndex - 1);
   const goNextSlide = () => goToSlide(sliderIndex >= sliderMaxIndex ? 0 : sliderIndex + 1);
+
+  const recentSliderMaxIndex = Math.max(0, recentTournaments.length - slidesPerView);
+  const goToRecentSlide = (index) => setRecentSliderIndex(Math.max(0, Math.min(index, recentSliderMaxIndex)));
+  const goPrevRecentSlide = () => goToRecentSlide(recentSliderIndex === 0 ? recentSliderMaxIndex : recentSliderIndex - 1);
+  const goNextRecentSlide = () => goToRecentSlide(recentSliderIndex >= recentSliderMaxIndex ? 0 : recentSliderIndex + 1);
 
   const openPosterLightbox = (e, src) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -470,34 +491,85 @@ const Home = () => {
             </span>
             Recently Concluded
           </h2>
-          <div className="home-tournament-grid">
-            {recentTournaments.map((tournament) => (
-              <div
-                key={tournament.id}
-                className="home-tournament-card home-tournament-card-past home-tournament-card-clickable"
-                onClick={() => navigate(`/tournament/${tournament.id}`)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/tournament/${tournament.id}`); }}
+          <div
+            className="home-tournament-slider"
+            onMouseEnter={() => setRecentSliderHovered(true)}
+            onMouseLeave={() => setRecentSliderHovered(false)}
+          >
+            {recentSliderMaxIndex > 0 && (
+              <button
+                type="button"
+                className="home-slider-arrow home-slider-arrow-prev"
+                onClick={goPrevRecentSlide}
+                aria-label="Previous tournaments"
               >
-                {tournament.tournamentPoster ? (
-                  <img
-                    src={tournament.tournamentPoster}
-                    alt={tournament.name}
-                    className="home-tournament-poster home-tournament-poster-clickable"
-                    onClick={(e) => { e.stopPropagation(); openPosterLightbox(e, tournament.tournamentPoster); }}
-                  />
-                ) : (
-                  <div className="home-tournament-poster home-tournament-poster-placeholder">🏏</div>
-                )}
-                <div className="home-tournament-body">
-                  <h3>{tournament.name}</h3>
-                  <p className="home-tournament-meta">📍 {tournament.location}</p>
-                  <p className="home-tournament-meta">🗓️ {formatDateRange(tournament.startDate, tournament.endDate)}</p>
-                </div>
+                ‹
+              </button>
+            )}
+            <div className="home-tournament-slider-viewport">
+              <div
+                className="home-tournament-slider-track"
+                style={{
+                  transform: `translateX(-${(100 / slidesPerView) * recentSliderIndex}%)`,
+                }}
+              >
+                {recentTournaments.map((tournament) => (
+                  <div
+                    key={tournament.id}
+                    className="home-tournament-slide"
+                    style={{ flexBasis: `${100 / slidesPerView}%` }}
+                  >
+                    <div
+                      className="home-tournament-card home-tournament-card-past home-tournament-card-clickable"
+                      onClick={() => navigate(`/tournament/${tournament.id}`)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/tournament/${tournament.id}`); }}
+                    >
+                      {tournament.tournamentPoster ? (
+                        <img
+                          src={tournament.tournamentPoster}
+                          alt={tournament.name}
+                          className="home-tournament-poster home-tournament-poster-clickable"
+                          onClick={(e) => { e.stopPropagation(); openPosterLightbox(e, tournament.tournamentPoster); }}
+                        />
+                      ) : (
+                        <div className="home-tournament-poster home-tournament-poster-placeholder">🏏</div>
+                      )}
+                      <div className="home-tournament-body">
+                        <h3>{tournament.name}</h3>
+                        <p className="home-tournament-meta">📍 {tournament.location}</p>
+                        <p className="home-tournament-meta">🗓️ {formatDateRange(tournament.startDate, tournament.endDate)}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+            {recentSliderMaxIndex > 0 && (
+              <button
+                type="button"
+                className="home-slider-arrow home-slider-arrow-next"
+                onClick={goNextRecentSlide}
+                aria-label="Next tournaments"
+              >
+                ›
+              </button>
+            )}
           </div>
+          {recentSliderMaxIndex > 0 && (
+            <div className="home-slider-dots">
+              {Array.from({ length: recentSliderMaxIndex + 1 }).map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={`home-slider-dot ${i === recentSliderIndex ? 'home-slider-dot-active' : ''}`}
+                  onClick={() => goToRecentSlide(i)}
+                  aria-label={`Go to slide ${i + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </section>
       )}
 
