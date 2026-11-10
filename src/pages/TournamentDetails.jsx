@@ -165,7 +165,10 @@ const TournamentDetails = () => {
               onClick={(e) => openPosterLightbox(e, tournament.tournamentPoster)}
             />
           ) : (
-            <div className="td-poster-img td-poster-placeholder">🏏</div>
+            <div className="td-poster-img td-poster-placeholder">
+              <span className="td-poster-placeholder-icon">🏆</span>
+              <span className="td-poster-placeholder-text">Poster coming soon</span>
+            </div>
           )}
         </div>
         <div className="td-hero-info">

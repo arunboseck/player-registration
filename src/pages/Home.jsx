@@ -418,7 +418,10 @@ const Home = () => {
                           onClick={(e) => { e.stopPropagation(); openPosterLightbox(e, tournament.tournamentPoster); }}
                         />
                       ) : (
-                        <div className="home-tournament-poster home-tournament-poster-placeholder">🏏</div>
+                        <div className="home-tournament-poster home-tournament-poster-placeholder">
+                          <span className="home-tournament-poster-placeholder-icon">🏆</span>
+                          <span className="home-tournament-poster-placeholder-text">Poster coming soon</span>
+                        </div>
                       )}
                       <div className="home-tournament-body">
                         <h3>{tournament.name}</h3>
@@ -521,7 +524,10 @@ const Home = () => {
                           onClick={(e) => { e.stopPropagation(); openPosterLightbox(e, tournament.tournamentPoster); }}
                         />
                       ) : (
-                        <div className="home-tournament-poster home-tournament-poster-placeholder">🏏</div>
+                        <div className="home-tournament-poster home-tournament-poster-placeholder">
+                          <span className="home-tournament-poster-placeholder-icon">🏆</span>
+                          <span className="home-tournament-poster-placeholder-text">No poster uploaded</span>
+                        </div>
                       )}
                       <div className="home-tournament-body">
                         <h3>{tournament.name}</h3>
