@@ -25,6 +25,21 @@ const isRegistrationClosed = (tournament) => {
   return false;
 };
 
+// Each tournament keeps one stable color across the whole calendar, picked by
+// hashing its id against a fixed palette — no two renders disagree on a color.
+const EVENT_COLORS = [
+  '#2563eb', '#059669', '#f97316', '#9333ea', '#dc2626',
+  '#0891b2', '#ca8a04', '#db2777', '#4f46e5', '#16a34a',
+];
+const colorForTournament = (id) => {
+  const str = String(id || '');
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+  return EVENT_COLORS[hash % EVENT_COLORS.length];
+};
+
+const MAX_VISIBLE_EVENTS = 3;
+
 const buildMonthCells = (year, month) => {
   const firstDay = new Date(year, month, 1);
   const startWeekday = firstDay.getDay();
@@ -57,6 +72,7 @@ const CalendarPage = () => {
   const [posterZoomed, setPosterZoomed] = useState(false);
   const [slideDirection, setSlideDirection] = useState('right');
   const [playersModal, setPlayersModal] = useState(null); // { tournamentName, players, loading }
+  const [viewMode, setViewMode] = useState('month'); // 'month' | 'agenda'
 
   useEffect(() => {
     const loadTournaments = async () => {
@@ -79,6 +95,31 @@ const CalendarPage = () => {
       });
     });
     return map;
+  }, [tournaments]);
+
+  // Total individual date entries across every tournament — e.g. a 3-day
+  // tournament contributes 3 entries, matching the "N date entries" summary.
+  const totalDateEntries = useMemo(
+    () => tournaments.reduce((sum, t) => sum + getTournamentPlayDates(t).length, 0),
+    [tournaments]
+  );
+
+  // Agenda view: every tournament, soonest first, grouped by the month its
+  // first play date falls in.
+  const agendaGroups = useMemo(() => {
+    const sorted = [...tournaments].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+    const groups = [];
+    const indexByLabel = {};
+    sorted.forEach((t) => {
+      const d = new Date(t.startDate);
+      const label = `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+      if (!(label in indexByLabel)) {
+        indexByLabel[label] = groups.length;
+        groups.push({ label, items: [] });
+      }
+      groups[indexByLabel[label]].items.push(t);
+    });
+    return groups;
   }, [tournaments]);
 
   const cells = useMemo(
@@ -227,10 +268,32 @@ const CalendarPage = () => {
               <strong>{pastCount}</strong>
               <span>Concluded</span>
             </div>
+            <div className="calendar-quick-stat">
+              <strong>{totalDateEntries}</strong>
+              <span>Match Days</span>
+            </div>
           </div>
         )}
+
+        <div className="calendar-view-toggle">
+          <button
+            type="button"
+            className={`calendar-view-toggle-btn ${viewMode === 'month' ? 'calendar-view-toggle-btn-active' : ''}`}
+            onClick={() => setViewMode('month')}
+          >
+            🗓️ Month View
+          </button>
+          <button
+            type="button"
+            className={`calendar-view-toggle-btn ${viewMode === 'agenda' ? 'calendar-view-toggle-btn-active' : ''}`}
+            onClick={() => setViewMode('agenda')}
+          >
+            📋 Agenda View
+          </button>
+        </div>
       </section>
 
+      {viewMode === 'month' ? (
       <div className="calendar-card">
         <div className="calendar-header">
           <button className="calendar-nav-btn" onClick={goToPrevMonth} aria-label="Previous month">
@@ -272,6 +335,8 @@ const CalendarPage = () => {
               const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
               const isPast = cell.date < todayStart && !isToday;
               const isSunday = cell.date.getDay() === 0;
+              const visibleMatches = matches.slice(0, MAX_VISIBLE_EVENTS);
+              const extraCount = matches.length - visibleMatches.length;
 
               return (
                 <div
@@ -288,15 +353,21 @@ const CalendarPage = () => {
                 >
                   <span className="calendar-cell-number">{cell.date.getDate()}</span>
                   {hasTournament && (
-                    <span
-                      className={[
-                        'calendar-event-label',
-                        isPast ? 'calendar-event-label-past' : '',
-                      ].filter(Boolean).join(' ')}
-                      title={matches.map((t) => t.name).join(', ')}
-                    >
-                      {matches.length === 1 ? matches[0].name : `${matches.length} Tournaments`}
-                    </span>
+                    <div className="calendar-event-list">
+                      {visibleMatches.map((t) => (
+                        <span
+                          key={t.id}
+                          className={['calendar-event-chip', isPast ? 'calendar-event-chip-past' : ''].filter(Boolean).join(' ')}
+                          style={isPast ? undefined : { background: colorForTournament(t.id) }}
+                          title={t.name}
+                        >
+                          {t.name}
+                        </span>
+                      ))}
+                      {extraCount > 0 && (
+                        <span className="calendar-event-chip calendar-event-chip-more">+{extraCount} more</span>
+                      )}
+                    </div>
                   )}
                 </div>
               );
@@ -316,6 +387,63 @@ const CalendarPage = () => {
           </span>
         </div>
       </div>
+      ) : (
+      <div className="calendar-card calendar-agenda-card">
+        {loading ? (
+          <div className="calendar-loading">Loading tournaments…</div>
+        ) : agendaGroups.length === 0 ? (
+          <div className="calendar-loading">No tournaments found.</div>
+        ) : (
+          <div className="calendar-agenda">
+            {agendaGroups.map((group) => (
+              <div key={group.label} className="calendar-agenda-group">
+                <h3 className="calendar-agenda-month">{group.label}</h3>
+                <div className="calendar-agenda-items">
+                  {group.items.map((t) => {
+                    const closed = isRegistrationClosed(t);
+                    const concluded = t.endDate && new Date(t.endDate) < now;
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        className="calendar-agenda-item"
+                        onClick={() => {
+                          setSelectedDate(new Date(t.startDate));
+                          setSelectedTournaments([t]);
+                        }}
+                      >
+                        <span
+                          className="calendar-agenda-item-bar"
+                          style={{ background: concluded ? '#9aa1ab' : colorForTournament(t.id) }}
+                        />
+                        {t.tournamentPoster && (
+                          <img src={t.tournamentPoster} alt={t.name} className="calendar-agenda-item-poster" />
+                        )}
+                        <div className="calendar-agenda-item-info">
+                          <h4>{t.name}</h4>
+                          <p className="calendar-agenda-item-dates">
+                            🗓️ {new Date(t.startDate).toLocaleDateString()} – {new Date(t.endDate).toLocaleDateString()}
+                          </p>
+                          <p className="calendar-agenda-item-location">📍 {t.location}</p>
+                        </div>
+                        <span
+                          className={[
+                            'calendar-agenda-item-status',
+                            concluded ? 'calendar-agenda-item-status-concluded' : closed ? 'calendar-agenda-item-status-closed' : 'calendar-agenda-item-status-open',
+                          ].join(' ')}
+                        >
+                          {concluded ? 'Concluded' : closed ? 'Reg. Closed' : 'Open'}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      )}
 
       {selectedDate && (
         <div className="tournament-modal-overlay" onClick={closeModal}>
