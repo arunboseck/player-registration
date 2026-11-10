@@ -250,64 +250,56 @@ const CalendarPage = () => {
           who's already signed up — all live from our database.
         </p>
 
-        {!loading && (
-          <div className="calendar-quick-stats">
-            <div className="calendar-quick-stat">
-              <strong>{tournaments.length}</strong>
-              <span>Total Tournaments</span>
-            </div>
-            <div className="calendar-quick-stat">
-              <strong>{upcomingCount}</strong>
-              <span>Upcoming / Ongoing</span>
-            </div>
-            <div className="calendar-quick-stat">
-              <strong>{thisMonthCount}</strong>
-              <span>This Month</span>
-            </div>
-            <div className="calendar-quick-stat">
-              <strong>{pastCount}</strong>
-              <span>Concluded</span>
-            </div>
-            <div className="calendar-quick-stat">
-              <strong>{totalDateEntries}</strong>
-              <span>Match Days</span>
-            </div>
+      </section>
+
+      <div className="calendar-card">
+        <div className="calendar-header">
+          <div className="calendar-header-left">
+            {viewMode === 'month' ? (
+              <>
+                <button className="calendar-nav-btn" onClick={goToPrevMonth} aria-label="Previous month">
+                  ‹
+                </button>
+                <h2 className="calendar-title-text">{MONTH_NAMES[currentMonth]} {currentYear}</h2>
+                <button className="calendar-nav-btn" onClick={goToNextMonth} aria-label="Next month">
+                  ›
+                </button>
+                <button className="calendar-today-btn" onClick={goToToday}>Today</button>
+              </>
+            ) : (
+              <h2 className="calendar-title-text">All Tournaments</h2>
+            )}
+          </div>
+
+          <div className="calendar-view-toggle">
+            <button
+              type="button"
+              className={`calendar-view-toggle-btn ${viewMode === 'month' ? 'calendar-view-toggle-btn-active' : ''}`}
+              onClick={() => setViewMode('month')}
+            >
+              Month
+            </button>
+            <button
+              type="button"
+              className={`calendar-view-toggle-btn ${viewMode === 'agenda' ? 'calendar-view-toggle-btn-active' : ''}`}
+              onClick={() => setViewMode('agenda')}
+            >
+              Agenda
+            </button>
+          </div>
+        </div>
+
+        {viewMode === 'month' && !loading && (
+          <div className="calendar-sublegend">
+            <span className="calendar-sublegend-badge">✓ Tournament calendar</span>
+            <span className="calendar-sublegend-text">
+              Each tournament keeps its color · {totalDateEntries} date entries
+            </span>
           </div>
         )}
 
-        <div className="calendar-view-toggle">
-          <button
-            type="button"
-            className={`calendar-view-toggle-btn ${viewMode === 'month' ? 'calendar-view-toggle-btn-active' : ''}`}
-            onClick={() => setViewMode('month')}
-          >
-            🗓️ Month View
-          </button>
-          <button
-            type="button"
-            className={`calendar-view-toggle-btn ${viewMode === 'agenda' ? 'calendar-view-toggle-btn-active' : ''}`}
-            onClick={() => setViewMode('agenda')}
-          >
-            📋 Agenda View
-          </button>
-        </div>
-      </section>
-
       {viewMode === 'month' ? (
-      <div className="calendar-card">
-        <div className="calendar-header">
-          <button className="calendar-nav-btn" onClick={goToPrevMonth} aria-label="Previous month">
-            ‹
-          </button>
-          <div className="calendar-title">
-            <h2>{MONTH_NAMES[currentMonth]} {currentYear}</h2>
-            <button className="calendar-today-btn" onClick={goToToday}>Today</button>
-          </div>
-          <button className="calendar-nav-btn" onClick={goToNextMonth} aria-label="Next month">
-            ›
-          </button>
-        </div>
-
+      <>
         <div className="calendar-weekdays">
           {WEEKDAYS.map((day) => (
             <div
@@ -332,9 +324,10 @@ const CalendarPage = () => {
               const matches = tournamentsByDate[key] || [];
               const hasTournament = matches.length > 0;
               const isToday = isSameDay(cell.date, today);
+              const isSelected = selectedDate && isSameDay(cell.date, selectedDate);
+              const isSunday = cell.date.getDay() === 0;
               const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
               const isPast = cell.date < todayStart && !isToday;
-              const isSunday = cell.date.getDay() === 0;
               const visibleMatches = matches.slice(0, MAX_VISIBLE_EVENTS);
               const extraCount = matches.length - visibleMatches.length;
 
@@ -344,28 +337,29 @@ const CalendarPage = () => {
                   className={[
                     'calendar-cell',
                     cell.outside ? 'calendar-cell-outside' : '',
-                    hasTournament ? 'calendar-cell-event' : '',
-                    hasTournament && isPast ? 'calendar-cell-event-past' : '',
-                    isToday ? 'calendar-cell-today' : '',
                     isSunday ? 'calendar-cell-sunday' : '',
+                    isSelected ? 'calendar-cell-selected' : '',
                   ].filter(Boolean).join(' ')}
                   onClick={() => handleDateClick(cell)}
                 >
-                  <span className="calendar-cell-number">{cell.date.getDate()}</span>
+                  <span className={['calendar-cell-number', isToday ? 'calendar-cell-number-today' : ''].filter(Boolean).join(' ')}>
+                    {cell.date.getDate()}
+                  </span>
                   {hasTournament && (
                     <div className="calendar-event-list">
                       {visibleMatches.map((t) => (
-                        <span
+                        <div
                           key={t.id}
-                          className={['calendar-event-chip', isPast ? 'calendar-event-chip-past' : ''].filter(Boolean).join(' ')}
-                          style={isPast ? undefined : { background: colorForTournament(t.id) }}
+                          className="calendar-event-row"
+                          style={{ color: isPast ? '#9aa1ab' : colorForTournament(t.id) }}
                           title={t.name}
                         >
-                          {t.name}
-                        </span>
+                          <span className="calendar-event-check">✓</span>
+                          <span className="calendar-event-name">{t.name}</span>
+                        </div>
                       ))}
                       {extraCount > 0 && (
-                        <span className="calendar-event-chip calendar-event-chip-more">+{extraCount} more</span>
+                        <div className="calendar-event-more">+{extraCount} more</div>
                       )}
                     </div>
                   )}
@@ -375,20 +369,9 @@ const CalendarPage = () => {
             </div>
           </div>
         )}
-
-        <div className="calendar-legend">
-          <span className="calendar-legend-item">
-            <span className="calendar-legend-dot" />
-            <span>Upcoming / ongoing tournament</span>
-          </span>
-          <span className="calendar-legend-item">
-            <span className="calendar-legend-dot calendar-legend-dot-past" />
-            <span>Past tournament</span>
-          </span>
-        </div>
-      </div>
+      </>
       ) : (
-      <div className="calendar-card calendar-agenda-card">
+      <>
         {loading ? (
           <div className="calendar-loading">Loading tournaments…</div>
         ) : agendaGroups.length === 0 ? (
@@ -442,8 +425,9 @@ const CalendarPage = () => {
             ))}
           </div>
         )}
-      </div>
+      </>
       )}
+      </div>
 
       {selectedDate && (
         <div className="tournament-modal-overlay" onClick={closeModal}>
