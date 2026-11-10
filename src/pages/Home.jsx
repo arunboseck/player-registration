@@ -454,19 +454,6 @@ const Home = () => {
               </button>
             )}
           </div>
-          {sliderMaxIndex > 0 && (
-            <div className="home-slider-dots">
-              {Array.from({ length: sliderMaxIndex + 1 }).map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  className={`home-slider-dot ${i === sliderIndex ? 'home-slider-dot-active' : ''}`}
-                  onClick={() => goToSlide(i)}
-                  aria-label={`Go to slide ${i + 1}`}
-                />
-              ))}
-            </div>
-          )}
         </section>
       )}
 
@@ -557,19 +544,6 @@ const Home = () => {
               </button>
             )}
           </div>
-          {recentSliderMaxIndex > 0 && (
-            <div className="home-slider-dots">
-              {Array.from({ length: recentSliderMaxIndex + 1 }).map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  className={`home-slider-dot ${i === recentSliderIndex ? 'home-slider-dot-active' : ''}`}
-                  onClick={() => goToRecentSlide(i)}
-                  aria-label={`Go to slide ${i + 1}`}
-                />
-              ))}
-            </div>
-          )}
         </section>
       )}
 
