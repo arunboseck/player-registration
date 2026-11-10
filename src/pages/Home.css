@@ -750,7 +750,7 @@
   justify-content: center;
   width: 56px;
   height: 56px;
-  margin-bottom: 0.9rem;
+  margin: 0 auto 0.9rem;
   transition: transform 0.25s ease;
 }
 
