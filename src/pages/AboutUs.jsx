@@ -102,8 +102,11 @@ const AboutUs = () => {
       {/* ==================== Feature Columns ==================== */}
       <section className="home-section about-features-section">
         <div className="about-features-grid">
-          <div className="about-feature-column">
-            <h3 className="about-feature-heading">🧑‍💼 For Organizers</h3>
+          <div className="about-feature-column about-feature-column-organizers">
+            <h3 className="about-feature-heading">
+              <span className="about-feature-heading-icon">🧑‍💼</span>
+              For Organizers
+            </h3>
             <ul className="about-feature-list">
               {ORGANIZER_FEATURES.map((f, i) => (
                 <li key={i}>
@@ -113,8 +116,11 @@ const AboutUs = () => {
               ))}
             </ul>
           </div>
-          <div className="about-feature-column">
-            <h3 className="about-feature-heading">🏃 For Players</h3>
+          <div className="about-feature-column about-feature-column-players">
+            <h3 className="about-feature-heading">
+              <span className="about-feature-heading-icon">🏃</span>
+              For Players
+            </h3>
             <ul className="about-feature-list">
               {PLAYER_FEATURES.map((f, i) => (
                 <li key={i}>
