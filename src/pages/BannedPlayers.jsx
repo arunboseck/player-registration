@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { searchPlayers, banPlayer, updateBan, unbanPlayer, getAllBans } from '../utils/firebaseStorage';
+import { useAuth } from '../contexts/AuthContext';
 import Modal from '../components/Modal';
 import { useModal } from '../hooks/useModal';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -184,6 +186,8 @@ const ReasonEditor = ({ initialValue, onChange }) => {
 };
 
 const BannedPlayers = () => {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [bans, setBans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -261,10 +265,29 @@ const BannedPlayers = () => {
     loadData();
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   if (loading) return <LoadingSpinner />;
 
   return (
     <div className="players-page banned-players-page">
+      <nav className="navbar">
+        <div className="navbar-brand">
+          <h1>Cricket Player Management</h1>
+        </div>
+        <div className="navbar-actions">
+          <button onClick={() => navigate('/dashboard')} className="btn-nav">
+            Dashboard
+          </button>
+          <button onClick={handleLogout} className="btn-logout">
+            Logout
+          </button>
+        </div>
+      </nav>
+
       <div className="players-content">
         <div className="players-header">
           <div>

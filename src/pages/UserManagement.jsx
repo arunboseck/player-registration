@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getTournaments } from '../utils/firebaseStorage';
 import {
@@ -18,7 +19,8 @@ import './UserManagement.css';
 const emptyForm = { name: '', email: '', password: '', role: ROLES.TOURNAMENT_ORGANIZER, assignedTournaments: [] };
 
 const UserManagement = () => {
-  const { user: currentUser } = useAuth();
+  const navigate = useNavigate();
+  const { user: currentUser, logout } = useAuth();
   const [users, setUsers] = useState([]);
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -126,10 +128,29 @@ const UserManagement = () => {
     loadData();
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   if (loading) return <LoadingSpinner />;
 
   return (
     <div className="players-page">
+      <nav className="navbar">
+        <div className="navbar-brand">
+          <h1>Cricket Player Management</h1>
+        </div>
+        <div className="navbar-actions">
+          <button onClick={() => navigate('/dashboard')} className="btn-nav">
+            Dashboard
+          </button>
+          <button onClick={handleLogout} className="btn-logout">
+            Logout
+          </button>
+        </div>
+      </nav>
+
       <div className="players-content">
         <div className="players-header">
           <div>
