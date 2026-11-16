@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { searchPlayers, banPlayer, updateBan, unbanPlayer, getAllBans } from '../utils/firebaseStorage';
 import Modal from '../components/Modal';
 import { useModal } from '../hooks/useModal';
@@ -15,6 +15,143 @@ const getBanStatus = (ban) => {
   if (ban.endDate < today) return { label: 'Expired', cls: 'expired' };
   if (ban.startDate > today) return { label: 'Upcoming', cls: 'upcoming' };
   return { label: '🚫 Active Ban', cls: 'active' };
+};
+
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+const toDateStr = (y, m, d) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+
+const formatDisplayDate = (value) => {
+  if (!value) return '';
+  const d = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+/** Custom calendar-popup date picker, styled to match the app's Calendar page. */
+const CalendarDatePicker = ({ value, onChange, min, placeholder }) => {
+  const [open, setOpen] = useState(false);
+  const [viewDate, setViewDate] = useState(() => new Date(`${value || todayStr()}T00:00:00`));
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const openPicker = () => {
+    setViewDate(new Date(`${value || todayStr()}T00:00:00`));
+    setOpen((o) => !o);
+  };
+
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const firstDayOfWeek = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const cells = [];
+  for (let i = 0; i < firstDayOfWeek; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  const isDisabled = (d) => {
+    if (!min) return false;
+    return toDateStr(year, month, d) < min;
+  };
+
+  const selectDay = (d) => {
+    if (isDisabled(d)) return;
+    onChange(toDateStr(year, month, d));
+    setOpen(false);
+  };
+
+  const today = todayStr();
+
+  return (
+    <div className="cal-picker" ref={wrapperRef}>
+      <button type="button" className="cal-picker-trigger" onClick={openPicker}>
+        <span className={value ? 'cal-picker-value' : 'cal-picker-placeholder'}>
+          {value ? formatDisplayDate(value) : placeholder || 'Select date'}
+        </span>
+        <span className="cal-picker-icon">📅</span>
+      </button>
+      {open && (
+        <div className="cal-picker-popup">
+          <div className="cal-picker-nav">
+            <button type="button" onClick={() => setViewDate(new Date(year, month - 1, 1))}>‹</button>
+            <span>{MONTH_NAMES[month]} {year}</span>
+            <button type="button" onClick={() => setViewDate(new Date(year, month + 1, 1))}>›</button>
+          </div>
+          <div className="cal-picker-weekdays">
+            {WEEKDAYS.map((w, i) => <span key={i}>{w}</span>)}
+          </div>
+          <div className="cal-picker-grid">
+            {cells.map((d, i) => {
+              if (d === null) return <span key={`e${i}`} className="cal-picker-cell cal-picker-empty" />;
+              const dStr = toDateStr(year, month, d);
+              return (
+                <button
+                  type="button"
+                  key={dStr}
+                  disabled={isDisabled(d)}
+                  className={`cal-picker-cell cal-picker-day${value === dStr ? ' selected' : ''}${dStr === today ? ' today' : ''}`}
+                  onClick={() => selectDay(d)}
+                >
+                  {d}
+                </button>
+              );
+            })}
+          </div>
+          <div className="cal-picker-footer">
+            <button
+              type="button"
+              className="cal-picker-today-btn"
+              onClick={() => { if (!min || today >= min) { onChange(today); setOpen(false); } }}
+            >
+              Today
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/** Minimal rich-text editor for the ban reason, with a basic formatting toolbar. */
+const ReasonEditor = ({ initialValue, onChange }) => {
+  const editorRef = useRef(null);
+
+  useEffect(() => {
+    if (editorRef.current) editorRef.current.innerHTML = initialValue || '';
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const exec = (cmd) => {
+    document.execCommand(cmd, false, null);
+    editorRef.current?.focus();
+    onChange(editorRef.current?.innerHTML || '');
+  };
+
+  return (
+    <div className="reason-editor">
+      <div className="reason-editor-toolbar">
+        <button type="button" title="Bold" onClick={() => exec('bold')}><b>B</b></button>
+        <button type="button" title="Italic" onClick={() => exec('italic')}><i>I</i></button>
+        <button type="button" title="Underline" onClick={() => exec('underline')}><u>U</u></button>
+        <button type="button" title="Bullet list" onClick={() => exec('insertUnorderedList')}>• List</button>
+      </div>
+      <div
+        ref={editorRef}
+        className="reason-editor-content"
+        contentEditable
+        data-placeholder="e.g. Misconduct during last tournament"
+        onInput={() => onChange(editorRef.current?.innerHTML || '')}
+      />
+    </div>
+  );
 };
 
 const BannedPlayers = () => {
@@ -73,7 +210,9 @@ const BannedPlayers = () => {
 
     setSaving(true);
     try {
-      const result = editingBan ? await updateBan(editingBan.id, form) : await banPlayer(form);
+      const cleanReason = (form.reason || '').replace(/<br\s*\/?>/gi, '').replace(/<[^>]+>/g, '').trim() ? form.reason : '';
+      const payload = { ...form, reason: cleanReason };
+      const result = editingBan ? await updateBan(editingBan.id, payload) : await banPlayer(payload);
       if (result.success) {
         await showSuccess(`${form.playerName} is now flagged as banned from ${form.startDate} to ${form.endDate}.`, '🚫 Ban Saved');
         setShowForm(false);
@@ -127,8 +266,12 @@ const BannedPlayers = () => {
                   <tr key={ban.id} className={status.cls === 'active' ? 'row-active-ban' : ''}>
                     <td>{ban.playerName}</td>
                     <td>{ban.mobile}</td>
-                    <td>{ban.startDate} &rarr; {ban.endDate}</td>
-                    <td>{ban.reason || '—'}</td>
+                    <td>{formatDisplayDate(ban.startDate)} &rarr; {formatDisplayDate(ban.endDate)}</td>
+                    <td>
+                      {ban.reason
+                        ? <span className="ban-reason-cell" dangerouslySetInnerHTML={{ __html: ban.reason }} />
+                        : '—'}
+                    </td>
                     <td><span className={`ban-status-badge ban-${status.cls}`}>{status.label}</span></td>
                     <td className="user-actions">
                       <button onClick={() => openEditForm(ban)}>Edit</button>
@@ -161,7 +304,18 @@ const BannedPlayers = () => {
                     <div className="ban-search-results">
                       {searchResults.map((p) => (
                         <div key={p.id} className="ban-search-result-item" onClick={() => selectPlayer(p)}>
-                          <strong>{p.name}</strong> <span>{p.mobile}</span>
+                          <div className="ban-result-avatar">
+                            {p.photo
+                              ? <img src={p.photo} alt={p.name} onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                              : null}
+                            <span className="ban-result-avatar-fallback" style={{ display: p.photo ? 'none' : 'flex' }}>
+                              {p.name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="ban-result-info">
+                            <strong>{p.name}</strong>
+                            <span>{p.mobile}</span>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -178,17 +332,30 @@ const BannedPlayers = () => {
               <div className="form-group ban-date-row">
                 <div>
                   <label>Start Date</label>
-                  <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required />
+                  <CalendarDatePicker
+                    value={form.startDate}
+                    onChange={(val) => setForm({ ...form, startDate: val, endDate: form.endDate && form.endDate < val ? '' : form.endDate })}
+                    placeholder="Start date"
+                  />
                 </div>
                 <div>
                   <label>End Date</label>
-                  <input type="date" value={form.endDate} min={form.startDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} required />
+                  <CalendarDatePicker
+                    value={form.endDate}
+                    onChange={(val) => setForm({ ...form, endDate: val })}
+                    min={form.startDate}
+                    placeholder="End date"
+                  />
                 </div>
               </div>
 
               <div className="form-group">
                 <label>Reason (optional)</label>
-                <textarea rows="3" value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} placeholder="e.g. Misconduct during last tournament" />
+                <ReasonEditor
+                  key={editingBan ? editingBan.id : 'new-ban'}
+                  initialValue={form.reason}
+                  onChange={(html) => setForm((prev) => ({ ...prev, reason: html }))}
+                />
               </div>
 
               <div className="modal-actions">
