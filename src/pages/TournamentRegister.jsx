@@ -131,7 +131,7 @@ const TournamentRegister = () => {
         const activeBan = await getActiveBanForPlayer(player.id) || await getActiveBanForMobile(player.mobile);
         if (activeBan) {
           setBanned(true);
-          setBannedInfo(activeBan);
+          setBannedInfo({ ...activeBan, photo: player.photo || '', playerName: player.name || '' });
           setSearching(false);
           return;
         }
@@ -177,7 +177,7 @@ const TournamentRegister = () => {
     const activeBan = await getActiveBanForPlayer(foundPlayer.id) || await getActiveBanForMobile(foundPlayer.mobile);
     if (activeBan) {
       setBanned(true);
-      setBannedInfo(activeBan);
+      setBannedInfo({ ...activeBan, photo: foundPlayer.photo || '', playerName: foundPlayer.name || '' });
       setFoundPlayer(null);
       return;
     }
@@ -374,7 +374,7 @@ const TournamentRegister = () => {
     const activeBan = await getActiveBanForMobile(formData.mobile);
     if (activeBan) {
       setBanned(true);
-      setBannedInfo(activeBan);
+      setBannedInfo({ ...activeBan, photo: formData.photo || '', playerName: formData.name || '' });
       return;
     }
 
@@ -1498,11 +1498,22 @@ const TournamentRegister = () => {
       {banned && bannedInfo && ReactDOM.createPortal(
         <div className="message-lightbox-overlay modal-overlay-v2" onClick={() => setBanned(false)}>
           <div className="message-lightbox banned-lightbox" onClick={(e) => e.stopPropagation()}>
-            <div className="lightbox-icon banned-icon-circle">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM4.5 12c0-1.82.637-3.49 1.7-4.8l10.6 10.6A7.46 7.46 0 0112 19.5 7.5 7.5 0 014.5 12zm13.3 4.8L7.2 6.2A7.46 7.46 0 0112 4.5a7.5 7.5 0 017.5 7.5c0 1.82-.637 3.49-1.7 4.8z" clipRule="evenodd" />
-              </svg>
-            </div>
+            {bannedInfo.photo ? (
+              <div className="banned-player-photo-wrap">
+                <img src={bannedInfo.photo} alt={bannedInfo.playerName || 'Banned player'} className="banned-player-photo" />
+                <div className="lightbox-icon banned-icon-circle banned-icon-badge">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM4.5 12c0-1.82.637-3.49 1.7-4.8l10.6 10.6A7.46 7.46 0 0112 19.5 7.5 7.5 0 014.5 12zm13.3 4.8L7.2 6.2A7.46 7.46 0 0112 4.5a7.5 7.5 0 017.5 7.5c0 1.82-.637 3.49-1.7 4.8z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+            ) : (
+              <div className="lightbox-icon banned-icon-circle">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM4.5 12c0-1.82.637-3.49 1.7-4.8l10.6 10.6A7.46 7.46 0 0112 19.5 7.5 7.5 0 014.5 12zm13.3 4.8L7.2 6.2A7.46 7.46 0 0112 4.5a7.5 7.5 0 017.5 7.5c0 1.82-.637 3.49-1.7 4.8z" clipRule="evenodd" />
+                </svg>
+              </div>
+            )}
             <h3 className="lightbox-title">🚫 You Are Banned</h3>
             <p className="lightbox-message">
               This player is currently banned from registering for tournaments.

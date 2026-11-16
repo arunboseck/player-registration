@@ -1764,6 +1764,39 @@
   box-shadow: 0 8px 25px rgba(241, 65, 108, 0.5);
 }
 
+/* Player photo shown inside the banned lightbox, with the banned icon
+   badged on top like a ban stamp over the player's picture. */
+.banned-player-photo-wrap {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 1.25rem;
+}
+
+.banned-player-photo {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #f1416c;
+  box-shadow: 0 8px 25px rgba(241, 65, 108, 0.45);
+  filter: grayscale(0.25);
+}
+
+.banned-icon-badge {
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  width: 42px;
+  height: 42px;
+  border: 3px solid white;
+}
+
+.banned-icon-badge svg {
+  width: 22px;
+  height: 22px;
+}
+
 .banned-reason-box {
   background: #fff1f3;
   border: 1px solid #f1416c;
