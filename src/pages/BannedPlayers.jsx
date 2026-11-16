@@ -29,6 +29,35 @@ const formatDisplayDate = (value) => {
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
+/** Humanized ban duration, e.g. "1 day", "2 months", "1 year 3 months". */
+const formatBanDuration = (startDate, endDate) => {
+  if (!startDate || !endDate) return '';
+  const start = new Date(`${startDate}T00:00:00`);
+  const end = new Date(`${endDate}T00:00:00`);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) return '';
+
+  let years = end.getFullYear() - start.getFullYear();
+  let months = end.getMonth() - start.getMonth();
+  let days = end.getDate() - start.getDate();
+
+  if (days < 0) {
+    months -= 1;
+    const prevMonth = new Date(end.getFullYear(), end.getMonth(), 0);
+    days += prevMonth.getDate();
+  }
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+
+  const parts = [];
+  if (years > 0) parts.push(`${years} year${years > 1 ? 's' : ''}`);
+  if (months > 0) parts.push(`${months} month${months > 1 ? 's' : ''}`);
+  if (days > 0 || parts.length === 0) parts.push(`${days} day${days !== 1 ? 's' : ''}`);
+
+  return parts.join(' ');
+};
+
 /** Custom calendar-popup date picker, styled to match the app's Calendar page. */
 const CalendarDatePicker = ({ value, onChange, min, placeholder }) => {
   const [open, setOpen] = useState(false);
@@ -266,7 +295,12 @@ const BannedPlayers = () => {
                   <tr key={ban.id} className={status.cls === 'active' ? 'row-active-ban' : ''}>
                     <td>{ban.playerName}</td>
                     <td>{ban.mobile}</td>
-                    <td>{formatDisplayDate(ban.startDate)} &rarr; {formatDisplayDate(ban.endDate)}</td>
+                    <td>
+                      {formatDisplayDate(ban.startDate)} &rarr; {formatDisplayDate(ban.endDate)}
+                      {formatBanDuration(ban.startDate, ban.endDate) && (
+                        <span className="ban-duration-pill">{formatBanDuration(ban.startDate, ban.endDate)}</span>
+                      )}
+                    </td>
                     <td>
                       {ban.reason
                         ? <span className="ban-reason-cell" dangerouslySetInnerHTML={{ __html: ban.reason }} />

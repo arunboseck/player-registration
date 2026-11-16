@@ -7,6 +7,39 @@ import { ref as dbRef, get } from 'firebase/database';
 import { database } from '../firebase/config';
 import './TournamentRegister.css';
 
+/**
+ * Humanized ban duration, e.g. "1 day", "2 months", "1 year 3 months".
+ * Uses the same "ago"-style calendar math as relative-time helpers, but
+ * expressed as a flat span between two dates rather than relative to now.
+ */
+const formatBanDuration = (startDate, endDate) => {
+  if (!startDate || !endDate) return '';
+  const start = new Date(`${startDate}T00:00:00`);
+  const end = new Date(`${endDate}T00:00:00`);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) return '';
+
+  let years = end.getFullYear() - start.getFullYear();
+  let months = end.getMonth() - start.getMonth();
+  let days = end.getDate() - start.getDate();
+
+  if (days < 0) {
+    months -= 1;
+    const prevMonth = new Date(end.getFullYear(), end.getMonth(), 0);
+    days += prevMonth.getDate();
+  }
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+
+  const parts = [];
+  if (years > 0) parts.push(`${years} year${years > 1 ? 's' : ''}`);
+  if (months > 0) parts.push(`${months} month${months > 1 ? 's' : ''}`);
+  if (days > 0 || parts.length === 0) parts.push(`${days} day${days !== 1 ? 's' : ''}`);
+
+  return parts.join(' ');
+};
+
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 const POSITIONS = [
   'ALL ROUNDER', 'LEFT ARM MEDIUM (BOWLING)', 'LEFT ARM FAST MEDIUM (BOWLING)',
@@ -1520,6 +1553,11 @@ const TournamentRegister = () => {
             </p>
             <div className="banned-reason-box">
               <strong>Ban period:</strong> {bannedInfo.startDate} &rarr; {bannedInfo.endDate}
+              {formatBanDuration(bannedInfo.startDate, bannedInfo.endDate) && (
+                <span className="banned-duration-pill">
+                  {formatBanDuration(bannedInfo.startDate, bannedInfo.endDate)}
+                </span>
+              )}
               {bannedInfo.reason && (
                 <>
                   <br />

@@ -1808,6 +1808,18 @@
   text-align: left;
 }
 
+.banned-duration-pill {
+  display: inline-block;
+  margin-left: 0.6rem;
+  padding: 0.2rem 0.65rem;
+  background: linear-gradient(135deg, #f1416c 0%, #b4182f 100%);
+  color: white;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
 .banned-button {
   background: linear-gradient(135deg, #f1416c 0%, #b4182f 100%);
 }

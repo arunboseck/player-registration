@@ -136,6 +136,18 @@
   font-size: 0.82rem;
 }
 
+.ban-duration-pill {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #b4182f;
+  background: #fde2e2;
+  border-radius: 10px;
+  padding: 0.1rem 0.5rem;
+  width: fit-content;
+}
+
 .ban-reason-cell {
   display: inline-block;
   max-width: 260px;
