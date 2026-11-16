@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getPlayers, getPlayersPaginated, getPlayersCount, deletePlayer, getTournaments, addTournamentRegistration, searchPlayers } from '../utils/firebaseStorage';
+import { getPlayers, getPlayersPaginated, getPlayersCount, deletePlayer, getTournaments, addTournamentRegistration, searchPlayers, getActiveBanForPlayer, getActiveBanForMobile } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import * as XLSX from 'xlsx';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -149,6 +149,12 @@ const Players = () => {
     if (!selectedPlayer || !tournament) return;
 
     if (!window.confirm(`Assign ${selectedPlayer.name} to tournament "${tournament.name}"?`)) {
+      return;
+    }
+
+    const activeBan = await getActiveBanForPlayer(selectedPlayer.id) || await getActiveBanForMobile(selectedPlayer.mobile);
+    if (activeBan) {
+      alert(`🚫 Player Banned\n\n${selectedPlayer.name} is currently banned from tournament registration.\n\nBan period: ${activeBan.startDate} → ${activeBan.endDate}${activeBan.reason ? `\nReason: ${activeBan.reason}` : ''}`);
       return;
     }
 

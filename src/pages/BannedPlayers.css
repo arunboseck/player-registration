@@ -1,0 +1,115 @@
+/* Banned Players Page */
+.btn-ban-add {
+  background: linear-gradient(135deg, #f1416c 0%, #b4182f 100%) !important;
+  box-shadow: 0 4px 14px rgba(241, 65, 108, 0.35);
+}
+
+.row-active-ban {
+  background: linear-gradient(90deg, rgba(241, 65, 108, 0.06), transparent);
+}
+
+.ban-status-badge {
+  padding: 0.35rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.ban-status-badge.ban-active {
+  background: #fde2e2;
+  color: #b4182f;
+  animation: banPulse 1.8s ease-in-out infinite;
+}
+
+.ban-status-badge.ban-upcoming {
+  background: #fff4de;
+  color: #9a6b0a;
+}
+
+.ban-status-badge.ban-expired {
+  background: #eef0f5;
+  color: #6b7280;
+}
+
+@keyframes banPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(180, 24, 47, 0.35); }
+  50% { box-shadow: 0 0 0 6px rgba(180, 24, 47, 0); }
+}
+
+.ban-modal-box {
+  border-top: 4px solid #f1416c;
+}
+
+.ban-search-row {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.ban-search-row input {
+  flex: 1;
+}
+
+.ban-search-row button {
+  padding: 0.7rem 1.1rem;
+  border-radius: 10px;
+  border: none;
+  background: #667eea;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ban-search-results {
+  margin-top: 0.6rem;
+  max-height: 180px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.ban-search-result-item {
+  padding: 0.6rem 0.9rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f2f6;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+
+.ban-search-result-item:last-child {
+  border-bottom: none;
+}
+
+.ban-search-result-item:hover {
+  background: #fff1f3;
+}
+
+.ban-search-result-item span {
+  color: #6b7280;
+}
+
+.ban-selected-player {
+  background: #fff1f3;
+  border: 1px solid #f1416c;
+  color: #b4182f;
+  border-radius: 10px;
+  padding: 0.65rem 0.9rem;
+  margin-bottom: 1.1rem;
+  font-size: 0.92rem;
+}
+
+.ban-date-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.ban-date-row > div {
+  flex: 1;
+}
+
+.btn-ban-submit {
+  background: linear-gradient(135deg, #f1416c 0%, #b4182f 100%) !important;
+}

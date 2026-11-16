@@ -240,6 +240,17 @@
   box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
 }
 
+/* Banned Players Button */
+.sidebar-menu-item-red {
+  background: linear-gradient(135deg, #f1416c 0%, #b4182f 100%);
+}
+
+.sidebar-menu-item-red:hover {
+  background: linear-gradient(135deg, #f76e8e 0%, #f1416c 100%);
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(241, 65, 108, 0.35);
+}
+
 /* Logout Button */
 .sidebar-menu-item-logout {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);

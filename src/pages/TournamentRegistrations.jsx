@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTournamentById, getTournamentRegistrations, deleteRegistration, updateRegistration, updateRegistrationsOrder, syncTournamentPhotosWithPlayers, syncTournamentPlayersToMainModule, uploadPhotoToStorage, getPlayerByMobile, updatePlayer, searchPlayers, addTournamentRegistration } from '../utils/firebaseStorage';
+import { getTournamentById, getTournamentRegistrations, deleteRegistration, updateRegistration, updateRegistrationsOrder, syncTournamentPhotosWithPlayers, syncTournamentPlayersToMainModule, uploadPhotoToStorage, getPlayerByMobile, updatePlayer, searchPlayers, addTournamentRegistration, getActiveBanForPlayer, getActiveBanForMobile } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import { ROLES } from '../utils/userManagement';
 import * as XLSX from 'xlsx';
@@ -933,6 +933,13 @@ const TournamentRegistrations = () => {
   const handleAssignPlayerToTournament = async (player) => {
     setAssigningId(player.id);
     try {
+      // Block if this player is currently banned from registering
+      const activeBan = await getActiveBanForPlayer(player.id) || await getActiveBanForMobile(player.mobile);
+      if (activeBan) {
+        alert(`🚫 Player Banned\n\n${player.name} is currently banned from tournament registration.\n\nBan period: ${activeBan.startDate} → ${activeBan.endDate}${activeBan.reason ? `\nReason: ${activeBan.reason}` : ''}`);
+        return;
+      }
+
       const playerData = {
         name: player.name,
         mobile: player.mobile,

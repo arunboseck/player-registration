@@ -50,6 +50,9 @@ const Navigation = () => {
                   <button className="sidebar-menu-item sidebar-menu-item-blue" onClick={() => handleNavigation('/tournaments')}>
                     <span>View Tournaments</span>
                   </button>
+                  <button className="sidebar-menu-item sidebar-menu-item-red" onClick={() => handleNavigation('/banned-players')}>
+                    <span>🚫 Banned Players</span>
+                  </button>
                   <div className="sidebar-divider"></div>
                   <button className="sidebar-menu-item sidebar-menu-item-logout" onClick={handleLogout}>
                     <span>Logout</span>
@@ -75,6 +78,9 @@ const Navigation = () => {
                   <h3 className="sidebar-section-title">Management</h3>
                   <button className="sidebar-menu-item sidebar-menu-item-indigo" onClick={() => handleNavigation('/dashboard')}>
                     <span>Dashboard</span>
+                  </button>
+                  <button className="sidebar-menu-item sidebar-menu-item-red" onClick={() => handleNavigation('/banned-players')}>
+                    <span>🚫 Banned Players</span>
                   </button>
                   {user.role === ROLES.SUPER_ADMIN && (
                     <>

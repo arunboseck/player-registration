@@ -26,6 +26,7 @@ const CleanupDuplicates = lazy(() => import('./pages/CleanupDuplicates'));
 const MigratePhotos = lazy(() => import('./pages/MigratePhotos'));
 const Settings = lazy(() => import('./pages/Settings'));
 const UserManagement = lazy(() => import('./pages/UserManagement'));
+const BannedPlayers = lazy(() => import('./pages/BannedPlayers'));
 import { ROLES } from './utils/userManagement';
 import './App.css';
 
@@ -142,6 +143,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <MigratePhotos />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/banned-players"
+              element={
+                <ProtectedRoute>
+                  <BannedPlayers />
                 </ProtectedRoute>
               }
             />

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import QRCode from 'qrcode';
-import { getTournamentById, addTournamentRegistration, uploadPhotoToStorage, getPlayerByMobile, addPlayer } from '../utils/firebaseStorage';
+import { getTournamentById, addTournamentRegistration, uploadPhotoToStorage, getPlayerByMobile, addPlayer, getActiveBanForPlayer, getActiveBanForMobile } from '../utils/firebaseStorage';
 import { ref as dbRef, get } from 'firebase/database';
 import { database } from '../firebase/config';
 import './TournamentRegister.css';
@@ -42,6 +42,8 @@ const TournamentRegister = () => {
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [alreadyRegistered, setAlreadyRegistered] = useState(false);
   const [alreadyRegisteredPlayer, setAlreadyRegisteredPlayer] = useState(null);
+  const [banned, setBanned] = useState(false);
+  const [bannedInfo, setBannedInfo] = useState(null);
 
   // UPI payment states
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
@@ -125,6 +127,15 @@ const TournamentRegister = () => {
       const player = await getPlayerByMobile(searchMobile.trim());
 
       if (player) {
+        // Check if this player is currently banned from registering
+        const activeBan = await getActiveBanForPlayer(player.id) || await getActiveBanForMobile(player.mobile);
+        if (activeBan) {
+          setBanned(true);
+          setBannedInfo(activeBan);
+          setSearching(false);
+          return;
+        }
+
         // Check if player is already registered for this tournament
         const sanitizedMobile = searchMobile.trim().replace(/[^0-9]/g, '');
         const uniqueRegistrationKey = `${id}_${sanitizedMobile}`;
@@ -161,6 +172,15 @@ const TournamentRegister = () => {
 
   const handleQuickJoin = async () => {
     if (!foundPlayer) return;
+
+    // Defensive re-check: block registration if the player was banned since being found
+    const activeBan = await getActiveBanForPlayer(foundPlayer.id) || await getActiveBanForMobile(foundPlayer.mobile);
+    if (activeBan) {
+      setBanned(true);
+      setBannedInfo(activeBan);
+      setFoundPlayer(null);
+      return;
+    }
 
     // Require payment screenshot when payment collection is enabled for this tournament
     if (tournament?.paymentEnabled && !paymentScreenshot) {
@@ -347,6 +367,14 @@ const TournamentRegister = () => {
     // Require payment screenshot when payment collection is enabled for this tournament
     if (tournament?.paymentEnabled && !paymentScreenshot) {
       setPaymentError('Please upload your payment screenshot to complete registration.');
+      return;
+    }
+
+    // Block registration if this mobile number is currently banned
+    const activeBan = await getActiveBanForMobile(formData.mobile);
+    if (activeBan) {
+      setBanned(true);
+      setBannedInfo(activeBan);
       return;
     }
 
@@ -1460,6 +1488,39 @@ const TournamentRegister = () => {
               setAlreadyRegisteredPlayer(null);
             }}>
               Got it!
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Banned Player Modal - Rendered DIRECTLY to document.body */}
+      {banned && bannedInfo && ReactDOM.createPortal(
+        <div className="message-lightbox-overlay modal-overlay-v2" onClick={() => setBanned(false)}>
+          <div className="message-lightbox banned-lightbox" onClick={(e) => e.stopPropagation()}>
+            <div className="lightbox-icon banned-icon-circle">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM4.5 12c0-1.82.637-3.49 1.7-4.8l10.6 10.6A7.46 7.46 0 0112 19.5 7.5 7.5 0 014.5 12zm13.3 4.8L7.2 6.2A7.46 7.46 0 0112 4.5a7.5 7.5 0 017.5 7.5c0 1.82-.637 3.49-1.7 4.8z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <h3 className="lightbox-title">🚫 You Are Banned</h3>
+            <p className="lightbox-message">
+              This player is currently banned from registering for tournaments.
+            </p>
+            <div className="banned-reason-box">
+              <strong>Ban period:</strong> {bannedInfo.startDate} &rarr; {bannedInfo.endDate}
+              {bannedInfo.reason && (
+                <>
+                  <br />
+                  <strong>Reason:</strong> {bannedInfo.reason}
+                </>
+              )}
+            </div>
+            <button className="lightbox-button banned-button" onClick={() => {
+              setBanned(false);
+              setBannedInfo(null);
+            }}>
+              Close
             </button>
           </div>
         </div>,

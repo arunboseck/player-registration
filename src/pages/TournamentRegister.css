@@ -1745,6 +1745,45 @@
   transform: translateY(-1px);
 }
 
+/* Banned Player Lightbox (Red/Danger) */
+.banned-lightbox {
+  border-top: 6px solid #b4182f;
+  animation: lightboxSlideIn 0.4s ease-out, bannedShake 0.6s ease-in-out 0.4s;
+}
+
+@keyframes bannedShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+
+.banned-icon-circle {
+  background: linear-gradient(135deg, #f1416c 0%, #b4182f 100%);
+  box-shadow: 0 8px 25px rgba(241, 65, 108, 0.5);
+}
+
+.banned-reason-box {
+  background: #fff1f3;
+  border: 1px solid #f1416c;
+  color: #b4182f;
+  border-radius: 12px;
+  padding: 0.85rem 1.1rem;
+  margin: 0 0 1.5rem;
+  font-size: 0.95rem;
+  text-align: left;
+}
+
+.banned-button {
+  background: linear-gradient(135deg, #f1416c 0%, #b4182f 100%);
+}
+
+.banned-button:hover {
+  box-shadow: 0 6px 20px rgba(241, 65, 108, 0.4);
+  transform: translateY(-2px);
+}
+
 /* Warning/Already Registered Lightbox (Orange/Yellow) */
 .warning-lightbox {
   border-top: 6px solid #f59e0b;

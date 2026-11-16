@@ -1064,3 +1064,115 @@ export const syncTournamentPhotosWithPlayers = async (tournamentId) => {
     };
   }
 };
+
+// ==================== BANNED PLAYERS ====================
+// Stored at `banned_players/{banId}` with:
+// { playerId, playerName, mobile, startDate: 'YYYY-MM-DD', endDate: 'YYYY-MM-DD', reason, createdAt }
+
+/**
+ * Create a new ban record for a player.
+ */
+export const banPlayer = async (banData) => {
+  try {
+    const bansRef = dbRef(database, 'banned_players');
+    const newBanRef = push(bansRef);
+    const data = {
+      ...banData,
+      createdAt: new Date().toISOString()
+    };
+    await set(newBanRef, data);
+    return { success: true, id: newBanRef.key, ...data };
+  } catch (error) {
+    console.error('❌ Error banning player:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Update an existing ban record (dates/reason).
+ */
+export const updateBan = async (banId, banData) => {
+  try {
+    const banRef = dbRef(database, `banned_players/${banId}`);
+    await update(banRef, { ...banData, updatedAt: new Date().toISOString() });
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Error updating ban:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Remove/lift a ban entirely.
+ */
+export const unbanPlayer = async (banId) => {
+  try {
+    const banRef = dbRef(database, `banned_players/${banId}`);
+    await remove(banRef);
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Error removing ban:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Fetch all ban records (for the admin Banned Players page).
+ */
+export const getAllBans = async () => {
+  try {
+    const bansRef = dbRef(database, 'banned_players');
+    const snapshot = await get(bansRef);
+    if (snapshot.exists()) {
+      const bansObj = snapshot.val();
+      return Object.keys(bansObj).map(key => ({ id: key, ...bansObj[key] }));
+    }
+    return [];
+  } catch (error) {
+    console.error('❌ Error fetching bans:', error);
+    return [];
+  }
+};
+
+/**
+ * Returns the ban record that is CURRENTLY active today for a given player id,
+ * or null if the player has no active ban. Used to block tournament registration.
+ */
+export const getActiveBanForPlayer = async (playerId) => {
+  if (!playerId) return null;
+  try {
+    const bans = await getAllBans();
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const activeBan = bans.find(ban =>
+      ban.playerId === playerId &&
+      ban.startDate <= today &&
+      ban.endDate >= today
+    );
+    return activeBan || null;
+  } catch (error) {
+    console.error('❌ Error checking active ban:', error);
+    return null;
+  }
+};
+
+/**
+ * Same as above, but looked up by mobile number (used before a player record
+ * exists yet, e.g. during new-player self-registration).
+ */
+export const getActiveBanForMobile = async (mobile) => {
+  if (!mobile) return null;
+  try {
+    const bans = await getAllBans();
+    const today = new Date().toISOString().slice(0, 10);
+    const sanitizedMobile = mobile.replace(/[^0-9]/g, '');
+    const activeBan = bans.find(ban =>
+      (ban.mobile || '').replace(/[^0-9]/g, '') === sanitizedMobile &&
+      ban.startDate <= today &&
+      ban.endDate >= today
+    );
+    return activeBan || null;
+  } catch (error) {
+    console.error('❌ Error checking active ban by mobile:', error);
+    return null;
+  }
+};
