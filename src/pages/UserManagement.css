@@ -1,4 +1,111 @@
 /* User Management Page Styles */
+
+/* Shared full-page wrapper used by admin pages that don't render their own
+   top navbar (UserManagement, BannedPlayers). Gives a soft gradient
+   background and enough top clearance so content never collides with the
+   fixed hamburger menu button (50px, sits at top:20px/left:20px). */
+.players-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #eef1fb 100%);
+  animation: pageFadeIn 0.5s ease-out;
+}
+
+@keyframes pageFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.players-page .players-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 6.5rem 2.5rem 3rem;
+}
+
+.players-page .players-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  animation: fadeInDown 0.6s ease-out;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.players-page .players-header h2 {
+  margin: 0 0 0.35rem 0;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.players-page .players-header .tournament-subtitle {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.98rem;
+}
+
+.players-page .header-actions {
+  display: flex;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.players-page .header-actions button {
+  padding: 0.85rem 1.5rem;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.25s ease;
+}
+
+.players-page .header-actions button:hover {
+  transform: translateY(-3px);
+}
+
+.players-page .user-table-wrapper {
+  animation: fadeInUp 0.6s ease-out 0.1s backwards;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.players-page .user-table tr {
+  transition: background 0.2s ease;
+}
+
+@media (max-width: 640px) {
+  .players-page .players-content {
+    padding: 6rem 1.1rem 2.5rem;
+  }
+
+  .players-page .players-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .players-page .header-actions {
+    width: 100%;
+  }
+
+  .players-page .header-actions button {
+    width: 100%;
+  }
+}
+
 .user-table-wrapper {
   background: white;
   border-radius: 16px;
