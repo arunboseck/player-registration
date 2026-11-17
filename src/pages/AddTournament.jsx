@@ -36,6 +36,7 @@ const AddTournament = () => {
     upiId: '',
     upiPayeeName: '',
     entryFee: '',
+    allowExistingPlayerSearch: true,
   });
   const [organizers, setOrganizers] = useState([
     { name: '', mobile: '', photo: '', photoPreview: null }
@@ -465,6 +466,68 @@ const AddTournament = () => {
                   </div>
                 </div>
               )}
+            </div>
+
+            <div className="form-section-divider">
+              <h3>Registration Options</h3>
+            </div>
+
+            <div
+              className="form-group"
+              style={{
+                background: formData.allowExistingPlayerSearch
+                  ? 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)'
+                  : '#f9fafb',
+                border: `2px solid ${formData.allowExistingPlayerSearch ? '#3b82f6' : '#e5e7eb'}`,
+                borderRadius: '12px',
+                padding: '1.25rem',
+                transition: 'all 0.3s ease',
+              }}
+            >
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  cursor: 'pointer',
+                }}
+                onClick={() =>
+                  setFormData((prev) => ({ ...prev, allowExistingPlayerSearch: !prev.allowExistingPlayerSearch }))
+                }
+              >
+                <span>
+                  Allow "Join with Existing Player" Option
+                  <small style={{ display: 'block', color: '#6b7280', fontWeight: 400, fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                    When disabled, players on the registration page will only see "Register as New Player" — the mobile number search for existing players will be hidden.
+                  </small>
+                </span>
+                <span
+                  style={{
+                    position: 'relative',
+                    width: '48px',
+                    height: '26px',
+                    borderRadius: '13px',
+                    background: formData.allowExistingPlayerSearch ? '#3b82f6' : '#cbd5e1',
+                    transition: 'background 0.3s ease',
+                    flexShrink: 0,
+                    marginLeft: '1rem',
+                  }}
+                >
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: '3px',
+                      left: formData.allowExistingPlayerSearch ? '25px' : '3px',
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      background: '#fff',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                      transition: 'left 0.3s ease',
+                    }}
+                  />
+                </span>
+              </label>
             </div>
 
             <div className="form-section-divider">

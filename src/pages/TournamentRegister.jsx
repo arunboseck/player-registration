@@ -92,6 +92,12 @@ const TournamentRegister = () => {
         const tournamentData = await getTournamentById(id);
         if (tournamentData) {
           setTournament(tournamentData);
+          // If the organizer has disabled "Join with Existing Player", skip
+          // straight to the new-player registration form.
+          if (tournamentData.allowExistingPlayerSearch === false) {
+            setShowSearch(false);
+            setShowRegisterForm(true);
+          }
         }
       } catch (error) {
         console.error('Error loading tournament:', error);
@@ -1301,9 +1307,11 @@ const TournamentRegister = () => {
           {/* Full Registration Form */}
           {showRegisterForm && !showSearch && (
             <div className="full-registration-section">
-              <button onClick={handleBackToSearch} className="btn-back-to-search">
-                ← Back to Search
-              </button>
+              {tournament.allowExistingPlayerSearch !== false && (
+                <button onClick={handleBackToSearch} className="btn-back-to-search">
+                  ← Back to Search
+                </button>
+              )}
               <div className="form-header">
                 <h3>New Player Registration</h3>
                 <p>Fill in the details below to register for the tournament</p>
