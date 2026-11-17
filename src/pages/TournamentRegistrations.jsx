@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTournamentById, getTournamentRegistrations, deleteRegistration, updateRegistration, updateRegistrationsOrder, syncTournamentPhotosWithPlayers, syncTournamentPlayersToMainModule, uploadPhotoToStorage, getPlayerByMobile, updatePlayer, searchPlayers, addTournamentRegistration, getActiveBanForPlayer, getActiveBanForMobile } from '../utils/firebaseStorage';
+import { getTournamentById, getTournamentRegistrations, deleteRegistration, updateRegistration, updateRegistrationsOrder, syncTournamentPhotosWithPlayers, syncTournamentPlayersToMainModule, uploadPhotoToStorage, getPlayerByMobile, updatePlayer, searchPlayers, addTournamentRegistration, getActiveBanForPlayer, getActiveBanForMobile, updateTournament } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import { ROLES } from '../utils/userManagement';
 import * as XLSX from 'xlsx';
@@ -76,6 +76,20 @@ const AddPlayerIcon = () => (
     <circle cx="9" cy="8" r="3.2" fill="#0ea5e9" />
     <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" fill="#0ea5e9" />
     <path d="M18 8v6M15 11h6" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
+const LockClosedIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" fill="#f1f5f9" stroke="#475569" strokeWidth="1.6" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#475569" strokeWidth="1.6" fill="none" />
+  </svg>
+);
+
+const LockOpenIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" fill="#f0fdfa" stroke="#0d9488" strokeWidth="1.6" />
+    <path d="M7 11V7a5 5 0 0 1 9.9-1" stroke="#0d9488" strokeWidth="1.6" fill="none" />
   </svg>
 );
 
@@ -222,6 +236,25 @@ const TournamentRegistrations = () => {
 
   const handleCancelDelete = () => {
     setDeleteModal({ show: false, registration: null });
+  };
+
+  const handleToggleRegistration = async () => {
+    if (!tournament) return;
+    const isClosed = !!tournament.registrationClosed;
+    const confirmed = window.confirm(
+      isClosed
+        ? 'Reopen registration for this tournament? Players will be able to register again.'
+        : 'Close registration for this tournament? Players will no longer be able to register.'
+    );
+    if (!confirmed) return;
+
+    const updated = await updateTournament(tournament.id, {
+      registrationClosed: !isClosed,
+      registrationClosedAt: !isClosed ? new Date().toISOString() : null,
+    });
+    if (updated) {
+      setTournament(updated);
+    }
   };
 
   const handleVerifyPayment = async (registration) => {
@@ -1067,6 +1100,13 @@ const TournamentRegistrations = () => {
             >
               <AddPlayerIcon />
             </button>
+            <button
+              onClick={handleToggleRegistration}
+              className={`btn-download btn-icon-only ${tournament.registrationClosed ? 'btn-reopen-registration' : 'btn-close-registration'}`}
+              title={tournament.registrationClosed ? 'Reopen Registration' : 'Close Registration'}
+            >
+              {tournament.registrationClosed ? <LockOpenIcon /> : <LockClosedIcon />}
+            </button>
             {!isOrganizer && (
               <>
                 <button
@@ -1137,6 +1177,13 @@ const TournamentRegistrations = () => {
                 >
                   <AddPlayerIcon />
                   <span>Add Player from Database</span>
+                </button>
+                <button
+                  onClick={() => { setActionsMenuOpen(false); handleToggleRegistration(); }}
+                  className="actions-dropdown-item"
+                >
+                  {tournament.registrationClosed ? <LockOpenIcon /> : <LockClosedIcon />}
+                  <span>{tournament.registrationClosed ? 'Reopen Registration' : 'Close Registration'}</span>
                 </button>
                 {!isOrganizer && (
                   <>

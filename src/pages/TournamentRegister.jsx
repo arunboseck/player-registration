@@ -715,8 +715,8 @@ const TournamentRegister = () => {
           </div>
         )}
 
-        {/* Check if auction date has passed - Show only closed message */}
-        {tournament.auctionDate && new Date(tournament.auctionDate) <= new Date() ? (
+        {/* Check if auction date has passed, or registration was manually closed - Show only closed message */}
+        {tournament.registrationClosed || (tournament.auctionDate && new Date(tournament.auctionDate) <= new Date()) ? (
           <div style={{
             maxWidth: '650px',
             margin: '0 auto',
@@ -798,29 +798,33 @@ const TournamentRegister = () => {
                   opacity: '0.95',
                   lineHeight: '1.4'
                 }}>
-                  The auction has started! Player registration for this tournament is now closed.
+                  {tournament.auctionDate && new Date(tournament.auctionDate) <= new Date()
+                    ? 'The auction has started! Player registration for this tournament is now closed.'
+                    : 'Player registration for this tournament has been closed by the organizer.'}
                 </p>
 
-                <div style={{
-                  background: 'rgba(255,255,255,0.15)',
-                  borderRadius: '10px',
-                  padding: '0.6rem 0.75rem',
-                  marginBottom: '0.75rem',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255,255,255,0.2)'
-                }}>
-                  <div style={{ fontSize: '0.7rem', opacity: '0.9', marginBottom: '0.2rem', fontWeight: '500' }}>
-                    Auction Date
+                {tournament.auctionDate && (
+                  <div style={{
+                    background: 'rgba(255,255,255,0.15)',
+                    borderRadius: '10px',
+                    padding: '0.6rem 0.75rem',
+                    marginBottom: '0.75rem',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255,255,255,0.2)'
+                  }}>
+                    <div style={{ fontSize: '0.7rem', opacity: '0.9', marginBottom: '0.2rem', fontWeight: '500' }}>
+                      Auction Date
+                    </div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: '700' }}>
+                      {new Date(tournament.auctionDate).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </div>
                   </div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: '700' }}>
-                    {new Date(tournament.auctionDate).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </div>
-                </div>
+                )}
 
                 {/* Organizer Details Section */}
                 <div style={{

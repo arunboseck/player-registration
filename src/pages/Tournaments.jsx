@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getTournaments, deleteTournament, getTournamentRegistrations } from '../utils/firebaseStorage';
+import { getTournaments, deleteTournament, getTournamentRegistrations, updateTournament } from '../utils/firebaseStorage';
 import { useAuth } from '../contexts/AuthContext';
 import { ROLES } from '../utils/userManagement';
 import Modal from '../components/Modal';
@@ -64,6 +64,29 @@ const Tournaments = () => {
       await deleteTournament(id);
       loadTournaments();
       await showSuccess('Tournament has been deleted successfully!');
+    }
+  };
+
+  const handleToggleRegistration = async (tournament) => {
+    const isClosed = !!tournament.registrationClosed;
+    const confirmed = await showConfirm(
+      isClosed
+        ? 'Reopen registration for this tournament? Players will be able to register again.'
+        : 'Close registration for this tournament? Players will no longer be able to register.',
+      isClosed ? '🔓 Reopen Registration' : '🔒 Close Registration'
+    );
+
+    if (confirmed) {
+      await updateTournament(tournament.id, {
+        registrationClosed: !isClosed,
+        registrationClosedAt: !isClosed ? new Date().toISOString() : null,
+      });
+      await loadTournaments();
+      await showSuccess(
+        isClosed
+          ? 'Registration has been reopened for this tournament.'
+          : 'Registration has been closed for this tournament.'
+      );
     }
   };
 
@@ -234,6 +257,11 @@ const Tournaments = () => {
                       <span className={`status-badge ${getStatusClass(actualStatus)}`}>
                         {actualStatus}
                       </span>
+                      {tournament.registrationClosed && (
+                        <span className="registration-closed-pill" title="Registration has been manually closed">
+                          🔒 Closed
+                        </span>
+                      )}
                     </td>
                     <td>
                       <div className="action-buttons">
@@ -258,6 +286,23 @@ const Tournaments = () => {
                             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
                             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
                           </svg>
+                        </button>
+                        <button
+                          onClick={() => handleToggleRegistration(tournament)}
+                          className={`btn-icon-action ${tournament.registrationClosed ? 'btn-reopen-registration' : 'btn-close-registration'}`}
+                          title={tournament.registrationClosed ? 'Reopen Registration' : 'Close Registration'}
+                        >
+                          {tournament.registrationClosed ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                              <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+                            </svg>
+                          ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                          )}
                         </button>
                         {user?.role !== ROLES.TOURNAMENT_ORGANIZER && (
                           <>
