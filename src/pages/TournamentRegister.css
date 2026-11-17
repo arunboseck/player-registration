@@ -246,6 +246,19 @@
 }
 
 /* Photo Preview */
+.form-section-divider {
+  margin: 1.75rem 0 1.25rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.form-section-divider h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #667eea;
+}
+
 .photo-preview {
   margin-top: 1rem;
   display: flex;
