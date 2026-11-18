@@ -40,6 +40,27 @@ const formatBanDuration = (startDate, endDate) => {
   return parts.join(' ');
 };
 
+/**
+ * Builds a UPI payment link that targets the Google Pay app specifically,
+ * instead of letting the OS open its generic "upi://" chooser (which on
+ * some devices defaults to WhatsApp or another UPI-capable app).
+ *
+ * - Android: uses an explicit intent that targets Google Pay's package,
+ *   with a plain "upi://" fallback if Google Pay isn't installed.
+ * - iOS / other: uses Google Pay's own "gpay://" URL scheme.
+ */
+const buildGpayUrl = (tournament) => {
+  const params = `pa=${encodeURIComponent(tournament.upiId)}&pn=${encodeURIComponent(tournament.upiPayeeName || tournament.name)}&am=${encodeURIComponent(tournament.entryFee)}&cu=INR&tn=${encodeURIComponent(`Entry fee - ${tournament.name}`)}`;
+  const isAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent || '');
+
+  if (isAndroid) {
+    const fallback = encodeURIComponent(`upi://pay?${params}`);
+    return `intent://pay?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;S.browser_fallback_url=${fallback};end`;
+  }
+
+  return `gpay://upi/pay?${params}`;
+};
+
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 const POSITIONS = [
   'ALL ROUNDER', 'LEFT ARM MEDIUM (BOWLING)', 'LEFT ARM FAST MEDIUM (BOWLING)',
@@ -588,9 +609,9 @@ const TournamentRegister = () => {
             )}
             <a
               className="upi-pay-app-button"
-              href={`upi://pay?pa=${encodeURIComponent(tournament.upiId)}&pn=${encodeURIComponent(tournament.upiPayeeName || tournament.name)}&am=${encodeURIComponent(tournament.entryFee)}&cu=INR&tn=${encodeURIComponent(`Entry fee - ${tournament.name}`)}`}
+              href={buildGpayUrl(tournament)}
             >
-              📱 Pay with UPI App
+              📱 Pay with Google Pay
             </a>
           </div>
 
