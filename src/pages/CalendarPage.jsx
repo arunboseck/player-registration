@@ -19,6 +19,7 @@ const toDateKey = (date) => {
 };
 
 const isRegistrationClosed = (tournament) => {
+  if (tournament.registrationClosed) return true;
   const now = new Date();
   if (tournament.auctionDate && new Date(tournament.auctionDate) <= now) return true;
   if (tournament.endDate && new Date(tournament.endDate) < now) return true;
