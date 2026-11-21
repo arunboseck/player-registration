@@ -1449,42 +1449,46 @@ const TournamentRegister = () => {
                   )}
                 </div>
 
-                <div className="form-section-divider">
-                  <h3>Jersey Details</h3>
-                </div>
+                {tournament.showJerseyDetails !== false && (
+                  <>
+                    <div className="form-section-divider">
+                      <h3>Jersey Details</h3>
+                    </div>
 
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Jersey Name *</label>
-                    <input type="text" name="jerseyName" value={formData.jerseyName} onChange={handleChange} required />
-                  </div>
-                  <div className="form-group">
-                    <label>Jersey Number *</label>
-                    <input type="text" name="jerseyNumber" value={formData.jerseyNumber} onChange={handleChange} required />
-                  </div>
-                </div>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Jersey Name *</label>
+                        <input type="text" name="jerseyName" value={formData.jerseyName} onChange={handleChange} required />
+                      </div>
+                      <div className="form-group">
+                        <label>Jersey Number *</label>
+                        <input type="text" name="jerseyNumber" value={formData.jerseyNumber} onChange={handleChange} required />
+                      </div>
+                    </div>
 
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>T-Shirt Size *</label>
-                    <input type="text" name="tshirtSize" value={formData.tshirtSize} onChange={handleChange} placeholder="e.g. M, L, XL" required />
-                  </div>
-                  <div className="form-group">
-                    <label>Short Size *</label>
-                    <input type="text" name="shortSize" value={formData.shortSize} onChange={handleChange} placeholder="e.g. M, L, XL" required />
-                  </div>
-                </div>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>T-Shirt Size *</label>
+                        <input type="text" name="tshirtSize" value={formData.tshirtSize} onChange={handleChange} placeholder="e.g. M, L, XL" required />
+                      </div>
+                      <div className="form-group">
+                        <label>Short Size *</label>
+                        <input type="text" name="shortSize" value={formData.shortSize} onChange={handleChange} placeholder="e.g. M, L, XL" required />
+                      </div>
+                    </div>
 
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Sleeve Type *</label>
-                    <select name="sleeveType" value={formData.sleeveType} onChange={handleChange} required>
-                      <option value="">Select Sleeve Type</option>
-                      <option value="Half Sleeve">Half Sleeve</option>
-                      <option value="Full Sleeve">Full Sleeve</option>
-                    </select>
-                  </div>
-                </div>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Sleeve Type *</label>
+                        <select name="sleeveType" value={formData.sleeveType} onChange={handleChange} required>
+                          <option value="">Select Sleeve Type</option>
+                          <option value="Half Sleeve">Half Sleeve</option>
+                          <option value="Full Sleeve">Full Sleeve</option>
+                        </select>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 {renderPaymentSection()}
 
