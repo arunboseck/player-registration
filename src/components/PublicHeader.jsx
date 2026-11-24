@@ -36,6 +36,7 @@ const PublicHeader = () => {
           <Link to="/" className={`home-nav-link ${isActive('/') ? 'home-nav-link-active' : ''}`}>Home</Link>
           <Link to="/about" className={`home-nav-link ${isActive('/about') ? 'home-nav-link-active' : ''}`}>About Us</Link>
           <Link to="/calendar" className={`home-nav-link ${isActive('/calendar') ? 'home-nav-link-active' : ''}`}>Calendar</Link>
+          <Link to="/live-auction" className={`home-nav-link ${isActive('/live-auction') ? 'home-nav-link-active' : ''}`}>🔴 Live Auction</Link>
         </nav>
 
         <Link to="/admin-login" className="home-header-link">
@@ -63,6 +64,9 @@ const PublicHeader = () => {
           </Link>
           <Link to="/calendar" className={`home-sidebar-link ${isActive('/calendar') ? 'home-sidebar-link-active' : ''}`} onClick={() => setMenuOpen(false)}>
             <span>📅</span> Calendar
+          </Link>
+          <Link to="/live-auction" className={`home-sidebar-link ${isActive('/live-auction') ? 'home-sidebar-link-active' : ''}`} onClick={() => setMenuOpen(false)}>
+            <span>🔴</span> Live Auction
           </Link>
           <Link to="/admin-login" className="home-sidebar-link" onClick={() => setMenuOpen(false)}>
             <span>🔐</span> Admin Login

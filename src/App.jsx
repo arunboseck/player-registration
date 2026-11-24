@@ -7,6 +7,7 @@ import Navigation from './components/Navigation';
 import Home from './pages/Home';
 import AboutUs from './pages/AboutUs';
 import CalendarPage from './pages/CalendarPage';
+const LiveAuction = lazy(() => import('./pages/LiveAuction'));
 // Everything else (admin/auth-gated pages, the camera-heavy tournament register
 // flow) is code-split so visiting "/" never has to parse/compile/execute their
 // JS — that main-thread work was the cause of scroll stutter on mobile.
@@ -38,11 +39,12 @@ function Layout({ children }) {
   const isHomePage = location.pathname === '/';
   const isAboutPage = location.pathname === '/about';
   const isCalendarPage = location.pathname === '/calendar';
+  const isLiveAuctionPage = location.pathname === '/live-auction';
   const isLoginPage = location.pathname === '/admin-login';
   const isTournamentRegisterPage = location.pathname.startsWith('/tournament-register/');
   const isTournamentDetailsPage = location.pathname.startsWith('/tournament/');
   const showNavigation =
-    !isHomePage && !isAboutPage && !isCalendarPage && !isLoginPage && !isTournamentRegisterPage && !isTournamentDetailsPage;
+    !isHomePage && !isAboutPage && !isCalendarPage && !isLiveAuctionPage && !isLoginPage && !isTournamentRegisterPage && !isTournamentDetailsPage;
 
   return (
     <>
@@ -62,6 +64,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<AboutUs />} />
             <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/live-auction" element={<LiveAuction />} />
             <Route path="/admin-login" element={<Login />} />
             <Route path="/register" element={<PublicRegister />} />
             <Route path="/tournament/:id" element={<TournamentDetails />} />
