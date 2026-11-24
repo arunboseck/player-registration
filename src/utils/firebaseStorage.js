@@ -1,6 +1,47 @@
 import { ref as dbRef, set, get, remove, push, update, query, orderByChild, orderByKey, equalTo, limitToFirst, startAfter, endBefore, limitToLast } from 'firebase/database';
 import { database } from '../firebase/config';
 
+// ==================== APP SETTINGS (admin-configured, publicly readable) ====================
+
+/**
+ * Get the current Live Auction settings (iframe URL shown to public visitors).
+ * Readable by everyone (public page); only an authenticated admin can write it.
+ * @returns {Promise<{url: string, enabled: boolean, updatedAt: string|null}>}
+ */
+export const getLiveAuctionSettings = async () => {
+  try {
+    const snapshot = await get(dbRef(database, 'app_settings/liveAuction'));
+    const data = snapshot.exists() ? snapshot.val() : null;
+    return {
+      url: data?.url || '',
+      enabled: data?.enabled ?? false,
+      updatedAt: data?.updatedAt || null
+    };
+  } catch (error) {
+    console.error('Error loading live auction settings:', error);
+    return { url: '', enabled: false, updatedAt: null };
+  }
+};
+
+/**
+ * Save the Live Auction settings. Requires an authenticated admin (enforced by
+ * database.rules.json's "app_settings" write rule).
+ * @param {{url: string, enabled: boolean}} settings
+ */
+export const updateLiveAuctionSettings = async ({ url, enabled }) => {
+  try {
+    await set(dbRef(database, 'app_settings/liveAuction'), {
+      url: url || '',
+      enabled: !!enabled,
+      updatedAt: new Date().toISOString()
+    });
+    return true;
+  } catch (error) {
+    console.error('Error saving live auction settings:', error);
+    throw error;
+  }
+};
+
 // ==================== PHOTO STORAGE HELPERS (CLOUDINARY - FREE!) ====================
 
 /**

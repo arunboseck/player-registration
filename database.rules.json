@@ -33,6 +33,10 @@
       "$uniqueKey": {
         ".write": "auth != null || !data.exists()"
       }
+    },
+
+    "app_settings": {
+      ".write": "auth != null"
     }
   }
 }

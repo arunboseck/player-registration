@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getPlayers, getTournaments, getTournamentRegistrations } from '../utils/firebaseStorage';
+import {
+  getPlayers,
+  getTournaments,
+  getTournamentRegistrations,
+  getLiveAuctionSettings,
+  updateLiveAuctionSettings
+} from '../utils/firebaseStorage';
 import {
   exportDatabase,
   downloadBackup,
@@ -36,6 +42,9 @@ const Settings = () => {
   const [loadingBackups, setLoadingBackups] = useState(false);
   const [deletingBackup, setDeletingBackup] = useState(null);
   const [serverOnline, setServerOnline] = useState(true);
+  const [liveAuctionUrl, setLiveAuctionUrl] = useState('');
+  const [liveAuctionEnabled, setLiveAuctionEnabled] = useState(false);
+  const [savingLiveAuction, setSavingLiveAuction] = useState(false);
   const { modalState, hideModal, showSuccess, showError, showConfirm } = useModal();
 
   const handleLogout = async () => {
@@ -49,7 +58,28 @@ const Settings = () => {
     loadDatabaseStats();
     checkServer();
     loadBackupList();
+    loadLiveAuctionSettings();
   }, []);
+
+  const loadLiveAuctionSettings = async () => {
+    const settings = await getLiveAuctionSettings();
+    setLiveAuctionUrl(settings.url);
+    setLiveAuctionEnabled(settings.enabled);
+  };
+
+  const handleSaveLiveAuction = async (e) => {
+    e.preventDefault();
+    try {
+      setSavingLiveAuction(true);
+      await updateLiveAuctionSettings({ url: liveAuctionUrl.trim(), enabled: liveAuctionEnabled });
+      showSuccess('Live Auction Settings Saved', 'The public Live Auction page has been updated.');
+    } catch (error) {
+      console.error('Error saving live auction settings:', error);
+      showError('Save Failed', error.message || 'Could not save live auction settings.');
+    } finally {
+      setSavingLiveAuction(false);
+    }
+  };
 
   const checkServer = async () => {
     const isOnline = await checkServerHealth();
@@ -325,6 +355,62 @@ const Settings = () => {
               <div className="stat-value">{dbStats?.totalRegistrations || 0}</div>
               <div className="stat-label">Total Registrations</div>
             </div>
+          </div>
+        </div>
+
+        {/* Live Auction Settings */}
+        <div className="settings-section">
+          <h2 className="section-title">🔴 Live Auction</h2>
+          <div className="backup-card">
+            <div className="backup-info">
+              <p className="backup-description">
+                Set the URL shown in the iframe on the public "Live Auction" page (<code>/live-auction</code>).
+                A plain <code>localhost</code> URL only works for visitors on the same computer the
+                auction is running on — to show it to other users, expose it with a tunnel (e.g.{' '}
+                <code>ngrok http 3000</code>) and paste the public URL it gives you below.
+              </p>
+            </div>
+            <form onSubmit={handleSaveLiveAuction} style={{ width: '100%' }}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, color: '#374151' }}>
+                  Auction Screen URL
+                </label>
+                <input
+                  type="text"
+                  value={liveAuctionUrl}
+                  onChange={(e) => setLiveAuctionUrl(e.target.value)}
+                  placeholder="https://your-tunnel-url.ngrok-free.app"
+                  style={{
+                    width: '100%',
+                    padding: '0.65rem 0.9rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '0.95rem'
+                  }}
+                />
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={liveAuctionEnabled}
+                  onChange={(e) => setLiveAuctionEnabled(e.target.checked)}
+                />
+                <span>Show Live Auction page to visitors</span>
+              </label>
+              <button type="submit" className="btn-export" disabled={savingLiveAuction}>
+                {savingLiveAuction ? (
+                  <>
+                    <span className="spinner"></span>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <span className="btn-icon">💾</span>
+                    Save Live Auction Settings
+                  </>
+                )}
+              </button>
+            </form>
           </div>
         </div>
 
