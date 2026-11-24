@@ -9,6 +9,12 @@
   padding: 1.5rem 1rem 3rem;
 }
 
+@media (max-width: 760px) {
+  .live-auction-container {
+    padding: 0.85rem 0.5rem 1.5rem;
+  }
+}
+
 .live-auction-top {
   display: flex;
   align-items: center;
@@ -104,6 +110,18 @@
   width: 100%;
   height: 100%;
   border: 0;
+}
+
+/* The embedded page is a full responsive layout, not a video - locking it
+   to a 16:9 box on phones squeezes/clips most of its content out of view.
+   Below tablet width, drop the aspect-ratio lock and give it a tall,
+   independently-scrollable area instead so the whole page is reachable. */
+@media (max-width: 760px) {
+  .live-auction-frame-wrapper {
+    padding-top: 0;
+    height: calc(100vh - 160px);
+    min-height: 480px;
+  }
 }
 
 .live-auction-empty,
