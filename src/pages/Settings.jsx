@@ -367,7 +367,8 @@ const Settings = () => {
                 Set the URL shown in the iframe on the public "Live Auction" page (<code>/live-auction</code>).
                 A plain <code>localhost</code> URL only works for visitors on the same computer the
                 auction is running on — to show it to other users, expose it with a tunnel (e.g.{' '}
-                <code>ngrok http 3000</code>) and paste the public URL it gives you below.
+                <code>cloudflared tunnel --url https://localhost:8890</code>) and paste the public
+                URL it gives you below.
               </p>
             </div>
             <form onSubmit={handleSaveLiveAuction} style={{ width: '100%' }}>
@@ -379,7 +380,7 @@ const Settings = () => {
                   type="text"
                   value={liveAuctionUrl}
                   onChange={(e) => setLiveAuctionUrl(e.target.value)}
-                  placeholder="https://your-tunnel-url.ngrok-free.app"
+                  placeholder="https://your-tunnel-url.trycloudflare.com"
                   style={{
                     width: '100%',
                     padding: '0.65rem 0.9rem',
