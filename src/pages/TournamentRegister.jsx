@@ -41,15 +41,6 @@ const formatBanDuration = (startDate, endDate) => {
 };
 
 /**
- * Builds a UPI payment link that targets the Google Pay app specifically,
- * instead of letting the OS open its generic "upi://" chooser (which on
- * some devices defaults to WhatsApp or another UPI-capable app).
- *
- * - Android: uses an explicit intent that targets Google Pay's package,
- *   with a plain "upi://" fallback if Google Pay isn't installed.
- * - iOS / other: uses Google Pay's own "gpay://" URL scheme.
- */
-/**
  * UPI's "tn" (transaction note) is only reliably shown by payment apps when
  * it's short (most apps truncate or drop it beyond ~25 chars) and when a
  * "tr" (transaction reference) is also present - some apps' QR scanners
@@ -67,13 +58,27 @@ const buildUpiRef = (tournament) => {
   return `TRN${(tournament.id || '').replace(/[^a-zA-Z0-9.-]/g, '').slice(0, 30)}`;
 };
 
+/**
+ * Builds the UPI payment deep link used by the "Pay with Google Pay" button.
+ *
+ * This intentionally uses the plain, generic "upi://pay" link - the same
+ * link encoded into the QR code - rather than an Android intent that
+ * explicitly targets Google Pay's package
+ * (intent://pay?...#Intent;package=com.google.android.apps.nbu.paisa.user;...).
+ * That explicit-package intent route (invoked from a mobile browser) is
+ * handled by Google Pay through a different, stricter risk/fraud check than
+ * a normal QR scan or a generic "upi://" link, and was causing a false
+ * "You have exceeded the bank limit for this payment" error even for small
+ * amounts. The generic link lets Android's normal UPI chooser (or iOS's
+ * "gpay://" scheme) hand off the payment exactly like scanning the QR does,
+ * which does not hit that restriction.
+ */
 const buildGpayUrl = (tournament) => {
   const params = `pa=${encodeURIComponent(tournament.upiId)}&pn=${encodeURIComponent(tournament.upiPayeeName || tournament.name)}&am=${encodeURIComponent(tournament.entryFee)}&cu=INR&tn=${encodeURIComponent(buildUpiNote(tournament))}&tr=${encodeURIComponent(buildUpiRef(tournament))}`;
   const isAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent || '');
 
   if (isAndroid) {
-    const fallback = encodeURIComponent(`upi://pay?${params}`);
-    return `intent://pay?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;S.browser_fallback_url=${fallback};end`;
+    return `upi://pay?${params}`;
   }
 
   return `gpay://upi/pay?${params}`;
