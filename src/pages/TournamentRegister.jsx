@@ -58,32 +58,6 @@ const buildUpiRef = (tournament) => {
   return `TRN${(tournament.id || '').replace(/[^a-zA-Z0-9.-]/g, '').slice(0, 30)}`;
 };
 
-/**
- * Builds the UPI payment deep link used by the "Pay with Google Pay" button.
- *
- * This intentionally uses the plain, generic "upi://pay" link - the same
- * link encoded into the QR code - rather than an Android intent that
- * explicitly targets Google Pay's package
- * (intent://pay?...#Intent;package=com.google.android.apps.nbu.paisa.user;...).
- * That explicit-package intent route (invoked from a mobile browser) is
- * handled by Google Pay through a different, stricter risk/fraud check than
- * a normal QR scan or a generic "upi://" link, and was causing a false
- * "You have exceeded the bank limit for this payment" error even for small
- * amounts. The generic link lets Android's normal UPI chooser (or iOS's
- * "gpay://" scheme) hand off the payment exactly like scanning the QR does,
- * which does not hit that restriction.
- */
-const buildGpayUrl = (tournament) => {
-  const params = `pa=${encodeURIComponent(tournament.upiId)}&pn=${encodeURIComponent(tournament.upiPayeeName || tournament.name)}&am=${encodeURIComponent(tournament.entryFee)}&cu=INR&tn=${encodeURIComponent(buildUpiNote(tournament))}&tr=${encodeURIComponent(buildUpiRef(tournament))}`;
-  const isAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent || '');
-
-  if (isAndroid) {
-    return `upi://pay?${params}`;
-  }
-
-  return `gpay://upi/pay?${params}`;
-};
-
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 const POSITIONS = [
   'ALL ROUNDER', 'LEFT ARM MEDIUM (BOWLING)', 'LEFT ARM FAST MEDIUM (BOWLING)',
@@ -630,7 +604,7 @@ const TournamentRegister = () => {
         <div className="upi-payment-header">
           <span className="upi-payment-badge">💳 Entry Fee Payment</span>
           <h4>Pay ₹{tournament.entryFee} via UPI to Complete Registration</h4>
-          <p>Scan the QR code or pay to the UPI ID below, then upload your payment screenshot.</p>
+          <p>Scan the QR code with your UPI app (Google Pay, PhonePe, Paytm, etc.) or pay to the UPI ID / phone number below, then upload your payment screenshot.</p>
         </div>
 
         <div className="upi-payment-body">
@@ -640,12 +614,7 @@ const TournamentRegister = () => {
             ) : (
               <div className="upi-qr-placeholder">Generating QR code…</div>
             )}
-            <a
-              className="upi-pay-app-button"
-              href={buildGpayUrl(tournament)}
-            >
-              📱 Pay with Google Pay
-            </a>
+            <p className="upi-qr-hint">👆 Scan this with your UPI app's camera/scanner to pay</p>
           </div>
 
           <div className="upi-details-wrap">

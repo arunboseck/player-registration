@@ -2162,6 +2162,13 @@
   min-width: 260px;
 }
 
+.upi-qr-hint {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #64748b;
+  text-align: center;
+}
+
 .upi-detail-row {
   display: flex;
   align-items: center;
