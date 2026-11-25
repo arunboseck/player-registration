@@ -49,8 +49,26 @@ const formatBanDuration = (startDate, endDate) => {
  *   with a plain "upi://" fallback if Google Pay isn't installed.
  * - iOS / other: uses Google Pay's own "gpay://" URL scheme.
  */
+/**
+ * UPI's "tn" (transaction note) is only reliably shown by payment apps when
+ * it's short (most apps truncate or drop it beyond ~25 chars) and when a
+ * "tr" (transaction reference) is also present - some apps' QR scanners
+ * (notably Google Pay's in-app scanner) skip rendering the note entirely
+ * without one. Keeping the note short and always including a reference
+ * fixes the note not appearing when scanning the QR with GPay's scanner.
+ */
+const buildUpiNote = (tournament) => {
+  const note = `Entry fee-${tournament.name}`;
+  return note.length > 25 ? note.slice(0, 25) : note;
+};
+
+const buildUpiRef = (tournament) => {
+  // tr must be alphanumeric plus . and - only, max 35 chars
+  return `TRN${(tournament.id || '').replace(/[^a-zA-Z0-9.-]/g, '').slice(0, 30)}`;
+};
+
 const buildGpayUrl = (tournament) => {
-  const params = `pa=${encodeURIComponent(tournament.upiId)}&pn=${encodeURIComponent(tournament.upiPayeeName || tournament.name)}&am=${encodeURIComponent(tournament.entryFee)}&cu=INR&tn=${encodeURIComponent(`Entry fee - ${tournament.name}`)}`;
+  const params = `pa=${encodeURIComponent(tournament.upiId)}&pn=${encodeURIComponent(tournament.upiPayeeName || tournament.name)}&am=${encodeURIComponent(tournament.entryFee)}&cu=INR&tn=${encodeURIComponent(buildUpiNote(tournament))}&tr=${encodeURIComponent(buildUpiRef(tournament))}`;
   const isAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent || '');
 
   if (isAndroid) {
@@ -136,7 +154,7 @@ const TournamentRegister = () => {
     const generateQr = async () => {
       if (tournament?.paymentEnabled && tournament?.upiId && tournament?.entryFee) {
         try {
-          const upiUrl = `upi://pay?pa=${encodeURIComponent(tournament.upiId)}&pn=${encodeURIComponent(tournament.upiPayeeName || tournament.name)}&am=${encodeURIComponent(tournament.entryFee)}&cu=INR&tn=${encodeURIComponent(`Entry fee - ${tournament.name}`)}`;
+          const upiUrl = `upi://pay?pa=${encodeURIComponent(tournament.upiId)}&pn=${encodeURIComponent(tournament.upiPayeeName || tournament.name)}&am=${encodeURIComponent(tournament.entryFee)}&cu=INR&tn=${encodeURIComponent(buildUpiNote(tournament))}&tr=${encodeURIComponent(buildUpiRef(tournament))}`;
           const dataUrl = await QRCode.toDataURL(upiUrl, {
             width: 260,
             margin: 1,
