@@ -474,7 +474,43 @@ export const addPlayer = async (player) => {
 
     if (existingPlayer) {
       console.log('⏭️  Player already exists in main module:', existingPlayer.name);
-      return existingPlayer; // Return existing player instead of creating duplicate
+
+      // Compare incoming details with the stored record and update anything
+      // that changed (e.g. the player re-registered with a new photo, place,
+      // position, etc.), so the master Players record stays current.
+      const fieldsToSync = ['name', 'dateOfBirth', 'bloodGroup', 'place', 'position'];
+      const updates = {};
+
+      fieldsToSync.forEach((field) => {
+        const incomingValue = player[field];
+        if (
+          incomingValue !== undefined &&
+          incomingValue !== '' &&
+          incomingValue !== existingPlayer[field]
+        ) {
+          updates[field] = incomingValue;
+        }
+      });
+
+      // Handle photo separately since it may need uploading to storage
+      if (player.photo) {
+        let incomingPhotoURL = player.photo;
+        if (player.photo.startsWith('data:image/')) {
+          incomingPhotoURL = await uploadPhotoToStorage(player.photo, existingPlayer.id);
+        }
+        if (incomingPhotoURL && incomingPhotoURL !== existingPlayer.photo) {
+          updates.photo = incomingPhotoURL;
+        }
+      }
+
+      if (Object.keys(updates).length > 0) {
+        updates.updatedAt = new Date().toISOString();
+        await update(dbRef(database, `players/${existingPlayer.id}`), updates);
+        console.log('🔄 Updated changed player details in main module:', Object.keys(updates));
+        return { ...existingPlayer, ...updates };
+      }
+
+      return existingPlayer; // No changes - return existing player as-is
     }
 
     const playersRef = dbRef(database, 'players');
