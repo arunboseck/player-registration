@@ -106,6 +106,7 @@ const TournamentRegister = () => {
   const [utrNumber, setUtrNumber] = useState('');
   const [paymentError, setPaymentError] = useState('');
   const [upiCopied, setUpiCopied] = useState(false);
+  const [upiPhoneCopied, setUpiPhoneCopied] = useState(false);
 
   useEffect(() => {
     const loadTournament = async () => {
@@ -155,6 +156,15 @@ const TournamentRegister = () => {
       navigator.clipboard.writeText(tournament.upiId).then(() => {
         setUpiCopied(true);
         setTimeout(() => setUpiCopied(false), 2000);
+      }).catch(() => {});
+    }
+  };
+
+  const handleCopyUpiPhoneNumber = () => {
+    if (tournament?.upiPhoneNumber) {
+      navigator.clipboard.writeText(tournament.upiPhoneNumber).then(() => {
+        setUpiPhoneCopied(true);
+        setTimeout(() => setUpiPhoneCopied(false), 2000);
       }).catch(() => {});
     }
   };
@@ -625,6 +635,17 @@ const TournamentRegister = () => {
                 </button>
               </div>
             </div>
+            {tournament.upiPhoneNumber && (
+              <div className="upi-detail-row">
+                <span className="upi-detail-label">Pay via Phone Number</span>
+                <div className="upi-id-copy">
+                  <span className="upi-detail-value">{tournament.upiPhoneNumber}</span>
+                  <button type="button" className="upi-copy-btn" onClick={handleCopyUpiPhoneNumber}>
+                    {upiPhoneCopied ? '✓ Copied' : 'Copy'}
+                  </button>
+                </div>
+              </div>
+            )}
             <div className="upi-detail-row">
               <span className="upi-detail-label">Payee Name</span>
               <span className="upi-detail-value">{tournament.upiPayeeName || tournament.name}</span>

@@ -36,6 +36,7 @@ const EditTournament = () => {
     paymentEnabled: false,
     upiId: '',
     upiPayeeName: '',
+    upiPhoneNumber: '',
     entryFee: '',
     allowExistingPlayerSearch: true,
     showJerseyDetails: true,
@@ -58,6 +59,7 @@ const EditTournament = () => {
           paymentEnabled: false,
           upiId: '',
           upiPayeeName: '',
+          upiPhoneNumber: '',
           entryFee: '',
           allowExistingPlayerSearch: true,
           showJerseyDetails: true,
@@ -203,6 +205,9 @@ const EditTournament = () => {
       }
       if (!formData.upiPayeeName.trim()) {
         newErrors.upiPayeeName = 'Payee name is required when payment is enabled';
+      }
+      if (formData.upiPhoneNumber.trim() && !/^[6-9]\d{9}$/.test(formData.upiPhoneNumber.trim())) {
+        newErrors.upiPhoneNumber = 'Enter a valid 10-digit mobile number';
       }
       if (!formData.entryFee || Number(formData.entryFee) <= 0) {
         newErrors.entryFee = 'Enter a valid entry fee amount';
@@ -512,6 +517,21 @@ const EditTournament = () => {
                       />
                       {errors.upiPayeeName && <span className="error-message">{errors.upiPayeeName}</span>}
                     </div>
+                  </div>
+                  <div className="form-group">
+                    <label>UPI-Linked Mobile Number (optional)</label>
+                    <input
+                      type="text"
+                      name="upiPhoneNumber"
+                      value={formData.upiPhoneNumber}
+                      onChange={handleChange}
+                      placeholder="e.g. 9876543210"
+                      style={{ maxWidth: '200px' }}
+                    />
+                    <small style={{ display: 'block', color: '#6b7280', fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                      Shown to payers who prefer paying via this phone number instead of the UPI ID.
+                    </small>
+                    {errors.upiPhoneNumber && <span className="error-message">{errors.upiPhoneNumber}</span>}
                   </div>
                   <div className="form-group">
                     <label>Entry Fee (₹) *</label>
