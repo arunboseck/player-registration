@@ -58,7 +58,7 @@ const formatBanDuration = (startDate, endDate) => {
  * fixes the note not appearing when scanning the QR with GPay's scanner.
  */
 const buildUpiNote = (tournament) => {
-  const note = `Entry fee-${tournament.name}`;
+  const note = tournament.name || '';
   return note.length > 25 ? note.slice(0, 25) : note;
 };
 
