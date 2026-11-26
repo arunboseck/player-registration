@@ -281,6 +281,15 @@ const TournamentRegistrations = () => {
       position: registration.position,
       photo: registration.photo || null,
       newPhoto: null, // For new uploaded photo
+      jerseyName: registration.jerseyName || '',
+      jerseyNumber: registration.jerseyNumber || '',
+      tshirtSize: registration.tshirtSize || '',
+      shortSize: registration.shortSize || '',
+      sleeveType: registration.sleeveType || '',
+      paymentStatus: registration.paymentStatus || '',
+      utrNumber: registration.utrNumber || '',
+      paymentScreenshot: registration.paymentScreenshot || null,
+      newPaymentScreenshot: null, // For a newly uploaded payment screenshot
     });
     setEditModal({ show: true, registration });
   };
@@ -306,6 +315,20 @@ const TournamentRegistrations = () => {
         setEditFormData(prev => ({
           ...prev,
           newPhoto: reader.result // base64
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEditPaymentScreenshotChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditFormData(prev => ({
+          ...prev,
+          newPaymentScreenshot: reader.result // base64
         }));
       };
       reader.readAsDataURL(file);
@@ -345,6 +368,14 @@ const TournamentRegistrations = () => {
         console.log('✅ Photo uploaded to Cloudinary:', photoURL);
       }
 
+      let paymentScreenshotURL = editFormData.paymentScreenshot || '';
+      if (editFormData.newPaymentScreenshot) {
+        console.log('📤 Uploading new payment screenshot to Cloudinary...');
+        const tempId = `edit_pay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        paymentScreenshotURL = await uploadPhotoToStorage(editFormData.newPaymentScreenshot, tempId);
+        console.log('✅ Payment screenshot uploaded to Cloudinary:', paymentScreenshotURL);
+      }
+
       // Prepare updated data
       const updatedData = {
         name: editFormData.name,
@@ -353,19 +384,32 @@ const TournamentRegistrations = () => {
         dateOfBirth: editFormData.dateOfBirth,
         bloodGroup: editFormData.bloodGroup,
         position: editFormData.position,
-        photo: photoURL
+        photo: photoURL,
+        jerseyName: editFormData.jerseyName || '',
+        jerseyNumber: editFormData.jerseyNumber || '',
+        tshirtSize: editFormData.tshirtSize || '',
+        shortSize: editFormData.shortSize || '',
+        sleeveType: editFormData.sleeveType || '',
+        ...(editModal.registration?.paymentStatus !== undefined && {
+          paymentStatus: editFormData.paymentStatus || 'pending',
+          utrNumber: editFormData.utrNumber || '',
+          paymentScreenshot: paymentScreenshotURL,
+        }),
       };
 
       // Update tournament registration
       const result = await updateRegistration(id, editModal.registration.id, updatedData);
 
       if (result.success) {
-        // Also update player in global players list (by mobile number)
+        // Also update player in global players list (by mobile number).
+        // Jersey and payment fields are tournament-specific and are
+        // intentionally left out of the master player record.
         console.log('🔄 Updating player in global list...');
         try {
           const player = await getPlayerByMobile(editFormData.mobile.trim());
           if (player && player.id) {
-            await updatePlayer(player.id, updatedData);
+            const { jerseyName, jerseyNumber, tshirtSize, shortSize, sleeveType, paymentStatus, utrNumber, paymentScreenshot, ...basePlayerData } = updatedData;
+            await updatePlayer(player.id, basePlayerData);
             console.log('✅ Player updated in global list');
           } else {
             console.log('⚠️ Player not found in global list, skipping update');
@@ -1912,6 +1956,165 @@ const TournamentRegistrations = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Jersey Details */}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="edit-jerseyName">Jersey Name</label>
+                    <input
+                      type="text"
+                      id="edit-jerseyName"
+                      name="jerseyName"
+                      value={editFormData.jerseyName || ''}
+                      onChange={handleEditFormChange}
+                      placeholder="Enter jersey name"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="edit-jerseyNumber">Jersey Number</label>
+                    <input
+                      type="text"
+                      id="edit-jerseyNumber"
+                      name="jerseyNumber"
+                      value={editFormData.jerseyNumber || ''}
+                      onChange={handleEditFormChange}
+                      placeholder="Enter jersey number"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="edit-tshirtSize">T-Shirt Size</label>
+                    <input
+                      type="text"
+                      id="edit-tshirtSize"
+                      name="tshirtSize"
+                      value={editFormData.tshirtSize || ''}
+                      onChange={handleEditFormChange}
+                      placeholder="e.g. M, L, XL"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="edit-shortSize">Short Size</label>
+                    <input
+                      type="text"
+                      id="edit-shortSize"
+                      name="shortSize"
+                      value={editFormData.shortSize || ''}
+                      onChange={handleEditFormChange}
+                      placeholder="e.g. M, L, XL"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="edit-sleeveType">Sleeve Type</label>
+                    <select
+                      id="edit-sleeveType"
+                      name="sleeveType"
+                      value={editFormData.sleeveType || ''}
+                      onChange={handleEditFormChange}
+                    >
+                      <option value="">Select Sleeve Type</option>
+                      <option value="Half Sleeve">Half Sleeve</option>
+                      <option value="Full Sleeve">Full Sleeve</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Payment Details — only for tournaments that collect payment */}
+                {editModal.registration?.paymentStatus !== undefined && (
+                  <>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label htmlFor="edit-paymentStatus">Payment Status</label>
+                        <select
+                          id="edit-paymentStatus"
+                          name="paymentStatus"
+                          value={editFormData.paymentStatus || 'pending'}
+                          onChange={handleEditFormChange}
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="verified">Verified</option>
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="edit-utrNumber">UTR Number</label>
+                        <input
+                          type="text"
+                          id="edit-utrNumber"
+                          name="utrNumber"
+                          value={editFormData.utrNumber || ''}
+                          onChange={handleEditFormChange}
+                          placeholder="Enter UTR / transaction reference"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="edit-paymentScreenshot">Payment Screenshot</label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
+                        {(editFormData.newPaymentScreenshot || editFormData.paymentScreenshot) && (
+                          <div
+                            style={{
+                              width: '80px',
+                              height: '80px',
+                              borderRadius: '8px',
+                              overflow: 'hidden',
+                              border: '3px solid #667eea',
+                              flexShrink: 0,
+                              cursor: 'pointer'
+                            }}
+                            onClick={() => handlePhotoClick(
+                              editFormData.newPaymentScreenshot || editFormData.paymentScreenshot,
+                              'Payment Screenshot'
+                            )}
+                          >
+                            <img
+                              src={editFormData.newPaymentScreenshot || editFormData.paymentScreenshot}
+                              alt="Payment Screenshot"
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          </div>
+                        )}
+                        <div style={{ flex: 1 }}>
+                          <input
+                            type="file"
+                            id="edit-paymentScreenshot"
+                            accept="image/*"
+                            onChange={handleEditPaymentScreenshotChange}
+                            style={{ display: 'none' }}
+                          />
+                          <label
+                            htmlFor="edit-paymentScreenshot"
+                            style={{
+                              display: 'inline-block',
+                              padding: '0.75rem 1.5rem',
+                              backgroundColor: '#667eea',
+                              color: 'white',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              fontSize: '0.9rem',
+                              fontWeight: '600',
+                              transition: 'all 0.3s ease'
+                            }}
+                            onMouseEnter={(e) => e.target.style.backgroundColor = '#5568d3'}
+                            onMouseLeave={(e) => e.target.style.backgroundColor = '#667eea'}
+                          >
+                            💳 {editFormData.newPaymentScreenshot ? 'Change Screenshot' : (editFormData.paymentScreenshot ? 'Update Screenshot' : 'Upload Screenshot')}
+                          </label>
+                          {editFormData.newPaymentScreenshot && (
+                            <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#22c55e' }}>
+                              ✅ New screenshot selected
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </form>
             </div>
             <div className="modal-footer">
