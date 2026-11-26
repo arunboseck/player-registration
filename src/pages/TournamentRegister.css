@@ -2169,6 +2169,42 @@
   text-align: center;
 }
 
+@media (max-width: 768px) {
+  .upi-payment-section {
+    padding: 1.25rem;
+  }
+
+  .upi-payment-body {
+    gap: 1.25rem;
+  }
+
+  .upi-qr-wrap {
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 1rem;
+  }
+
+  .upi-details-wrap {
+    flex: 1 1 100%;
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .upi-payment-section {
+    padding: 1rem;
+  }
+
+  .upi-qr-image,
+  .upi-qr-placeholder {
+    width: 170px;
+    height: 170px;
+  }
+}
+
 .upi-detail-row {
   display: flex;
   align-items: center;
