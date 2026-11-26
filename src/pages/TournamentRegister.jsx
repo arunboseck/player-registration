@@ -638,12 +638,6 @@ const TournamentRegister = () => {
             {tournament.upiId && tournament.entryFee && (
               <div className="upi-app-buttons">
                 <a
-                  className="upi-app-btn upi-app-btn-gpay"
-                  href={buildUpiAppLink(tournament, 'tez://upi/pay')}
-                >
-                  Pay with Google Pay
-                </a>
-                <a
                   className="upi-app-btn upi-app-btn-phonepe"
                   href={buildUpiAppLink(tournament, 'phonepe://pay')}
                 >
