@@ -58,6 +58,25 @@ const buildUpiRef = (tournament) => {
   return `TRN${(tournament.id || '').replace(/[^a-zA-Z0-9.-]/g, '').slice(0, 30)}`;
 };
 
+/*
+ * App-specific UPI deep links (same payload as the QR code, just a
+ * different URI scheme per app). NOTE: NPCI's UPI Consolidated Circular
+ * (clause 7.9) requires Payer PSPs to block P2P intent-based transactions -
+ * i.e. any app-to-app "pay" link (this button, a QR scan, doesn't matter)
+ * targeting a *personal* VPA can be declined by the payer's bank with a
+ * generic "bank limit reached" / "transaction failed" message. This is a
+ * regulatory restriction enforced by the banks, not something a website can
+ * work around via the URL payload (dropping the note, changing the amount
+ * format, etc. does not change this). If a payer's bank enforces it, they
+ * must fall back to scanning the QR code or paying manually via the UPI ID /
+ * phone number below - both still work since the app treats that as a
+ * normal person-initiated payment rather than a merchant-site redirect.
+ */
+const buildUpiAppLink = (tournament, scheme) => {
+  const params = `pa=${encodeURIComponent(tournament.upiId)}&pn=${encodeURIComponent(tournament.upiPayeeName || tournament.name)}&am=${encodeURIComponent(tournament.entryFee)}&cu=INR&tn=${encodeURIComponent(buildUpiNote(tournament))}&tr=${encodeURIComponent(buildUpiRef(tournament))}`;
+  return `${scheme}?${params}`;
+};
+
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 const POSITIONS = [
   'ALL ROUNDER', 'LEFT ARM MEDIUM (BOWLING)', 'LEFT ARM FAST MEDIUM (BOWLING)',
@@ -615,6 +634,28 @@ const TournamentRegister = () => {
               <div className="upi-qr-placeholder">Generating QR code…</div>
             )}
             <p className="upi-qr-hint">👆 Scan this with your UPI app's camera/scanner to pay</p>
+
+            {tournament.upiId && tournament.entryFee && (
+              <div className="upi-app-buttons">
+                <a
+                  className="upi-app-btn upi-app-btn-gpay"
+                  href={buildUpiAppLink(tournament, 'tez://upi/pay')}
+                >
+                  Pay with Google Pay
+                </a>
+                <a
+                  className="upi-app-btn upi-app-btn-phonepe"
+                  href={buildUpiAppLink(tournament, 'phonepe://pay')}
+                >
+                  Pay with PhonePe
+                </a>
+                <p className="upi-app-btn-hint">
+                  If your app shows "bank limit reached" or "transaction failed",
+                  please scan the QR code above instead - this is a bank-side
+                  restriction on direct app links, not an error on our end.
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="upi-details-wrap">
