@@ -105,6 +105,37 @@ const TournamentRegister = () => {
   const monthRef = useRef(null);
   const yearRef = useRef(null);
 
+  // Refs for mandatory fields, used to auto-scroll/focus the first missing
+  // field on submit (iOS Safari does not show/scroll to its native
+  // required-field validation UI, so we handle this ourselves).
+  const nameRef = useRef(null);
+  const mobileRef = useRef(null);
+  const bloodGroupRef = useRef(null);
+  const placeRef = useRef(null);
+  const positionRef = useRef(null);
+  const photoRef = useRef(null);
+  const jerseyNameRef = useRef(null);
+  const jerseyNumberRef = useRef(null);
+  const tshirtSizeRef = useRef(null);
+  const shortSizeRef = useRef(null);
+  const sleeveTypeRef = useRef(null);
+  const paymentScreenshotRef = useRef(null);
+
+  // Scrolls the given field into view, focuses it, and shows the error message.
+  const goToInvalidField = (ref, message) => {
+    setError(true);
+    setErrorMessage(message);
+    setTimeout(() => {
+      setError(false);
+      setErrorMessage('');
+    }, 5000);
+    if (ref?.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Delay focus slightly so it happens after the smooth scroll settles.
+      setTimeout(() => ref.current?.focus(), 300);
+    }
+  };
+
   // Two-step registration states
   const [showSearch, setShowSearch] = useState(true);
   const [searchMobile, setSearchMobile] = useState('');
@@ -429,31 +460,67 @@ const TournamentRegister = () => {
       return;
     }
 
-    // Validate photo is uploaded
-    if (!formData.photo) {
-      setError(true);
-      setErrorMessage('Player photo is required. Please upload a photo before submitting.');
-      setTimeout(() => {
-        setError(false);
-        setErrorMessage('');
-      }, 5000);
+    // Validate every mandatory field in the order it appears on the form,
+    // and auto-scroll/focus the first one that's missing so the user can
+    // fill it in right away (iOS Safari doesn't show/scroll to its own
+    // native required-field validation UI, so we can't rely on that alone).
+    if (!formData.name.trim()) {
+      goToInvalidField(nameRef, 'Please enter the player\'s full name.');
       return;
     }
-
-    // Validate mobile number format
     if (!formData.mobile || formData.mobile.length < 10) {
-      setError(true);
-      setErrorMessage('Please enter a valid 10-digit mobile number.');
-      setTimeout(() => {
-        setError(false);
-        setErrorMessage('');
-      }, 5000);
+      goToInvalidField(mobileRef, 'Please enter a valid 10-digit mobile number.');
       return;
+    }
+    if (!formData.dateOfBirth) {
+      goToInvalidField(dayRef, 'Please enter the player\'s date of birth.');
+      return;
+    }
+    if (!formData.bloodGroup) {
+      goToInvalidField(bloodGroupRef, 'Please select a blood group.');
+      return;
+    }
+    if (!formData.place.trim()) {
+      goToInvalidField(placeRef, 'Please enter the player\'s place.');
+      return;
+    }
+    if (!formData.position) {
+      goToInvalidField(positionRef, 'Please select a position.');
+      return;
+    }
+    if (!formData.photo) {
+      goToInvalidField(photoRef, 'Player photo is required. Please upload a photo before submitting.');
+      return;
+    }
+    if (tournament?.showJerseyDetails !== false) {
+      if (!formData.jerseyName.trim()) {
+        goToInvalidField(jerseyNameRef, 'Please enter the jersey name.');
+        return;
+      }
+      if (!formData.jerseyNumber.trim()) {
+        goToInvalidField(jerseyNumberRef, 'Please enter the jersey number.');
+        return;
+      }
+      if (!formData.tshirtSize.trim()) {
+        goToInvalidField(tshirtSizeRef, 'Please enter the T-shirt size.');
+        return;
+      }
+      if (!formData.shortSize.trim()) {
+        goToInvalidField(shortSizeRef, 'Please enter the short size.');
+        return;
+      }
+      if (!formData.sleeveType) {
+        goToInvalidField(sleeveTypeRef, 'Please select a sleeve type.');
+        return;
+      }
     }
 
     // Require payment screenshot when payment collection is enabled for this tournament
     if (tournament?.paymentEnabled && !paymentScreenshot) {
       setPaymentError('Please upload your payment screenshot to complete registration.');
+      if (paymentScreenshotRef.current) {
+        paymentScreenshotRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
 
@@ -668,7 +735,7 @@ const TournamentRegister = () => {
 
             <div className="upi-upload-group">
               <label>Upload Payment Screenshot *</label>
-              <input type="file" accept="image/*" onChange={handlePaymentScreenshotChange} />
+              <input ref={paymentScreenshotRef} type="file" accept="image/*" onChange={handlePaymentScreenshotChange} />
               {paymentScreenshot && (
                 <div className="photo-preview upi-screenshot-preview">
                   <img src={paymentScreenshot} alt="Payment Screenshot" />
@@ -1376,11 +1443,12 @@ const TournamentRegister = () => {
                 <div className="form-row">
                   <div className="form-group">
                     <label>Full Name *</label>
-                    <input type="text" name="name" value={formData.name} onChange={handleChange} required />
+                    <input ref={nameRef} type="text" name="name" value={formData.name} onChange={handleChange} required />
                   </div>
                   <div className="form-group">
                     <label>Mobile Number *</label>
                     <input
+                      ref={mobileRef}
                       type="tel"
                       name="mobile"
                       value={formData.mobile}
@@ -1449,7 +1517,7 @@ const TournamentRegister = () => {
                   </div>
                   <div className="form-group">
                     <label>Blood Group *</label>
-                    <select name="bloodGroup" value={formData.bloodGroup} onChange={handleChange} required>
+                    <select ref={bloodGroupRef} name="bloodGroup" value={formData.bloodGroup} onChange={handleChange} required>
                       <option value="">Select Blood Group</option>
                       {BLOOD_GROUPS.map(bg => <option key={bg} value={bg}>{bg}</option>)}
                     </select>
@@ -1459,11 +1527,11 @@ const TournamentRegister = () => {
                 <div className="form-row">
                   <div className="form-group">
                     <label>Place *</label>
-                    <input type="text" name="place" value={formData.place} onChange={handleChange} required />
+                    <input ref={placeRef} type="text" name="place" value={formData.place} onChange={handleChange} required />
                   </div>
                   <div className="form-group">
                     <label>Position *</label>
-                    <select name="position" value={formData.position} onChange={handleChange} required>
+                    <select ref={positionRef} name="position" value={formData.position} onChange={handleChange} required>
                       <option value="">Select Position</option>
                       {POSITIONS.map(pos => <option key={pos} value={pos}>{pos}</option>)}
                     </select>
@@ -1472,7 +1540,7 @@ const TournamentRegister = () => {
 
                 <div className="form-group" style={{marginBottom: '1.25rem'}}>
                   <label>Player Photo *</label>
-                  <input type="file" accept="image/*" onChange={handlePhotoChange} required />
+                  <input ref={photoRef} type="file" accept="image/*" onChange={handlePhotoChange} required />
                   {formData.photo && (
                     <div className="photo-preview">
                       <img src={formData.photo} alt="Preview" />
@@ -1490,29 +1558,29 @@ const TournamentRegister = () => {
                     <div className="form-row">
                       <div className="form-group">
                         <label>Jersey Name *</label>
-                        <input type="text" name="jerseyName" value={formData.jerseyName} onChange={handleChange} required />
+                        <input ref={jerseyNameRef} type="text" name="jerseyName" value={formData.jerseyName} onChange={handleChange} required />
                       </div>
                       <div className="form-group">
                         <label>Jersey Number *</label>
-                        <input type="text" name="jerseyNumber" value={formData.jerseyNumber} onChange={handleChange} required />
+                        <input ref={jerseyNumberRef} type="text" name="jerseyNumber" value={formData.jerseyNumber} onChange={handleChange} required />
                       </div>
                     </div>
 
                     <div className="form-row">
                       <div className="form-group">
                         <label>T-Shirt Size *</label>
-                        <input type="text" name="tshirtSize" value={formData.tshirtSize} onChange={handleChange} placeholder="e.g. M, L, XL" required />
+                        <input ref={tshirtSizeRef} type="text" name="tshirtSize" value={formData.tshirtSize} onChange={handleChange} placeholder="e.g. M, L, XL" required />
                       </div>
                       <div className="form-group">
                         <label>Short Size *</label>
-                        <input type="text" name="shortSize" value={formData.shortSize} onChange={handleChange} placeholder="e.g. M, L, XL" required />
+                        <input ref={shortSizeRef} type="text" name="shortSize" value={formData.shortSize} onChange={handleChange} placeholder="e.g. M, L, XL" required />
                       </div>
                     </div>
 
                     <div className="form-row">
                       <div className="form-group">
                         <label>Sleeve Type *</label>
-                        <select name="sleeveType" value={formData.sleeveType} onChange={handleChange} required>
+                        <select ref={sleeveTypeRef} name="sleeveType" value={formData.sleeveType} onChange={handleChange} required>
                           <option value="">Select Sleeve Type</option>
                           <option value="Half Sleeve">Half Sleeve</option>
                           <option value="Full Sleeve">Full Sleeve</option>
