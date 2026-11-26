@@ -390,7 +390,7 @@ const TournamentRegistrations = () => {
         tshirtSize: editFormData.tshirtSize || '',
         shortSize: editFormData.shortSize || '',
         sleeveType: editFormData.sleeveType || '',
-        ...(editModal.registration?.paymentStatus !== undefined && {
+        ...((tournament?.paymentEnabled || editModal.registration?.paymentStatus !== undefined) && {
           paymentStatus: editFormData.paymentStatus || 'pending',
           utrNumber: editFormData.utrNumber || '',
           paymentScreenshot: paymentScreenshotURL,
@@ -2025,7 +2025,7 @@ const TournamentRegistrations = () => {
                 </div>
 
                 {/* Payment Details — only for tournaments that collect payment */}
-                {editModal.registration?.paymentStatus !== undefined && (
+                {(tournament?.paymentEnabled || editModal.registration?.paymentStatus !== undefined) && (
                   <>
                     <div className="form-row">
                       <div className="form-group">
