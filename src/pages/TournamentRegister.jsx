@@ -634,22 +634,6 @@ const TournamentRegister = () => {
               <div className="upi-qr-placeholder">Generating QR code…</div>
             )}
             <p className="upi-qr-hint">👆 Scan this with your UPI app's camera/scanner to pay</p>
-
-            {tournament.upiId && tournament.entryFee && (
-              <div className="upi-app-buttons">
-                <a
-                  className="upi-app-btn upi-app-btn-phonepe"
-                  href={buildUpiAppLink(tournament, 'phonepe://pay')}
-                >
-                  Pay with PhonePe
-                </a>
-                <p className="upi-app-btn-hint">
-                  If your app shows "bank limit reached" or "transaction failed",
-                  please scan the QR code above instead - this is a bank-side
-                  restriction on direct app links, not an error on our end.
-                </p>
-              </div>
-            )}
           </div>
 
           <div className="upi-details-wrap">
