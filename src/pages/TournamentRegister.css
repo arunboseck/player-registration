@@ -40,6 +40,34 @@
   50% { transform: translate(30px, -30px) scale(1.1); }
 }
 
+/* Tournament description (organizer-authored rich text, rendered via
+   dangerouslySetInnerHTML) - constrain it so pasted images, tables or long
+   unbroken text/links can't push the page wider than the viewport. */
+.tournament-description-richtext {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.tournament-description-richtext img,
+.tournament-description-richtext video,
+.tournament-description-richtext iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+.tournament-description-richtext table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.tournament-description-richtext pre {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
 /* Loading Spinner Animation */
 @keyframes spin {
   0% { transform: rotate(0deg); }
@@ -645,7 +673,7 @@
 /* Responsive Design */
 @media (max-width: 1200px) {
   .public-register-content {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1.5rem;
     max-height: none;
   }
@@ -675,7 +703,7 @@
   }
 
   .public-register-content {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     max-height: none;
     gap: 1.25rem;
     width: 100%;
@@ -2011,7 +2039,7 @@
 @media (max-width: 768px) {
   /* Make organizer sidebar full width on mobile */
   .tournament-register-layout {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
     gap: 1.5rem !important;
   }
 
